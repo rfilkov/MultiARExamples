@@ -10,8 +10,8 @@ public class MultiARManager : MonoBehaviour
 	[Tooltip("Whether to get the tracked feature points.")]
 	public bool getPointCloud = false;
 
-	[Tooltip("Particle system used to display the tracked feature points in the scene.")]
-	public ParticleSystem displayPointCloud;
+	[Tooltip("Mesh used to display the tracked feature points in the scene.")]
+	public MeshFilter displayPointCloud;
 
 
 	[Tooltip("UI-Text to display information messages.")]
@@ -33,7 +33,8 @@ public class MultiARManager : MonoBehaviour
 
 	// the last time the point cloud was displayed
 	protected double lastPointCloudTimestamp = 0.0;
-
+	// mesh used to display the point cloud
+	protected Mesh pointCloudMesh = null;
 
 	/// <summary>
 	/// Gets the instance of MultiARManager.
@@ -159,6 +160,16 @@ public class MultiARManager : MonoBehaviour
 		}
 	}
 
+	void Start()
+	{
+		// initialize secondary things
+		if (displayPointCloud) 
+		{
+			pointCloudMesh = displayPointCloud.mesh;
+			pointCloudMesh.Clear();
+		}
+	}
+
 	void OnDestroy()
 	{
 		if(instanceInited)
@@ -173,8 +184,17 @@ public class MultiARManager : MonoBehaviour
 		if(displayPointCloud && arData.pointCloudTimestamp > lastPointCloudTimestamp)
 		{
 			// display the point cloud
-
 			lastPointCloudTimestamp = arData.pointCloudTimestamp;
+
+			int[] indices = new int[arData.pointCloudLength];
+			for (int i = 0; i < arData.pointCloudLength; i++)
+			{
+				indices[i] = i;
+			}
+
+			pointCloudMesh.Clear();
+			pointCloudMesh.vertices = arData.pointCloudData;
+			pointCloudMesh.SetIndices(indices, MeshTopology.Points, 0);
 		}
 	}
 

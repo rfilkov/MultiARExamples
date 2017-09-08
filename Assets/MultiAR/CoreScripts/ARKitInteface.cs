@@ -190,7 +190,7 @@ public class ARKitInteface : MonoBehaviour, ARPlatformInterface
 		currentLight.transform.rotation = Quaternion.Euler(40f, 40f, 0f);
 
 		// set light parameters
-		currentLight.lightmapBakeType = LightmapBakeType.Mixed;
+		//currentLight.lightmapBakeType = LightmapBakeType.Mixed;
 		currentLight.color = new Color32(255, 254, 244, 255);
 
 		// add the needed component

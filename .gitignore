@@ -1,3 +1,8 @@
 /Library/
 /obj/
 /Packages/
+/Builds/
+/Assembly-CSharp-Editor.csproj
+/Assembly-CSharp.csproj
+/MultiAR.sln
+/MultiAR.userprefs
