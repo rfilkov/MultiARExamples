@@ -1,0 +1,22 @@
+﻿<Properties StartupItem="Assembly-CSharp.csproj">
+  <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" PreferredExecutionTarget="Unity.Instance.Unity Editor" />
+  <MonoDevelop.Ide.Workbench ActiveDocument="Assets\MultiAR\CoreScripts\MultiARManager.cs">
+    <Files>
+      <File FileName="Assets\MultiAR\CoreScripts\MultiARManager.cs" Line="116" Column="1" />
+      <File FileName="Assets\MultiAR\CoreScripts\ARCoreInteface.cs" Line="120" Column="1" />
+      <File FileName="Assets\MultiAR\CoreScripts\ARKitInteface.cs" Line="226" Column="1" />
+      <File FileName="Assets\MultiAR\CoreScripts\ARPlatformInterface.cs" Line="1" Column="1" />
+      <File FileName="Assets\UnityARKitPlugin\Plugins\iOS\UnityARKit\Helpers\UnityARHitTestExample.cs" Line="1" Column="1" />
+      <File FileName="Assets\UnityARKitPlugin\Plugins\iOS\UnityARKit\Helpers\PointCloudParticleExample.cs" Line="1" Column="1" />
+    </Files>
+  </MonoDevelop.Ide.Workbench>
+  <MonoDevelop.Ide.DebuggingService.Breakpoints>
+    <BreakpointStore>
+      <Breakpoint file="E:\gitprojects\Unity\MultiAR\Assets\MultiAR\CoreScripts\ARKitInteface.cs" line="145" column="1" />
+      <Breakpoint file="E:\gitprojects\Unity\MultiAR\Assets\MultiAR\CoreScripts\ARKitInteface.cs" line="232" column="1" />
+      <Breakpoint file="E:\gitprojects\Unity\MultiAR\Assets\MultiAR\CoreScripts\ARKitInteface.cs" line="223" column="1" />
+      <Breakpoint file="E:\gitprojects\Unity\MultiAR\Assets\MultiAR\CoreScripts\ARKitInteface.cs" line="205" column="1" />
+    </BreakpointStore>
+  </MonoDevelop.Ide.DebuggingService.Breakpoints>
+  <MonoDevelop.Ide.DebuggingService.PinnedWatches />
+</Properties>
