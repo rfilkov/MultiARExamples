@@ -90,7 +90,7 @@ public class ARCoreInteface : MonoBehaviour, ARPlatformInterface
 	/// <returns><c>true</c>, if a plane was hit, <c>false</c> otherwise.</returns>
 	/// <param name="screenPos">Screen position.</param>
 	/// <param name="hit">Hit data.</param>
-	public bool RaycastWorld(Vector2 screenPos, out MultiARInterop.TrackableHit hit)
+	public bool RaycastScreenToWorld(Vector2 screenPos, out MultiARInterop.TrackableHit hit)
 	{
 		hit = new MultiARInterop.TrackableHit();
 		if(!isInitialized)
@@ -108,7 +108,7 @@ public class ARCoreInteface : MonoBehaviour, ARPlatformInterface
 			// Create an anchor to allow ARCore to track the hitpoint as understanding of the physical
 			// world evolves.
 			Anchor anchor = Session.CreateAnchor(hit.point, Quaternion.identity);
-			hit.anchor = anchor.gameObject;
+			hit.anchor = anchor.transform;
 			hit.anchorId = anchor.Id;
 
 			return true;

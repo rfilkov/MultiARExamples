@@ -58,16 +58,30 @@ public class MultiARManager : MonoBehaviour
 	}
 
 	/// <summary>
+	/// Gets the AR main camera.
+	/// </summary>
+	/// <returns>The AR main camera.</returns>
+	public Camera GetMainCamera()
+	{
+		if(arInterface != null)
+		{
+			return arInterface.GetMainCamera();
+		}
+
+		return null;
+	}
+
+	/// <summary>
 	/// Raycasts from screen point to the world.
 	/// </summary>
 	/// <returns><c>true</c>, if a plane was hit, <c>false</c> otherwise.</returns>
 	/// <param name="screenPos">Screen position.</param>
 	/// <param name="hit">Hit data.</param>
-	public bool RaycastWorld(Vector2 screenPos, out MultiARInterop.TrackableHit hit)
+	public bool RaycastScreenToWorld(Vector2 screenPos, out MultiARInterop.TrackableHit hit)
 	{
 		if(arInterface != null)
 		{
-			return arInterface.RaycastWorld(screenPos, out hit);
+			return arInterface.RaycastScreenToWorld(screenPos, out hit);
 		}
 
 		hit = new MultiARInterop.TrackableHit();

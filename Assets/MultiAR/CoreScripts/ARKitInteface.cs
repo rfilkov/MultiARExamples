@@ -88,7 +88,7 @@ public class ARKitInteface : MonoBehaviour, ARPlatformInterface
 	/// <returns><c>true</c>, if a plane was hit, <c>false</c> otherwise.</returns>
 	/// <param name="screenPos">Screen position.</param>
 	/// <param name="hit">Hit data.</param>
-	public bool RaycastWorld(Vector2 screenPos, out MultiARInterop.TrackableHit hit)
+	public bool RaycastScreenToWorld(Vector2 screenPos, out MultiARInterop.TrackableHit hit)
 	{
 		hit = new MultiARInterop.TrackableHit();
 		if(!isInitialized)

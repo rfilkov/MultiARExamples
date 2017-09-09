@@ -46,6 +46,6 @@ public interface ARPlatformInterface
 	/// <returns><c>true</c>, if a plane was hit, <c>false</c> otherwise.</returns>
 	/// <param name="screenPos">Screen position.</param>
 	/// <param name="hit">Hit data.</param>
-	bool RaycastWorld(Vector2 screenPos, out MultiARInterop.TrackableHit hit);
+	bool RaycastScreenToWorld(Vector2 screenPos, out MultiARInterop.TrackableHit hit);
 
 }

@@ -27,7 +27,7 @@ public class MultiARInterop
 		public Plane plane;
 
 		public string anchorId;
-		public GameObject anchor;
+		public Transform anchor;
 	}
 
 	/// <summary>
