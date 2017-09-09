@@ -4,4 +4,7 @@
 EditorBuildSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 2
-  m_Scenes: []
+  m_Scenes:
+  - enabled: 1
+    path: Assets/MultiAR/DemoScenes/SimpleARDemo.unity
+    guid: 759cf221615bf61408e8f2b4db46803b
