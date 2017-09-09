@@ -23,8 +23,6 @@ public class ARCoreInteface : MonoBehaviour, ARPlatformInterface
 	private Camera mainCamera;
 
 
-	private const int MAX_POINT_COUNT = 61440;
-
 
 	/// <summary>
 	/// Gets the AR platform supported by the interface.
@@ -41,7 +39,11 @@ public class ARCoreInteface : MonoBehaviour, ARPlatformInterface
 	/// <returns><c>true</c> if the platform is available; otherwise, <c>false</c>.</returns>
 	public bool IsPlatformAvailable()
 	{
+#if UNITY_EDITOR || UNITY_ANDROID
 		return true;
+#else
+		return false;
+#endif
 	}
 
 	/// <summary>
@@ -159,7 +161,7 @@ public class ARCoreInteface : MonoBehaviour, ARPlatformInterface
 		{
 			MultiARInterop.MultiARData arData = arManager.GetARData();
 
-			arData.pointCloudData = new Vector3[MAX_POINT_COUNT];
+			arData.pointCloudData = new Vector3[MultiARInterop.MAX_POINT_COUNT];
 			arData.pointCloudLength = 0;
 			arData.pointCloudTimestamp = 0.0;
 		}

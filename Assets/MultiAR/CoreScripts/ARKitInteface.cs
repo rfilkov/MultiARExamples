@@ -38,7 +38,11 @@ public class ARKitInteface : MonoBehaviour, ARPlatformInterface
 	/// <returns><c>true</c> if the platform is available; otherwise, <c>false</c>.</returns>
 	public bool IsPlatformAvailable()
 	{
+#if UNITY_EDITOR || UNITY_IOS
 		return true;
+#else
+		return false;
+#endif
 	}
 
 	/// <summary>

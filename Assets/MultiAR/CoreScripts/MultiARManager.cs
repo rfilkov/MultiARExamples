@@ -10,8 +10,8 @@ public class MultiARManager : MonoBehaviour
 	[Tooltip("Whether to get the tracked feature points.")]
 	public bool getPointCloud = false;
 
-	[Tooltip("Mesh used to display the tracked feature points in the scene.")]
-	public MeshFilter displayPointCloud;
+	[Tooltip("Mesh-prefab used to display the feature points in the scene.")]
+	public GameObject displayPointCloud;
 
 
 	[Tooltip("UI-Text to display information messages.")]
@@ -162,11 +162,17 @@ public class MultiARManager : MonoBehaviour
 
 	void Start()
 	{
-		// initialize secondary things
+		// initialize point cloud
 		if (displayPointCloud) 
 		{
-			pointCloudMesh = displayPointCloud.mesh;
-			pointCloudMesh.Clear();
+			GameObject pointCloudObj = Instantiate(displayPointCloud);
+			MeshFilter pointCloudMF = pointCloudObj.GetComponent<MeshFilter>();
+
+			if (pointCloudMF) 
+			{
+				pointCloudMesh = pointCloudMF.mesh;
+				pointCloudMesh.Clear();
+			}
 		}
 	}
 
@@ -181,20 +187,21 @@ public class MultiARManager : MonoBehaviour
 
 	void Update () 
 	{
+		// display the point cloud
 		if(displayPointCloud && arData.pointCloudTimestamp > lastPointCloudTimestamp)
 		{
-			// display the point cloud
 			lastPointCloudTimestamp = arData.pointCloudTimestamp;
+			int pointCloudLen = arData.pointCloudLength < MultiARInterop.MAX_POINT_COUNT ? arData.pointCloudLength : MultiARInterop.MAX_POINT_COUNT;
 
-			int[] indices = new int[arData.pointCloudLength];
-			for (int i = 0; i < arData.pointCloudLength; i++)
+			int[] indices = new int[pointCloudLen];
+			for (int i = 0; i < pointCloudLen; i++)
 			{
 				indices[i] = i;
 			}
 
 			pointCloudMesh.Clear();
 			pointCloudMesh.vertices = arData.pointCloudData;
-			pointCloudMesh.SetIndices(indices, MeshTopology.Points, 0);
+			pointCloudMesh.SetIndices(indices, MeshTopology.Points, 0, false);
 		}
 	}
 

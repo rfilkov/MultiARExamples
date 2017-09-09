@@ -42,6 +42,12 @@ public class MultiARInterop
 	}
 
 	/// <summary>
+	/// Maximum point count used for the point-cloud mesh
+	/// </summary>
+	public const int MAX_POINT_COUNT = 61440;
+
+
+	/// <summary>
 	/// Gets the main camera in the scene
 	/// </summary>
 	/// <returns>The main camera.</returns>
