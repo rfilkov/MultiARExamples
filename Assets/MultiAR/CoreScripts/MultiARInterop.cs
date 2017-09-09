@@ -15,6 +15,16 @@ public class MultiARInterop
 		WindowsMR = 3
 	}
 
+	/// <summary>
+	/// Tracking state for AR frames.
+	/// </summary>
+	public enum CameraTrackingState : int
+	{
+		Unknown = -1,
+		NotInitialized = 0,
+		LostTracking = 1,
+		NormalTracking = 2
+	}
 
 	/// <summary>
 	/// Contains information about a raycast hit against a physical object

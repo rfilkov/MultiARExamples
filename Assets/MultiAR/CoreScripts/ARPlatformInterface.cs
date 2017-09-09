@@ -35,10 +35,28 @@ public interface ARPlatformInterface
 	bool IsInitialized();
 
 	/// <summary>
-	/// Gets the main camera.
+	/// Gets the AR main camera.
 	/// </summary>
-	/// <returns>The main camera.</returns>
+	/// <returns>The AR main camera.</returns>
 	Camera GetMainCamera();
+
+	/// <summary>
+	/// Gets AR-detected light intensity.
+	/// </summary>
+	/// <returns>The light intensity.</returns>
+	float GetLightIntensity();
+
+	/// <summary>
+	/// Gets the last frame timestamp.
+	/// </summary>
+	/// <returns>The last frame timestamp.</returns>
+	double GetLastFrameTimestamp();
+
+	/// <summary>
+	/// Gets the state of the camera tracking.
+	/// </summary>
+	/// <returns>The camera tracking state.</returns>
+	MultiARInterop.CameraTrackingState GetCameraTrackingState();
 
 	/// <summary>
 	/// Raycasts from screen point to the world.

@@ -66,7 +66,9 @@ namespace GoogleARCore
         public static Anchor InstantiateAnchor(Vector3 position, Quaternion rotation,
             out Action<double> updateTracking, out Action<AnchorTrackingState> updateTrackingState)
         {
-            Anchor anchor = (new GameObject()).AddComponent<Anchor>();
+            //Anchor anchor = (new GameObject()).AddComponent<Anchor>();
+			Anchor anchor = (GameObject.CreatePrimitive(PrimitiveType.Cube)).AddComponent<Anchor>();
+			anchor.transform.localScale = new Vector3(0.1f, 0.2f, 0.1f);
             anchor.gameObject.name = "Anchor";
             anchor.Id = Guid.NewGuid().ToString();
             anchor.TrackingState = AnchorTrackingState.Tracking;

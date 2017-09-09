@@ -231,7 +231,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4a9964692d3e5bd489c065dc631df4c7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  preferredPlatform: 0
+  preferredPlatform: 1
   getPointCloud: 1
   displayPointCloud: {fileID: 1707953204718416, guid: 2f471897ca3904978b6ce3a09dae9a0f,
     type: 2}
@@ -289,7 +289,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4e11df46fd01f7c489e86fd062185e6c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  objectPrefab: {fileID: 1314564862065668, guid: 823b7e6aef16b94419bcb997e27d007b,
+  objectPrefab: {fileID: 1453204674062930, guid: 4909b1d942e338f448b7db6f8709b51c,
     type: 2}
 --- !u!1 &1340707753
 GameObject:

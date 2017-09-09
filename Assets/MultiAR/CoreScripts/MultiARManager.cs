@@ -36,6 +36,11 @@ public class MultiARManager : MonoBehaviour
 	// mesh used to display the point cloud
 	protected Mesh pointCloudMesh = null;
 
+	// current frame timestamp and camera tracking state
+	protected double lastFrameTimestamp = 0.0;
+	protected MultiARInterop.CameraTrackingState cameraTrackingState = MultiARInterop.CameraTrackingState.Unknown;
+
+
 	/// <summary>
 	/// Gets the instance of MultiARManager.
 	/// </summary>
@@ -69,6 +74,34 @@ public class MultiARManager : MonoBehaviour
 		}
 
 		return null;
+	}
+
+	/// <summary>
+	/// Gets AR-detected light intensity.
+	/// </summary>
+	/// <returns>The light intensity.</returns>
+	public float GetLightIntensity()
+	{
+		if(arInterface != null)
+		{
+			return arInterface.GetLightIntensity();
+		}
+
+		return 0f;
+	}
+
+	/// <summary>
+	/// Gets the state of the camera tracking.
+	/// </summary>
+	/// <returns>The camera tracking state.</returns>
+	public MultiARInterop.CameraTrackingState GetCameraTrackingState()
+	{
+		if(arInterface != null)
+		{
+			return arInterface.GetCameraTrackingState();
+		}
+
+		return MultiARInterop.CameraTrackingState.Unknown;
 	}
 
 	/// <summary>
@@ -201,6 +234,31 @@ public class MultiARManager : MonoBehaviour
 
 	void Update () 
 	{
+		if(arInterface != null)
+		{
+			// get last frame timestamp and tracking state
+			lastFrameTimestamp = arInterface.GetLastFrameTimestamp();
+			cameraTrackingState = arInterface.GetCameraTrackingState();
+		}
+
+		// show the tracking state
+		if(infoText)
+		{
+			infoText.text = "Tracker: " + arInterface.GetCameraTrackingState() + 
+				string.Format(", Light: {0:F3}", arInterface.GetLightIntensity()) +
+				"\nTimestamp: " + lastFrameTimestamp.ToString();
+		}
+
+		// check the tracking state
+		if (arInterface == null || cameraTrackingState != MultiARInterop.CameraTrackingState.NormalTracking)
+		{
+			const int LOST_TRACKING_SLEEP_TIMEOUT = 15;
+			Screen.sleepTimeout = LOST_TRACKING_SLEEP_TIMEOUT;
+			return;
+		}
+
+		Screen.sleepTimeout = SleepTimeout.NeverSleep;
+
 		// display the point cloud
 		if(displayPointCloud && arData.pointCloudTimestamp > lastPointCloudTimestamp)
 		{

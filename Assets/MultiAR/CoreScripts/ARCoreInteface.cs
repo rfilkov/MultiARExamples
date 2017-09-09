@@ -22,6 +22,17 @@ public class ARCoreInteface : MonoBehaviour, ARPlatformInterface
 	// reference to the AR camera in the scene
 	private Camera mainCamera;
 
+	// reference to the AR directional light
+	//private Light directionalLight;
+
+	// last frame timestamp
+	private double lastFrameTimestamp = 0.0;
+
+	// current tracking state
+	private FrameTrackingState cameraTrackingState = FrameTrackingState.TrackingNotInitialized;
+
+	// current light intensity
+	protected float currentLightIntensity = 0f;
 
 
 	/// <summary>
@@ -83,6 +94,42 @@ public class ARCoreInteface : MonoBehaviour, ARPlatformInterface
 		return mainCamera;
 	}
 
+	/// <summary>
+	/// Gets AR-detected light intensity.
+	/// </summary>
+	/// <returns>The light intensity.</returns>
+	public float GetLightIntensity()
+	{
+		return currentLightIntensity;
+	}
+
+	/// <summary>
+	/// Gets the last frame timestamp.
+	/// </summary>
+	/// <returns>The last frame timestamp.</returns>
+	public double GetLastFrameTimestamp()
+	{
+		return lastFrameTimestamp;
+	}
+
+	/// <summary>
+	/// Gets the state of the camera tracking.
+	/// </summary>
+	/// <returns>The camera tracking state.</returns>
+	public MultiARInterop.CameraTrackingState GetCameraTrackingState()
+	{
+		switch(cameraTrackingState)
+		{
+		case FrameTrackingState.TrackingNotInitialized:
+			return MultiARInterop.CameraTrackingState.NotInitialized;
+		case FrameTrackingState.LostTracking:
+			return MultiARInterop.CameraTrackingState.LostTracking;
+		case FrameTrackingState.Tracking:
+			return MultiARInterop.CameraTrackingState.NormalTracking;
+		}
+
+		return MultiARInterop.CameraTrackingState.Unknown;
+	}
 
 	/// <summary>
 	/// Raycasts from screen point to the world.
@@ -148,7 +195,7 @@ public class ARCoreInteface : MonoBehaviour, ARPlatformInterface
 		GameObject arCoreDeviceObj = Instantiate(arCoreDevicePrefab, Vector3.zero, Quaternion.identity);
 		arCoreDeviceObj.name = "ARCore Device";
 
-		// get reference to the AR camera
+		// reference to the AR main camera
 		mainCamera = arCoreDeviceObj.GetComponentInChildren<Camera>();
 
 		// create AR environmental light
@@ -157,7 +204,10 @@ public class ARCoreInteface : MonoBehaviour, ARPlatformInterface
 		//envLight.transform.rotation = Quaternion.identity;
 		envLight.AddComponent<EnvironmentalLight>();
 
-		if(arManager.getPointCloud)
+		// reference to the AR directional light
+		//directionalLight = envLight.GetComponent<Light>();
+
+		if(arManager && arManager.getPointCloud)
 		{
 			MultiARInterop.MultiARData arData = arManager.GetARData();
 
@@ -177,22 +227,23 @@ public class ARCoreInteface : MonoBehaviour, ARPlatformInterface
 
 	void Update()
 	{
+		if(!isInitialized)
+			return;
+		
 		_QuitOnConnectionErrors();
 
-		// The tracking state must be FrameTrackingState.Tracking in order to access the Frame.
-		if (Frame.TrackingState != FrameTrackingState.Tracking)
+		// frame timestamp & tracking state
+		cameraTrackingState = Frame.TrackingState;
+		if(cameraTrackingState != FrameTrackingState.TrackingNotInitialized)
 		{
-			const int LOST_TRACKING_SLEEP_TIMEOUT = 15;
-			Screen.sleepTimeout = LOST_TRACKING_SLEEP_TIMEOUT;
-			return;
+			lastFrameTimestamp = Frame.Timestamp;
+			currentLightIntensity = Frame.LightEstimate.PixelIntensity;
 		}
 
-		Screen.sleepTimeout = SleepTimeout.NeverSleep;
-
-		// get ar-data holder
+		// get point cloud, if needed
 		MultiARInterop.MultiARData arData = arManager.GetARData();
 
-		if(arManager.getPointCloud)
+		if(arManager.getPointCloud && cameraTrackingState != FrameTrackingState.TrackingNotInitialized)
 		{
 			PointCloud pointcloud = Frame.PointCloud;
 			if (pointcloud.PointCount > 0 && pointcloud.Timestamp > arData.pointCloudTimestamp)

@@ -20,8 +20,23 @@ public class ARKitInteface : MonoBehaviour, ARPlatformInterface
 	// reference to the AR camera in the scene
 	private Camera mainCamera;
 
+	// reference to the AR directional light
+	private Light directionalLight;
+
 	// whether the frame event was added or not
 	private bool isARFrameEventAdded = false;
+
+	// last frame timestamp
+	private double lastFrameTimestamp = 0.0;
+
+	// current tracking state
+	private ARTrackingState cameraTrackingState = ARTrackingState.ARTrackingStateNotAvailable;
+	private ARTrackingStateReason cameraTrackingReason = ARTrackingStateReason.ARTrackingStateReasonNone;
+
+	// current light intensity
+	protected float currentLightIntensity = 0f;
+	protected float currentColorTemperature = 0f;
+
 
 	/// <summary>
 	/// Gets the AR platform supported by the interface.
@@ -80,6 +95,43 @@ public class ARKitInteface : MonoBehaviour, ARPlatformInterface
 	public Camera GetMainCamera()
 	{
 		return mainCamera;
+	}
+
+	/// <summary>
+	/// Gets the last frame timestamp.
+	/// </summary>
+	/// <returns>The last frame timestamp.</returns>
+	public double GetLastFrameTimestamp()
+	{
+		return lastFrameTimestamp;
+	}
+
+	/// <summary>
+	/// Gets AR-detected light intensity.
+	/// </summary>
+	/// <returns>The light intensity.</returns>
+	public float GetLightIntensity()
+	{
+		return currentLightIntensity;
+	}
+
+	/// <summary>
+	/// Gets the state of the camera tracking.
+	/// </summary>
+	/// <returns>The camera tracking state.</returns>
+	public MultiARInterop.CameraTrackingState GetCameraTrackingState()
+	{
+		switch(cameraTrackingState)
+		{
+		case ARTrackingState.ARTrackingStateNotAvailable:
+			return MultiARInterop.CameraTrackingState.NotInitialized;
+		case ARTrackingState.ARTrackingStateLimited:
+			return MultiARInterop.CameraTrackingState.LostTracking;
+		case ARTrackingState.ARTrackingStateNormal:
+			return MultiARInterop.CameraTrackingState.NormalTracking;
+		}
+
+		return MultiARInterop.CameraTrackingState.Unknown;
 	}
 
 	/// <summary>
@@ -164,6 +216,7 @@ public class ARKitInteface : MonoBehaviour, ARPlatformInterface
 		currentCamera.nearClipPlane = 0.1f;
 		currentCamera.farClipPlane = 30f;
 
+		// reference to the AR main camera
 		mainCamera = currentCamera;
 
 		// add camera parent
@@ -200,6 +253,9 @@ public class ARKitInteface : MonoBehaviour, ARPlatformInterface
 		// add the needed component
 		currentLight.gameObject.AddComponent<UnityARAmbient>();
 
+		// reference to the AR directional light
+		directionalLight = currentLight;
+
 		// create camera manager
 		GameObject camManagerObj = new GameObject("ARCameraManager");
 		UnityARCameraManager camManager = camManagerObj.AddComponent<UnityARCameraManager>();
@@ -213,10 +269,12 @@ public class ARKitInteface : MonoBehaviour, ARPlatformInterface
 			arData.pointCloudData = new Vector3[0];
 			arData.pointCloudLength = 0;
 			arData.pointCloudTimestamp = 0.0;
-
-			UnityARSessionNativeInterface.ARFrameUpdatedEvent += ARFrameUpdated;
-			isARFrameEventAdded = true;
 		}
+
+		// add needed events
+		UnityARSessionNativeInterface.ARFrameUpdatedEvent += ARFrameUpdated;
+		UnityARSessionNativeInterface.ARSessionTrackingChangedEvent += ARSessionTrackingChanged;
+		isARFrameEventAdded = true;
 
 		// interface is initialized
 		isInitialized = true;
@@ -228,16 +286,42 @@ public class ARKitInteface : MonoBehaviour, ARPlatformInterface
 		{
 			isARFrameEventAdded = false;
 			UnityARSessionNativeInterface.ARFrameUpdatedEvent -= ARFrameUpdated;
+			UnityARSessionNativeInterface.ARSessionTrackingChangedEvent -= ARSessionTrackingChanged;
 		}
 	}
 
 	public void ARFrameUpdated(UnityARCamera camera)
 	{
-		MultiARInterop.MultiARData arData = arManager.GetARData();
+		// current timestamp
+		lastFrameTimestamp = System.DateTime.Now.Ticks;
 
-		arData.pointCloudData = camera.pointCloudData;
-		arData.pointCloudLength = arData.pointCloudData.Length;
-		arData.pointCloudTimestamp = System.DateTime.Now.Ticks;
+		// current light intensity
+		currentLightIntensity = camera.lightEstimation.ambientIntensity / 1000f;
+		currentColorTemperature = camera.lightEstimation.ambientColorTemperature;
+
+		// point cloud
+		if(arManager.getPointCloud)
+		{
+			MultiARInterop.MultiARData arData = arManager.GetARData();
+
+			arData.pointCloudData = camera.pointCloudData;
+			arData.pointCloudLength = arData.pointCloudData.Length;
+			arData.pointCloudTimestamp = lastFrameTimestamp;
+		}
+	}
+
+	public void ARSessionTrackingChanged(UnityARCamera camera)
+	{
+		cameraTrackingState = camera.trackingState;
+		cameraTrackingReason = camera.trackingReason;
+	}
+
+	void Update()
+	{
+		if(!isInitialized)
+			return;
+
+		// ....
 	}
 
 

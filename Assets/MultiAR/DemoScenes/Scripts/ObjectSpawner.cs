@@ -23,7 +23,8 @@ public class ObjectSpawner : MonoBehaviour
 		if (Input.touchCount > 0 && objectPrefab && arManager)
 		{
 			Touch touch = Input.GetTouch(0);
-			if (touch.phase == TouchPhase.Began || touch.phase == TouchPhase.Moved)
+
+			if (touch.phase == TouchPhase.Began)
 			{
 				MultiARInterop.TrackableHit hit;
 				if(arManager.RaycastScreenToWorld(touch.position, out hit))
@@ -38,8 +39,9 @@ public class ObjectSpawner : MonoBehaviour
 					//	anchor.transform);
 
 					GameObject spawnObj = Instantiate(objectPrefab, hit.point, Quaternion.identity);
-					Camera arCamera = arManager.GetMainCamera();
+					spawnObj.transform.SetParent(hit.anchor, true);
 
+					Camera arCamera = arManager.GetMainCamera();
 					if(arCamera)
 					{
 						spawnObj.transform.LookAt(arCamera.transform);
