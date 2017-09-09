@@ -22,7 +22,7 @@ public class MultiARInterop
 	{
 		Unknown = -1,
 		NotInitialized = 0,
-		LostTracking = 1,
+		LimitedTracking = 1,
 		NormalTracking = 2
 	}
 

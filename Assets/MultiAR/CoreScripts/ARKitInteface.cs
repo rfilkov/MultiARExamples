@@ -21,7 +21,7 @@ public class ARKitInteface : MonoBehaviour, ARPlatformInterface
 	private Camera mainCamera;
 
 	// reference to the AR directional light
-	private Light directionalLight;
+	//private Light directionalLight;
 
 	// whether the frame event was added or not
 	private bool isARFrameEventAdded = false;
@@ -125,13 +125,27 @@ public class ARKitInteface : MonoBehaviour, ARPlatformInterface
 		{
 		case ARTrackingState.ARTrackingStateNotAvailable:
 			return MultiARInterop.CameraTrackingState.NotInitialized;
-		case ARTrackingState.ARTrackingStateLimited:
-			return MultiARInterop.CameraTrackingState.LostTracking;
-		case ARTrackingState.ARTrackingStateNormal:
+		case ARTrackingState.ARTrackingStateNormal:  // should be ARTrackingState.ARTrackingStateLimited
+			return MultiARInterop.CameraTrackingState.LimitedTracking;
+		case ARTrackingState.ARTrackingStateLimited:  // should be ARTrackingState.ARTrackingStateNormal
 			return MultiARInterop.CameraTrackingState.NormalTracking;
 		}
 
 		return MultiARInterop.CameraTrackingState.Unknown;
+	}
+
+	/// <summary>
+	/// Gets the tracking error message, if any.
+	/// </summary>
+	/// <returns>The tracking error message.</returns>
+	public string GetTrackingErrorMessage()
+	{
+		if (cameraTrackingReason != ARTrackingStateReason.ARTrackingStateReasonNone) 
+		{
+			return cameraTrackingReason.ToString();
+		}
+
+		return string.Empty;
 	}
 
 	/// <summary>
@@ -254,7 +268,7 @@ public class ARKitInteface : MonoBehaviour, ARPlatformInterface
 		currentLight.gameObject.AddComponent<UnityARAmbient>();
 
 		// reference to the AR directional light
-		directionalLight = currentLight;
+		//directionalLight = currentLight;
 
 		// create camera manager
 		GameObject camManagerObj = new GameObject("ARCameraManager");
@@ -293,7 +307,7 @@ public class ARKitInteface : MonoBehaviour, ARPlatformInterface
 	public void ARFrameUpdated(UnityARCamera camera)
 	{
 		// current timestamp
-		lastFrameTimestamp = System.DateTime.Now.Ticks;
+		lastFrameTimestamp = GetCurrentTimestamp();
 
 		// current light intensity
 		currentLightIntensity = camera.lightEstimation.ambientIntensity / 1000f;
@@ -314,6 +328,15 @@ public class ARKitInteface : MonoBehaviour, ARPlatformInterface
 	{
 		cameraTrackingState = camera.trackingState;
 		cameraTrackingReason = camera.trackingReason;
+	}
+
+	// returns the timestamp in seconds
+	private double GetCurrentTimestamp()
+	{
+		double dTimestamp = System.DateTime.Now.Ticks;
+		dTimestamp /= 10000000.0;
+
+		return dTimestamp;
 	}
 
 	void Update()

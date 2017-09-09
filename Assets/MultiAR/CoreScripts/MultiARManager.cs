@@ -244,7 +244,7 @@ public class MultiARManager : MonoBehaviour
 		// show the tracking state
 		if(infoText)
 		{
-			infoText.text = "Tracker: " + arInterface.GetCameraTrackingState() + 
+			infoText.text = "Tracker: " + arInterface.GetCameraTrackingState() + " " + arInterface.GetTrackingErrorMessage() +
 				string.Format(", Light: {0:F3}", arInterface.GetLightIntensity()) +
 				"\nTimestamp: " + lastFrameTimestamp.ToString();
 		}

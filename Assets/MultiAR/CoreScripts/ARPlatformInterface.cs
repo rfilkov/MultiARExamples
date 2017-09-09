@@ -59,6 +59,12 @@ public interface ARPlatformInterface
 	MultiARInterop.CameraTrackingState GetCameraTrackingState();
 
 	/// <summary>
+	/// Gets the tracking error message, if any.
+	/// </summary>
+	/// <returns>The tracking error message.</returns>
+	string GetTrackingErrorMessage();
+
+	/// <summary>
 	/// Raycasts from screen point to the world.
 	/// </summary>
 	/// <returns><c>true</c>, if a plane was hit, <c>false</c> otherwise.</returns>
