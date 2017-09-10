@@ -207,6 +207,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   yuvMaterial: {fileID: 2100000, guid: f1d9352050a75486f878ab19fa578f16, type: 2}
+  trackedPlanePrefab: {fileID: 1372998203143648, guid: f879aaf3eeb0c467eb22cbaf08dc97a4,
+    type: 2}
 --- !u!114 &1070661730
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -219,6 +221,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   arCoreDevicePrefab: {fileID: 1905656715913530, guid: c10877f7cd5764de18d46d7b777d1faa,
+    type: 2}
+  trackedPlanePrefab: {fileID: 1654175882956584, guid: 6a35c744e5010405c847fad90282d2be,
     type: 2}
 --- !u!114 &1070661731
 MonoBehaviour:
@@ -233,8 +237,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   preferredPlatform: 1
   getPointCloud: 1
-  displayPointCloud: {fileID: 1707953204718416, guid: 2f471897ca3904978b6ce3a09dae9a0f,
+  pointCloudPrefab: {fileID: 1707953204718416, guid: 2f471897ca3904978b6ce3a09dae9a0f,
     type: 2}
+  displayTrackedSurfaces: 1
   infoText: {fileID: 2051310032}
 --- !u!4 &1070661732
 Transform:
@@ -553,17 +558,17 @@ RectTransform:
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 2051310030}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -1030.6481, y: 488.15115, z: 0}
+  m_LocalPosition: {x: 0, y: 488.15115, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 1698441236}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
-  m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 10, y: -10}
-  m_SizeDelta: {x: 800, y: 120}
-  m_Pivot: {x: 0, y: 1}
+  m_AnchorMax: {x: 1, y: 1}
+  m_AnchoredPosition: {x: 0, y: -10}
+  m_SizeDelta: {x: -20, y: 120}
+  m_Pivot: {x: 0.5, y: 1}
 --- !u!114 &2051310032
 MonoBehaviour:
   m_ObjectHideFlags: 0

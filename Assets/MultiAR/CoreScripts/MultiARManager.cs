@@ -10,8 +10,11 @@ public class MultiARManager : MonoBehaviour
 	[Tooltip("Whether to get the tracked feature points.")]
 	public bool getPointCloud = false;
 
-	[Tooltip("Mesh-prefab used to display the feature points in the scene.")]
-	public GameObject displayPointCloud;
+	[Tooltip("Mesh-prefab used to display the point cloud in the scene.")]
+	public GameObject pointCloudPrefab;
+
+	[Tooltip("Whether to display the tracked surfaces.")]
+	public bool displayTrackedSurfaces = false;
 
 
 	[Tooltip("UI-Text to display information messages.")]
@@ -91,6 +94,20 @@ public class MultiARManager : MonoBehaviour
 	}
 
 	/// <summary>
+	/// Gets the last frame timestamp.
+	/// </summary>
+	/// <returns>The last frame timestamp.</returns>
+	public double GetLastFrameTimestamp()
+	{
+		if(arInterface != null)
+		{
+			return arInterface.GetLastFrameTimestamp();
+		}
+
+		return 0.0;
+	}
+
+	/// <summary>
 	/// Gets the state of the camera tracking.
 	/// </summary>
 	/// <returns>The camera tracking state.</returns>
@@ -102,23 +119,6 @@ public class MultiARManager : MonoBehaviour
 		}
 
 		return MultiARInterop.CameraTrackingState.Unknown;
-	}
-
-	/// <summary>
-	/// Raycasts from screen point to the world.
-	/// </summary>
-	/// <returns><c>true</c>, if a plane was hit, <c>false</c> otherwise.</returns>
-	/// <param name="screenPos">Screen position.</param>
-	/// <param name="hit">Hit data.</param>
-	public bool RaycastScreenToWorld(Vector2 screenPos, out MultiARInterop.TrackableHit hit)
-	{
-		if(arInterface != null)
-		{
-			return arInterface.RaycastScreenToWorld(screenPos, out hit);
-		}
-
-		hit = new MultiARInterop.TrackableHit();
-		return false;
 	}
 
 	/// <summary>
@@ -140,6 +140,67 @@ public class MultiARManager : MonoBehaviour
 		System.Array.Copy(arData.pointCloudData, pcData, arData.pointCloudLength);
 
 		return pcData;
+	}
+
+	/// <summary>
+	/// Gets the tracked planes timestamp.
+	/// </summary>
+	/// <returns>The tracked planes timestamp.</returns>
+	public double GetTrackedPlanesTimestamp()
+	{
+		if(arInterface != null)
+		{
+			return arInterface.GetTrackedPlanesTimestamp();
+		}
+
+		return 0.0;
+	}
+
+	/// <summary>
+	/// Gets the count of currently tracked planes.
+	/// </summary>
+	/// <returns>The tracked planes count.</returns>
+	public int GetTrackedPlanesCount()
+	{
+		if(arInterface != null)
+		{
+			return arInterface.GetTrackedPlanesCount();
+		}
+
+		return 0;
+	}
+
+	/// <summary>
+	/// Gets the currently tracked planes.
+	/// </summary>
+	/// <returns>The tracked planes.</returns>
+	public MultiARInterop.TrackedPlane[] GetTrackedPlanes()
+	{
+		if(arInterface != null)
+		{
+			return arInterface.GetTrackedPlanes();
+		}
+
+		// no tracked planes
+		MultiARInterop.TrackedPlane[] trackedPlanes = new MultiARInterop.TrackedPlane[0];
+		return trackedPlanes;
+	}
+
+	/// <summary>
+	/// Raycasts from screen point to the world.
+	/// </summary>
+	/// <returns><c>true</c>, if a plane was hit, <c>false</c> otherwise.</returns>
+	/// <param name="screenPos">Screen position.</param>
+	/// <param name="hit">Hit data.</param>
+	public bool RaycastScreenToWorld(Vector2 screenPos, out MultiARInterop.TrackableHit hit)
+	{
+		if(arInterface != null)
+		{
+			return arInterface.RaycastScreenToWorld(screenPos, out hit);
+		}
+
+		hit = new MultiARInterop.TrackableHit();
+		return false;
 	}
 
 	// -- // -- // -- // -- // -- // -- // -- // -- // -- // -- //
@@ -210,9 +271,9 @@ public class MultiARManager : MonoBehaviour
 	void Start()
 	{
 		// initialize point cloud
-		if (displayPointCloud) 
+		if (pointCloudPrefab) 
 		{
-			GameObject pointCloudObj = Instantiate(displayPointCloud);
+			GameObject pointCloudObj = Instantiate(pointCloudPrefab);
 			MeshFilter pointCloudMF = pointCloudObj.GetComponent<MeshFilter>();
 
 			if (pointCloudMF) 
@@ -244,8 +305,11 @@ public class MultiARManager : MonoBehaviour
 		// show the tracking state
 		if(infoText)
 		{
+			int numPlanes = GetTrackedPlanesCount();
+			MultiARInterop.TrackedPlane[] trackedPlanes = GetTrackedPlanes();
+
 			infoText.text = "Tracker: " + arInterface.GetCameraTrackingState() + " " + arInterface.GetTrackingErrorMessage() +
-				string.Format(", Light: {0:F3}", arInterface.GetLightIntensity()) +
+				string.Format(", Light: {0:F3}", arInterface.GetLightIntensity()) + ", Planes: " + numPlanes +
 				"\nTimestamp: " + lastFrameTimestamp.ToString();
 		}
 
@@ -260,7 +324,7 @@ public class MultiARManager : MonoBehaviour
 		Screen.sleepTimeout = SleepTimeout.NeverSleep;
 
 		// display the point cloud
-		if(displayPointCloud && arData.pointCloudTimestamp > lastPointCloudTimestamp)
+		if(pointCloudPrefab && arData.pointCloudTimestamp > lastPointCloudTimestamp)
 		{
 			lastPointCloudTimestamp = arData.pointCloudTimestamp;
 			int pointCloudLen = arData.pointCloudLength < MultiARInterop.MAX_POINT_COUNT ? arData.pointCloudLength : MultiARInterop.MAX_POINT_COUNT;

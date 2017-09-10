@@ -41,6 +41,16 @@ public class MultiARInterop
 	}
 
 	/// <summary>
+	/// Contains information about the currently tracked planes
+	/// </summary>
+	public struct TrackedPlane
+	{
+		public Vector3 position;
+		public Quaternion rotation;
+		public Vector2 bounds;
+	}
+
+	/// <summary>
 	/// Contains the most actual AR-data
 	/// </summary>
 	public class MultiARData

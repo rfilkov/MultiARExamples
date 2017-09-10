@@ -8,6 +8,9 @@ public class ARKitInteface : MonoBehaviour, ARPlatformInterface
 	[Tooltip("Material used for camera background.")]
 	public Material yuvMaterial;
 
+	[Tooltip("Reference to the TrackedPlane prefab.")]
+	public GameObject trackedPlanePrefab;
+
 	[Tooltip("Whether the interface is enabled by MultiARManager.")]
 	private bool isInterfaceEnabled = false;
 
@@ -24,7 +27,7 @@ public class ARKitInteface : MonoBehaviour, ARPlatformInterface
 	//private Light directionalLight;
 
 	// whether the frame event was added or not
-	private bool isARFrameEventAdded = false;
+	private bool isAREventsAdded = false;
 
 	// last frame timestamp
 	private double lastFrameTimestamp = 0.0;
@@ -36,6 +39,12 @@ public class ARKitInteface : MonoBehaviour, ARPlatformInterface
 	// current light intensity
 	protected float currentLightIntensity = 0f;
 	protected float currentColorTemperature = 0f;
+
+	// tracked planes timestamp
+	private double trackedPlanesTimestamp = 0.0;
+
+	// plane anchors and visualizations
+	private Dictionary<string, ARPlaneAnchorGameObject> planeAnchorMap = new Dictionary<string, ARPlaneAnchorGameObject>();
 
 
 	/// <summary>
@@ -146,6 +155,54 @@ public class ARKitInteface : MonoBehaviour, ARPlatformInterface
 		}
 
 		return string.Empty;
+	}
+
+	/// <summary>
+	/// Gets the tracked planes timestamp.
+	/// </summary>
+	/// <returns>The tracked planes timestamp.</returns>
+	public double GetTrackedPlanesTimestamp()
+	{
+		return trackedPlanesTimestamp;
+	}
+
+	/// <summary>
+	/// Gets the count of currently tracked planes.
+	/// </summary>
+	/// <returns>The tracked planes count.</returns>
+	public int GetTrackedPlanesCount()
+	{
+		return planeAnchorMap.Count;
+	}
+
+	/// <summary>
+	/// Gets the currently tracked planes.
+	/// </summary>
+	/// <returns>The tracked planes.</returns>
+	public MultiARInterop.TrackedPlane[] GetTrackedPlanes()
+	{
+		MultiARInterop.TrackedPlane[] trackedPlanes = new MultiARInterop.TrackedPlane[planeAnchorMap.Count];
+
+		// get current planes list
+		List<ARPlaneAnchorGameObject> listPlaneObjs = new List<ARPlaneAnchorGameObject>(planeAnchorMap.Values);
+		int i = 0;
+
+		foreach (ARPlaneAnchorGameObject arpag in listPlaneObjs) 
+		{
+			ARPlaneAnchor planeAnchor = arpag.planeAnchor;
+			trackedPlanes[i] = new MultiARInterop.TrackedPlane();
+
+			trackedPlanes[i].position = UnityARMatrixOps.GetPosition(planeAnchor.transform);
+			trackedPlanes[i].rotation = UnityARMatrixOps.GetRotation(planeAnchor.transform);
+			trackedPlanes[i].bounds = new Vector2(planeAnchor.extent.x * 0.1f, planeAnchor.extent.z * 0.1f);
+
+			i++;
+		}
+
+		// clear temporary lists
+		listPlaneObjs.Clear();
+
+		return trackedPlanes;
 	}
 
 	/// <summary>
@@ -275,7 +332,7 @@ public class ARKitInteface : MonoBehaviour, ARPlatformInterface
 		UnityARCameraManager camManager = camManagerObj.AddComponent<UnityARCameraManager>();
 		camManager.m_camera = currentCamera;
 
-		// check for point cloud
+		// check for point cloud getter
 		if(arManager.getPointCloud)
 		{
 			MultiARInterop.MultiARData arData = arManager.GetARData();
@@ -285,10 +342,22 @@ public class ARKitInteface : MonoBehaviour, ARPlatformInterface
 			arData.pointCloudTimestamp = 0.0;
 		}
 
+		// check for tracked plane display
+		if(arManager.displayTrackedSurfaces && trackedPlanePrefab)
+		{
+			UnityARUtility.InitializePlanePrefab(trackedPlanePrefab);
+		}
+
 		// add needed events
 		UnityARSessionNativeInterface.ARFrameUpdatedEvent += ARFrameUpdated;
 		UnityARSessionNativeInterface.ARSessionTrackingChangedEvent += ARSessionTrackingChanged;
-		isARFrameEventAdded = true;
+
+		UnityARSessionNativeInterface.ARAnchorAddedEvent += AddPlaneAnchor;
+		UnityARSessionNativeInterface.ARAnchorUpdatedEvent += UpdatePlaneAnchor;
+		UnityARSessionNativeInterface.ARAnchorRemovedEvent += RemovePlaneAnchor;
+
+		isAREventsAdded = true;
+
 
 		// interface is initialized
 		isInitialized = true;
@@ -296,14 +365,35 @@ public class ARKitInteface : MonoBehaviour, ARPlatformInterface
 
 	public void OnDestroy()
 	{
-		if(isARFrameEventAdded)
+		// remove event handlers
+		if(isAREventsAdded)
 		{
-			isARFrameEventAdded = false;
+			isAREventsAdded = false;
+
 			UnityARSessionNativeInterface.ARFrameUpdatedEvent -= ARFrameUpdated;
 			UnityARSessionNativeInterface.ARSessionTrackingChangedEvent -= ARSessionTrackingChanged;
+
+			UnityARSessionNativeInterface.ARAnchorAddedEvent -= AddPlaneAnchor;
+			UnityARSessionNativeInterface.ARAnchorUpdatedEvent -= UpdatePlaneAnchor;
+			UnityARSessionNativeInterface.ARAnchorRemovedEvent -= RemovePlaneAnchor;
 		}
+
+		// destroy persistent plane objects
+		List<ARPlaneAnchorGameObject> listPlaneObjs = new List<ARPlaneAnchorGameObject>(planeAnchorMap.Values);
+		foreach (ARPlaneAnchorGameObject arpag in listPlaneObjs) 
+		{
+			if(arpag.gameObject)
+			{
+				GameObject.Destroy(arpag.gameObject);
+			}
+		}
+
+		// clear plane anchor lists
+		listPlaneObjs.Clear();
+		planeAnchorMap.Clear();
 	}
 
+	// invoked by FrameUpdated-event
 	public void ARFrameUpdated(UnityARCamera camera)
 	{
 		// current timestamp
@@ -324,10 +414,64 @@ public class ARKitInteface : MonoBehaviour, ARPlatformInterface
 		}
 	}
 
+	// invoked by TrackingChanged-event
 	public void ARSessionTrackingChanged(UnityARCamera camera)
 	{
 		cameraTrackingState = camera.trackingState;
 		cameraTrackingReason = camera.trackingReason;
+	}
+
+	// invoked by AnchorAdded-event
+	public void AddPlaneAnchor(ARPlaneAnchor arPlaneAnchor)
+	{
+		GameObject go = null;
+		if(arManager.displayTrackedSurfaces)
+		{
+			go = UnityARUtility.CreatePlaneInScene(arPlaneAnchor);
+			go.AddComponent<DontDestroyOnLoad>();  // these GOs persist across scene loads
+		}
+
+		ARPlaneAnchorGameObject arpag = new ARPlaneAnchorGameObject();
+		arpag.planeAnchor = arPlaneAnchor;
+		arpag.gameObject = go;
+
+		planeAnchorMap.Add(arPlaneAnchor.identifier, arpag);
+		trackedPlanesTimestamp = GetLastFrameTimestamp();
+	}
+
+	// invoked by AnchorUpdated-event
+	public void UpdatePlaneAnchor(ARPlaneAnchor arPlaneAnchor)
+	{
+		if (planeAnchorMap.ContainsKey(arPlaneAnchor.identifier)) 
+		{
+			ARPlaneAnchorGameObject arpag = planeAnchorMap[arPlaneAnchor.identifier];
+			arpag.planeAnchor = arPlaneAnchor;
+
+			if(arpag.gameObject)
+			{
+				UnityARUtility.UpdatePlaneWithAnchorTransform(arpag.gameObject, arPlaneAnchor);
+			}
+			
+			planeAnchorMap[arPlaneAnchor.identifier] = arpag;
+			trackedPlanesTimestamp = GetLastFrameTimestamp();
+		}
+	}
+
+	// invoked by AnchorRemoved-event
+	public void RemovePlaneAnchor(ARPlaneAnchor arPlaneAnchor)
+	{
+		if (planeAnchorMap.ContainsKey(arPlaneAnchor.identifier)) 
+		{
+			ARPlaneAnchorGameObject arpag = planeAnchorMap [arPlaneAnchor.identifier];
+
+			if(arpag.gameObject)
+			{
+				GameObject.Destroy(arpag.gameObject);
+			}
+
+			planeAnchorMap.Remove(arPlaneAnchor.identifier);
+			trackedPlanesTimestamp = GetLastFrameTimestamp();
+		}
 	}
 
 	// returns the timestamp in seconds
@@ -339,13 +483,13 @@ public class ARKitInteface : MonoBehaviour, ARPlatformInterface
 		return dTimestamp;
 	}
 
-	void Update()
-	{
-		if(!isInitialized)
-			return;
-
-		// ....
-	}
+//	void Update()
+//	{
+//		if(!isInitialized)
+//			return;
+//
+//		// ....
+//	}
 
 
 }
