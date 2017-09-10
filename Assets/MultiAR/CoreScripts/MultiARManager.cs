@@ -371,10 +371,11 @@ public class MultiARManager : MonoBehaviour
 		if(infoText)
 		{
 			int numPlanes = GetTrackedPlanesCount();
+			int numAnchors = GetAnchoredObjectsCount();
 
-			infoText.text = "Tracker: " + arInterface.GetCameraTrackingState() + " " + arInterface.GetTrackingErrorMessage() +
-				string.Format(", Light: {0:F3}", arInterface.GetLightIntensity()) + ", Planes: " + numPlanes +
-				"\nTimestamp: " + lastFrameTimestamp.ToString();
+			infoText.text = "Tracker: " + arInterface.GetCameraTrackingState () + " " + arInterface.GetTrackingErrorMessage () +
+			string.Format ("\nLight: {0:F3}", arInterface.GetLightIntensity ()) + ", Planes: " + numPlanes + ", Anchors: " + numAnchors;
+				//+ "\nTimestamp: " + lastFrameTimestamp.ToString();
 		}
 
 		// check the tracking state
