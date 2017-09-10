@@ -151,7 +151,17 @@ public class ARKitInteface : MonoBehaviour, ARPlatformInterface
 	{
 		if (cameraTrackingReason != ARTrackingStateReason.ARTrackingStateReasonNone) 
 		{
-			return cameraTrackingReason.ToString();
+			switch(cameraTrackingReason)
+			{
+			case ARTrackingStateReason.ARTrackingStateReasonInitializing:
+				return "Initializing";
+			case ARTrackingStateReason.ARTrackingStateReasonExcessiveMotion:
+				return "ExcessiveMotion";
+			case ARTrackingStateReason.ARTrackingStateReasonInsufficientFeatures:
+				return "InsufficientFeatures";
+			default:
+				return cameraTrackingReason.ToString();
+			}
 		}
 
 		return string.Empty;
