@@ -22,25 +22,18 @@ public class ObjectSpawner : MonoBehaviour
 		// check for tap
 		if (Input.touchCount > 0 && objectPrefab && arManager)
 		{
-			Touch touch = Input.GetTouch(0);
-
-			if (touch.phase == TouchPhase.Began)
+			if (Input.GetTouch(0).phase == TouchPhase.Began)
 			{
+				Vector2 screenPos = Input.GetTouch(0).position;
 				MultiARInterop.TrackableHit hit;
-				if(arManager.RaycastScreenToWorld(touch.position, out hit))
+
+				if(arManager.RaycastScreenToWorld(screenPos, out hit))
 				{
-					// Create an anchor to allow ARCore to track the hitpoint as understanding of the physical
-					// world evolves.
-					//var anchor = Session.CreateAnchor(hit.Point, Quaternion.identity);
-
-					// Intanstiate an Andy Android object as a child of the anchor; it's transform will now benefit
-					// from the anchor's tracking.
-					//GameObject spawnObj = Instantiate(m_andyAndroidPrefab, hit.Point, Quaternion.identity,
-					//	anchor.transform);
-
+					// instantiate the object and anchor it to the world position
 					GameObject spawnObj = Instantiate(objectPrefab, hit.point, Quaternion.identity);
-					spawnObj.transform.SetParent(hit.anchor, true);
+					arManager.AnchorGameObjectToWorld(spawnObj, hit.point, Quaternion.identity);
 
+					// look at the camera
 					Camera arCamera = arManager.GetMainCamera();
 					if(arCamera)
 					{
@@ -49,10 +42,6 @@ public class ObjectSpawner : MonoBehaviour
 						Vector3 objRotation = spawnObj.transform.rotation.eulerAngles;
 						spawnObj.transform.rotation = Quaternion.Euler(0f, objRotation.y, objRotation.z);
 					}
-
-					// Use a plane attachment component to maintain Andy's y-offset from the plane
-					// (occurs after anchor updates).
-					//spawnObj.GetComponent<PlaneAttachment>().Attach(hit.Plane);
 				}
 			}
 		}

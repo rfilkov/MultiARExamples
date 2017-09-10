@@ -44,6 +44,7 @@ public class ARCoreInteface : MonoBehaviour, ARPlatformInterface
 	private List<TrackedPlane> allTrackedPlanes = new List<TrackedPlane>();
 
 
+	// colors to use for plane display
 	private Color[] planeColors = new Color[] { 
 		Color.blue, Color.cyan, Color.green, Color.grey, Color.magenta, Color.red, Color.white, Color.yellow 
 	};
@@ -202,7 +203,7 @@ public class ARCoreInteface : MonoBehaviour, ARPlatformInterface
 	public bool RaycastScreenToWorld(Vector2 screenPos, out MultiARInterop.TrackableHit hit)
 	{
 		hit = new MultiARInterop.TrackableHit();
-		if(!isInitialized)
+		if(!isInitialized || (cameraTrackingState == FrameTrackingState.TrackingNotInitialized))
 			return false;
 		
 		TrackableHit intHit;
@@ -212,13 +213,68 @@ public class ARCoreInteface : MonoBehaviour, ARPlatformInterface
 		{
 			hit.point = intHit.Point;
 			hit.distance = intHit.Distance;
-			hit.plane = new Plane();  // not finished
+			//hit.plane = new Plane();  // not finished
 
-			// Create an anchor to allow ARCore to track the hitpoint as understanding of the physical
-			// world evolves.
-			Anchor anchor = Session.CreateAnchor(hit.point, Quaternion.identity);
-			hit.anchor = anchor.transform;
-			hit.anchorId = anchor.Id;
+			return true;
+		}
+
+		return false;
+	}
+
+	/// <summary>
+	/// Anchors the game object to world.
+	/// </summary>
+	/// <returns>The anchor Id, or empty string.</returns>
+	/// <param name="gameObj">Game object.</param>
+	/// <param name="worldPosition">World position.</param>
+	/// <param name="worldRotation">World rotation.</param>
+	public string AnchorGameObjectToWorld(GameObject gameObj, Vector3 worldPosition, Quaternion worldRotation)
+	{
+		if(!isInitialized || (cameraTrackingState == FrameTrackingState.TrackingNotInitialized))
+			return string.Empty;
+
+		if(gameObj && arManager)
+		{
+			Anchor anchor = Session.CreateAnchor(worldPosition, worldRotation);
+			DontDestroyOnLoad(anchor.gameObject);  // don't destroy it accross scenes
+
+			gameObj.transform.SetParent(anchor.transform, true);
+
+			MultiARInterop.MultiARData arData = arManager.GetARData();
+			arData.allAnchorsDict[anchor.Id] = gameObj;
+		}
+
+		return string.Empty;
+	}
+
+	/// <summary>
+	/// Unparents the game object and removes the anchor from the system (if possible).
+	/// </summary>
+	/// <returns><c>true</c>, if game object anchor was removed, <c>false</c> otherwise.</returns>
+	/// <param name="anchorId">Anchor identifier.</param>
+	public bool RemoveGameObjectAnchor(string anchorId)
+	{
+		if(!isInitialized || !arManager)
+			return false;
+
+		MultiARInterop.MultiARData arData = arManager.GetARData();
+		if(arData.allAnchorsDict.ContainsKey(anchorId))
+		{
+			// remove the anchor from the system
+			// ARCore doesn't provide API for removal (as of preview version)
+
+			// get the child game object
+			GameObject anchoredObj = arData.allAnchorsDict[anchorId];
+			arData.allAnchorsDict.Remove(anchorId);
+
+			// detach the parent
+			if(anchoredObj && anchoredObj.transform.parent)
+			{
+				GameObject parentObj = anchoredObj.transform.parent.gameObject;
+				anchoredObj.transform.parent = null;
+
+				//Destroy(parentObj);  // ARCore uses the object internally
+			}
 
 			return true;
 		}
@@ -294,18 +350,19 @@ public class ARCoreInteface : MonoBehaviour, ARPlatformInterface
 		
 		_QuitOnConnectionErrors();
 
-		// frame timestamp & tracking state
+		// tracking state
 		cameraTrackingState = Frame.TrackingState;
-		if(cameraTrackingState != FrameTrackingState.TrackingNotInitialized)
-		{
-			lastFrameTimestamp = Frame.Timestamp;
-			currentLightIntensity = Frame.LightEstimate.PixelIntensity;
-		}
+		if(cameraTrackingState == FrameTrackingState.TrackingNotInitialized)
+			return;
+
+		// get frame timestamp and light intensity
+		lastFrameTimestamp = Frame.Timestamp;
+		currentLightIntensity = Frame.LightEstimate.PixelIntensity;
 
 		// get point cloud, if needed
 		MultiARInterop.MultiARData arData = arManager.GetARData();
 
-		if(arManager.getPointCloud && cameraTrackingState != FrameTrackingState.TrackingNotInitialized)
+		if(arManager.getPointCloud)
 		{
 			PointCloud pointcloud = Frame.PointCloud;
 			if (pointcloud.PointCount > 0 && pointcloud.Timestamp > arData.pointCloudTimestamp)

@@ -71,16 +71,16 @@ public interface ARPlatformInterface
 	double GetTrackedPlanesTimestamp();
 
 	/// <summary>
-	/// Gets the currently tracked planes.
-	/// </summary>
-	/// <returns>The tracked planes.</returns>
-	MultiARInterop.TrackedPlane[] GetTrackedPlanes();
-
-	/// <summary>
 	/// Gets the count of currently tracked planes.
 	/// </summary>
 	/// <returns>The tracked planes count.</returns>
 	int GetTrackedPlanesCount();
+
+	/// <summary>
+	/// Gets the currently tracked planes.
+	/// </summary>
+	/// <returns>The tracked planes.</returns>
+	MultiARInterop.TrackedPlane[] GetTrackedPlanes();
 
 	/// <summary>
 	/// Raycasts from screen point to the world.
@@ -89,4 +89,21 @@ public interface ARPlatformInterface
 	/// <param name="screenPos">Screen position.</param>
 	/// <param name="hit">Hit data.</param>
 	bool RaycastScreenToWorld(Vector2 screenPos, out MultiARInterop.TrackableHit hit);
+
+	/// <summary>
+	/// Anchors the game object to world.
+	/// </summary>
+	/// <returns>The anchor Id, or empty string.</returns>
+	/// <param name="gameObj">Game object.</param>
+	/// <param name="worldPosition">World position.</param>
+	/// <param name="worldRotation">World rotation.</param>
+	string AnchorGameObjectToWorld(GameObject gameObj, Vector3 worldPosition, Quaternion worldRotation);
+
+	/// <summary>
+	/// Unparents the game object and removes the anchor from the system (if possible).
+	/// </summary>
+	/// <returns><c>true</c>, if game object anchor was removed, <c>false</c> otherwise.</returns>
+	/// <param name="anchorId">Anchor identifier.</param>
+	bool RemoveGameObjectAnchor(string anchorId);
+
 }

@@ -26,9 +26,6 @@ public class ARKitInteface : MonoBehaviour, ARPlatformInterface
 	// reference to the AR directional light
 	//private Light directionalLight;
 
-	// whether the frame event was added or not
-	private bool isAREventsAdded = false;
-
 	// last frame timestamp
 	private double lastFrameTimestamp = 0.0;
 
@@ -43,8 +40,8 @@ public class ARKitInteface : MonoBehaviour, ARPlatformInterface
 	// tracked planes timestamp
 	private double trackedPlanesTimestamp = 0.0;
 
-	// plane anchors and visualizations
-	private Dictionary<string, ARPlaneAnchorGameObject> planeAnchorMap = new Dictionary<string, ARPlaneAnchorGameObject>();
+	// plane anchors
+	private Dictionary<string, ARPlaneAnchorGameObject> planeAnchorDict = new Dictionary<string, ARPlaneAnchorGameObject>();
 
 
 	/// <summary>
@@ -182,7 +179,7 @@ public class ARKitInteface : MonoBehaviour, ARPlatformInterface
 	/// <returns>The tracked planes count.</returns>
 	public int GetTrackedPlanesCount()
 	{
-		return planeAnchorMap.Count;
+		return planeAnchorDict.Count;
 	}
 
 	/// <summary>
@@ -191,10 +188,10 @@ public class ARKitInteface : MonoBehaviour, ARPlatformInterface
 	/// <returns>The tracked planes.</returns>
 	public MultiARInterop.TrackedPlane[] GetTrackedPlanes()
 	{
-		MultiARInterop.TrackedPlane[] trackedPlanes = new MultiARInterop.TrackedPlane[planeAnchorMap.Count];
+		MultiARInterop.TrackedPlane[] trackedPlanes = new MultiARInterop.TrackedPlane[planeAnchorDict.Count];
 
 		// get current planes list
-		List<ARPlaneAnchorGameObject> listPlaneObjs = new List<ARPlaneAnchorGameObject>(planeAnchorMap.Values);
+		List<ARPlaneAnchorGameObject> listPlaneObjs = new List<ARPlaneAnchorGameObject>(planeAnchorDict.Values);
 		int i = 0;
 
 		foreach (ARPlaneAnchorGameObject arpag in listPlaneObjs) 
@@ -254,12 +251,79 @@ public class ARKitInteface : MonoBehaviour, ARPlatformInterface
 					{
 						hit.point = UnityARMatrixOps.GetPosition(hitResult.worldTransform);
 						hit.distance = (float)hitResult.distance;
-						hit.anchorId = hitResult.anchorIdentifier;
+						//hit.anchorId = hitResult.anchorIdentifier;
 
 						return true;
 					}
 				}
 			}
+		}
+
+		return false;
+	}
+
+	/// <summary>
+	/// Anchors the game object to world.
+	/// </summary>
+	/// <returns>The anchor Id, or empty string.</returns>
+	/// <param name="gameObj">Game object.</param>
+	/// <param name="worldPosition">World position.</param>
+	/// <param name="worldRotation">World rotation.</param>
+	public string AnchorGameObjectToWorld(GameObject gameObj, Vector3 worldPosition, Quaternion worldRotation)
+	{
+		string sAnchorId = string.Empty;
+		if(!isInitialized || !arManager)
+			return sAnchorId;
+
+		if(gameObj)
+		{
+			GameObject anchorObj = GameObject.CreatePrimitive(PrimitiveType.Cube);  // new GameObject();
+			anchorObj.transform.position = worldPosition;
+			anchorObj.transform.rotation = worldRotation;
+			anchorObj.transform.localScale = new Vector3(0.1f, 0.2f, 0.1f);  // for debug only
+
+			UnityARUserAnchorData anchorData = UnityARSessionNativeInterface.GetARSessionNativeInterface().AddUserAnchorFromGameObject(anchorObj); 
+			sAnchorId = anchorData.identifierStr;
+			DontDestroyOnLoad(anchorObj);  // don't destroy it accross scenes
+
+			gameObj.transform.SetParent(anchorObj.transform, true);
+
+			MultiARInterop.MultiARData arData = arManager.GetARData();
+			arData.allAnchorsDict[sAnchorId] = gameObj;
+		}
+
+		return sAnchorId;
+	}
+
+	/// <summary>
+	/// Unparents the game object and removes the anchor from the system (if possible).
+	/// </summary>
+	/// <returns><c>true</c>, if game object anchor was removed, <c>false</c> otherwise.</returns>
+	/// <param name="anchorId">Anchor identifier.</param>
+	public bool RemoveGameObjectAnchor(string anchorId)
+	{
+		if(!isInitialized || !arManager)
+			return false;
+
+		MultiARInterop.MultiARData arData = arManager.GetARData();
+		if(arData.allAnchorsDict.ContainsKey(anchorId))
+		{
+			// remove the anchor from the system
+			UnityARSessionNativeInterface.GetARSessionNativeInterface().RemoveUserAnchor(anchorId);
+
+			// get the child game object
+			GameObject anchoredObj = arData.allAnchorsDict[anchorId];
+			arData.allAnchorsDict.Remove(anchorId);
+
+			if(anchoredObj && anchoredObj.transform.parent)
+			{
+				GameObject parentObj = anchoredObj.transform.parent.gameObject;
+				anchoredObj.transform.parent = null;
+
+				Destroy(parentObj);
+			}
+
+			return true;
 		}
 
 		return false;
@@ -362,12 +426,12 @@ public class ARKitInteface : MonoBehaviour, ARPlatformInterface
 		UnityARSessionNativeInterface.ARFrameUpdatedEvent += ARFrameUpdated;
 		UnityARSessionNativeInterface.ARSessionTrackingChangedEvent += ARSessionTrackingChanged;
 
-		UnityARSessionNativeInterface.ARAnchorAddedEvent += AddPlaneAnchor;
-		UnityARSessionNativeInterface.ARAnchorUpdatedEvent += UpdatePlaneAnchor;
-		UnityARSessionNativeInterface.ARAnchorRemovedEvent += RemovePlaneAnchor;
+		UnityARSessionNativeInterface.ARAnchorAddedEvent += PlaneAnchorAdded;
+		UnityARSessionNativeInterface.ARAnchorUpdatedEvent += PlaneAnchorUpdated;
+		UnityARSessionNativeInterface.ARAnchorRemovedEvent += PlaneAnchorRemoved;
 
-		isAREventsAdded = true;
-
+		UnityARSessionNativeInterface.ARUserAnchorAddedEvent += UserAnchorAdded;
+		UnityARSessionNativeInterface.ARUserAnchorRemovedEvent += UserAnchorRemoved;
 
 		// interface is initialized
 		isInitialized = true;
@@ -376,31 +440,34 @@ public class ARKitInteface : MonoBehaviour, ARPlatformInterface
 	public void OnDestroy()
 	{
 		// remove event handlers
-		if(isAREventsAdded)
+		if(isInitialized)
 		{
-			isAREventsAdded = false;
+			isInitialized = false;
 
 			UnityARSessionNativeInterface.ARFrameUpdatedEvent -= ARFrameUpdated;
 			UnityARSessionNativeInterface.ARSessionTrackingChangedEvent -= ARSessionTrackingChanged;
 
-			UnityARSessionNativeInterface.ARAnchorAddedEvent -= AddPlaneAnchor;
-			UnityARSessionNativeInterface.ARAnchorUpdatedEvent -= UpdatePlaneAnchor;
-			UnityARSessionNativeInterface.ARAnchorRemovedEvent -= RemovePlaneAnchor;
-		}
+			UnityARSessionNativeInterface.ARAnchorAddedEvent -= PlaneAnchorAdded;
+			UnityARSessionNativeInterface.ARAnchorUpdatedEvent -= PlaneAnchorUpdated;
+			UnityARSessionNativeInterface.ARAnchorRemovedEvent -= PlaneAnchorRemoved;
 
-		// destroy persistent plane objects
-		List<ARPlaneAnchorGameObject> listPlaneObjs = new List<ARPlaneAnchorGameObject>(planeAnchorMap.Values);
-		foreach (ARPlaneAnchorGameObject arpag in listPlaneObjs) 
-		{
-			if(arpag.gameObject)
+			UnityARSessionNativeInterface.ARUserAnchorAddedEvent -= UserAnchorAdded;
+			UnityARSessionNativeInterface.ARUserAnchorRemovedEvent -= UserAnchorRemoved;
+
+			// destroy persistent plane objects
+			List<ARPlaneAnchorGameObject> listPlaneObjs = new List<ARPlaneAnchorGameObject>(planeAnchorDict.Values);
+			foreach (ARPlaneAnchorGameObject arpag in listPlaneObjs) 
 			{
-				GameObject.Destroy(arpag.gameObject);
+				if(arpag.gameObject)
+				{
+					GameObject.Destroy(arpag.gameObject);
+				}
 			}
-		}
 
-		// clear plane anchor lists
-		listPlaneObjs.Clear();
-		planeAnchorMap.Clear();
+			// clear plane anchor lists
+			listPlaneObjs.Clear();
+			planeAnchorDict.Clear();
+		}
 	}
 
 	// invoked by FrameUpdated-event
@@ -432,7 +499,7 @@ public class ARKitInteface : MonoBehaviour, ARPlatformInterface
 	}
 
 	// invoked by AnchorAdded-event
-	public void AddPlaneAnchor(ARPlaneAnchor arPlaneAnchor)
+	public void PlaneAnchorAdded(ARPlaneAnchor arPlaneAnchor)
 	{
 		GameObject go = null;
 		if(arManager.displayTrackedSurfaces)
@@ -445,16 +512,16 @@ public class ARKitInteface : MonoBehaviour, ARPlatformInterface
 		arpag.planeAnchor = arPlaneAnchor;
 		arpag.gameObject = go;
 
-		planeAnchorMap.Add(arPlaneAnchor.identifier, arpag);
+		planeAnchorDict.Add(arPlaneAnchor.identifier, arpag);
 		trackedPlanesTimestamp = GetLastFrameTimestamp();
 	}
 
 	// invoked by AnchorUpdated-event
-	public void UpdatePlaneAnchor(ARPlaneAnchor arPlaneAnchor)
+	public void PlaneAnchorUpdated(ARPlaneAnchor arPlaneAnchor)
 	{
-		if (planeAnchorMap.ContainsKey(arPlaneAnchor.identifier)) 
+		if (planeAnchorDict.ContainsKey(arPlaneAnchor.identifier)) 
 		{
-			ARPlaneAnchorGameObject arpag = planeAnchorMap[arPlaneAnchor.identifier];
+			ARPlaneAnchorGameObject arpag = planeAnchorDict[arPlaneAnchor.identifier];
 			arpag.planeAnchor = arPlaneAnchor;
 
 			if(arpag.gameObject)
@@ -462,26 +529,57 @@ public class ARKitInteface : MonoBehaviour, ARPlatformInterface
 				UnityARUtility.UpdatePlaneWithAnchorTransform(arpag.gameObject, arPlaneAnchor);
 			}
 			
-			planeAnchorMap[arPlaneAnchor.identifier] = arpag;
+			planeAnchorDict[arPlaneAnchor.identifier] = arpag;
 			trackedPlanesTimestamp = GetLastFrameTimestamp();
 		}
 	}
 
 	// invoked by AnchorRemoved-event
-	public void RemovePlaneAnchor(ARPlaneAnchor arPlaneAnchor)
+	public void PlaneAnchorRemoved(ARPlaneAnchor arPlaneAnchor)
 	{
-		if (planeAnchorMap.ContainsKey(arPlaneAnchor.identifier)) 
+		if (planeAnchorDict.ContainsKey(arPlaneAnchor.identifier)) 
 		{
-			ARPlaneAnchorGameObject arpag = planeAnchorMap [arPlaneAnchor.identifier];
+			ARPlaneAnchorGameObject arpag = planeAnchorDict[arPlaneAnchor.identifier];
 
 			if(arpag.gameObject)
 			{
 				GameObject.Destroy(arpag.gameObject);
 			}
 
-			planeAnchorMap.Remove(arPlaneAnchor.identifier);
+			planeAnchorDict.Remove(arPlaneAnchor.identifier);
 			trackedPlanesTimestamp = GetLastFrameTimestamp();
 		}
+	}
+
+	// invoked by UserAnchorAdded-event
+	public void UserAnchorAdded(ARUserAnchor anchor)
+	{
+		Debug.Log("Anchor added: " + anchor.identifier);
+	}
+
+	// invoked by UserAnchorRemoved-event
+	public void UserAnchorRemoved(ARUserAnchor anchor)
+	{
+		if(!arManager)
+			return;
+		
+		MultiARInterop.MultiARData arData = arManager.GetARData();
+		if (arData.allAnchorsDict.ContainsKey(anchor.identifier))
+		{
+			GameObject anchoredObj = arData.allAnchorsDict[anchor.identifier];
+			arData.allAnchorsDict.Remove(anchor.identifier);
+
+			if(anchoredObj && anchoredObj.transform.parent)
+			{
+				GameObject parentObj = anchoredObj.transform.parent.gameObject;
+				anchoredObj.transform.parent = null;
+
+				Destroy(parentObj);
+			}
+
+			Debug.Log("Anchor removed: " + anchor.identifier);
+		}
+
 	}
 
 	// returns the timestamp in seconds
@@ -492,6 +590,8 @@ public class ARKitInteface : MonoBehaviour, ARPlatformInterface
 
 		return dTimestamp;
 	}
+
+
 
 //	void Update()
 //	{

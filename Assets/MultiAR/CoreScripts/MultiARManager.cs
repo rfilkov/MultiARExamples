@@ -203,6 +203,71 @@ public class MultiARManager : MonoBehaviour
 		return false;
 	}
 
+	/// <summary>
+	/// Anchors the game object to world.
+	/// </summary>
+	/// <returns>The anchor Id, or empty string.</returns>
+	/// <param name="gameObj">Game object.</param>
+	/// <param name="worldPosition">World position.</param>
+	/// <param name="worldRotation">World rotation.</param>
+	public string AnchorGameObjectToWorld(GameObject gameObj, Vector3 worldPosition, Quaternion worldRotation)
+	{
+		if(arInterface != null)
+		{
+			return arInterface.AnchorGameObjectToWorld(gameObj, worldPosition, worldRotation);
+		}
+
+		return string.Empty;
+	}
+
+	/// <summary>
+	/// Unparents the game object and removes the anchor from the system (if possible).
+	/// </summary>
+	/// <returns><c>true</c>, if game object anchor was removed, <c>false</c> otherwise.</returns>
+	/// <param name="anchorId">Anchor identifier.</param>
+	public bool RemoveGameObjectAnchor(string anchorId)
+	{
+		if(arInterface != null)
+		{
+			return arInterface.RemoveGameObjectAnchor(anchorId);
+		}
+
+		return false;
+	}
+
+	/// <summary>
+	/// Gets the anchored objects count.
+	/// </summary>
+	/// <returns>The anchored objects count.</returns>
+	public int GetAnchoredObjectsCount()
+	{
+		return arData.allAnchorsDict.Count;
+	}
+
+	/// <summary>
+	/// Gets all game-object anchor identifiers.
+	/// </summary>
+	/// <returns>The all anchor identifiers.</returns>
+	public List<string> GetAllObjectAnchorIds()
+	{
+		return new List<string>(arData.allAnchorsDict.Keys);
+	}
+
+	/// <summary>
+	/// Gets the anchored object.
+	/// </summary>
+	/// <returns>The anchored object or null.</returns>
+	/// <param name="anchorId">Anchor identifier.</param>
+	public GameObject GetAnchoredObject(string anchorId)
+	{
+		if(arData.allAnchorsDict.ContainsKey(anchorId))
+		{
+			return arData.allAnchorsDict[anchorId];
+		}
+
+		return null;
+	}
+
 	// -- // -- // -- // -- // -- // -- // -- // -- // -- // -- //
 
 	void Awake()
@@ -306,7 +371,6 @@ public class MultiARManager : MonoBehaviour
 		if(infoText)
 		{
 			int numPlanes = GetTrackedPlanesCount();
-			MultiARInterop.TrackedPlane[] trackedPlanes = GetTrackedPlanes();
 
 			infoText.text = "Tracker: " + arInterface.GetCameraTrackingState() + " " + arInterface.GetTrackingErrorMessage() +
 				string.Format(", Light: {0:F3}", arInterface.GetLightIntensity()) + ", Planes: " + numPlanes +

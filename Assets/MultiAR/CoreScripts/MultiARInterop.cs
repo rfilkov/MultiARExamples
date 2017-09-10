@@ -34,10 +34,7 @@ public class MultiARInterop
 		public Vector3 point;
 		public float distance;
 
-		public Plane plane;
-
-		public string anchorId;
-		public Transform anchor;
+		//public Plane plane;
 	}
 
 	/// <summary>
@@ -59,6 +56,9 @@ public class MultiARInterop
 		public Vector3[] pointCloudData = new Vector3[0];
 		public int pointCloudLength = 0;
 		public double pointCloudTimestamp = 0.0;
+
+		// anchored objects
+		public Dictionary<string, GameObject> allAnchorsDict = new Dictionary<string, GameObject>();
 	}
 
 	/// <summary>
