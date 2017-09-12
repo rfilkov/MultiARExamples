@@ -35,7 +35,7 @@ public class ARCoreInteface : MonoBehaviour, ARPlatformInterface
 	private FrameTrackingState cameraTrackingState = FrameTrackingState.TrackingNotInitialized;
 
 	// current light intensity
-	protected float currentLightIntensity = 0f;
+	protected float currentLightIntensity = 1f;
 
 	// newly detected planes
 	private List<TrackedPlane> newTrackedPlanes = new List<TrackedPlane>();
@@ -209,6 +209,12 @@ public class ARCoreInteface : MonoBehaviour, ARPlatformInterface
 		TrackableHit intHit;
 		TrackableHitFlag raycastFilter = TrackableHitFlag.PlaneWithinBounds | TrackableHitFlag.PlaneWithinPolygon;
 
+		if(arManager && !arManager.hitTrackedServicesOnly)
+		{
+			raycastFilter |= TrackableHitFlag.PlaneWithinInfinity;
+			raycastFilter |= TrackableHitFlag.PointCloud;
+		}
+
 		if (Session.Raycast(mainCamera.ScreenPointToRay(screenPos), raycastFilter, out intHit))
 		{
 			hit.point = intHit.Point;
@@ -262,6 +268,7 @@ public class ARCoreInteface : MonoBehaviour, ARPlatformInterface
 		{
 			// remove the anchor from the system
 			// ARCore doesn't provide API for removal (as of preview version)
+			// all anchor game objects remain in inactive state
 
 			// get the child game object
 			GameObject anchoredObj = arData.allAnchorsDict[anchorId];
@@ -302,13 +309,6 @@ public class ARCoreInteface : MonoBehaviour, ARPlatformInterface
 			currentCamera.gameObject.SetActive(false);
 		}
 
-		// disable directional light, if any
-		Light currentLight = MultiARInterop.GetDirectionalLight();
-		if(currentLight)
-		{
-			currentLight.gameObject.SetActive(false);
-		}
-
 		// create ARCore-Device in the scene
 		GameObject arCoreDeviceObj = Instantiate(arCoreDevicePrefab, Vector3.zero, Quaternion.identity);
 		arCoreDeviceObj.name = "ARCore Device";
@@ -316,14 +316,43 @@ public class ARCoreInteface : MonoBehaviour, ARPlatformInterface
 		// reference to the AR main camera
 		mainCamera = arCoreDeviceObj.GetComponentInChildren<Camera>();
 
-		// create AR environmental light
-		GameObject envLight = new GameObject("Evironmental Light");
-		//envLight.transform.position = Vector3.zero;
-		//envLight.transform.rotation = Quaternion.identity;
-		envLight.AddComponent<EnvironmentalLight>();
+//		// disable directional light, if any
+//		Light currentLight = MultiARInterop.GetDirectionalLight();
+//		if(currentLight)
+//		{
+//			currentLight.gameObject.SetActive(false);
+//		}
+//
+//		// create AR environmental light
+//		GameObject envLight = new GameObject("Evironmental Light");
+//		//envLight.transform.position = Vector3.zero;
+//		//envLight.transform.rotation = Quaternion.identity;
+//		envLight.AddComponent<EnvironmentalLight>();
+//
+//		// reference to the AR directional light
+//		//directionalLight = envLight.GetComponent<Light>();
 
-		// reference to the AR directional light
-		//directionalLight = envLight.GetComponent<Light>();
+		// modify the directional light
+		Light currentLight = MultiARInterop.GetDirectionalLight();
+		if(!currentLight)
+		{
+			GameObject currentLightObj = new GameObject("Directional light");
+
+			currentLight = currentLightObj.AddComponent<Light>();
+			currentLight.type = LightType.Directional;
+		}
+
+		// reset light position & rotation
+		currentLight.transform.position = Vector3.zero;
+		currentLight.transform.rotation = Quaternion.Euler(40f, 40f, 0f);
+
+		// set light parameters
+		//currentLight.lightmapBakeType = LightmapBakeType.Mixed;
+		currentLight.color = new Color32(255, 254, 244, 255);
+
+		// add the ar-light component
+		currentLight.gameObject.AddComponent<MultiARDirectionalLight>();
+
 
 		if(arManager && arManager.getPointCloud)
 		{
@@ -397,8 +426,48 @@ public class ARCoreInteface : MonoBehaviour, ARPlatformInterface
 			}
 		}
 
-		// get all av frames
+		// get all tracked planes
 		Frame.GetAllPlanes(ref allTrackedPlanes);
+
+		// check the status of the anchors
+		List<string> alAnchorsToRemove = new List<string>();
+
+		foreach(string anchorId in arData.allAnchorsDict.Keys)
+		{
+			GameObject anchoredObj = arData.allAnchorsDict[anchorId];
+
+			if(anchoredObj)
+			{
+				Transform parentTrans = anchoredObj.transform.parent;
+
+				if(parentTrans == null)
+				{
+					alAnchorsToRemove.Add(anchorId);
+					anchoredObj.SetActive(false);
+				}
+				else
+				{
+					Anchor anchor = parentTrans.GetComponent<Anchor>();
+
+					if(anchor == null || anchor.TrackingState == AnchorTrackingState.StoppedTracking)
+					{
+						alAnchorsToRemove.Add(anchorId);
+
+						anchoredObj.transform.parent = null;  
+						anchoredObj.SetActive(false);
+					}
+				}
+			}
+		}
+
+		// remove the stopped anchors from our list
+		foreach(string anchorId in alAnchorsToRemove)
+		{
+			arData.allAnchorsDict.Remove(anchorId);
+		}
+
+		// clean up
+		alAnchorsToRemove.Clear();
 	}
 
 	/// <summary>

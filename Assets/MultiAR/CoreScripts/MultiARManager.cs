@@ -7,6 +7,9 @@ public class MultiARManager : MonoBehaviour
 	[Tooltip("The preferred AR platform. Should be available, too.")]
 	public MultiARInterop.ARPlatform preferredPlatform = MultiARInterop.ARPlatform.None;
 
+	[Tooltip("Whether to apply the AR-detected light.")]
+	public bool applyARLight = true;
+
 	[Tooltip("Whether to get the tracked feature points.")]
 	public bool getPointCloud = false;
 
@@ -16,8 +19,10 @@ public class MultiARManager : MonoBehaviour
 	[Tooltip("Whether to display the tracked surfaces.")]
 	public bool displayTrackedSurfaces = false;
 
+	[Tooltip("Whether the world raycasts may hit tracked surfaces only, or points from the cloud in general.")]
+	public bool hitTrackedServicesOnly = false;
 
-	[Tooltip("UI-Text to display information messages.")]
+	[Tooltip("UI-Text to display tracker information messages.")]
 	public UnityEngine.UI.Text infoText;
 
 	//[Tooltip("UI-Text to display debug messages.")]
@@ -30,6 +35,7 @@ public class MultiARManager : MonoBehaviour
 
 	// selected AR interface
 	protected ARPlatformInterface arInterface = null;
+	protected bool isInitialized = false;
 
 	// the most actual AR-data
 	protected MultiARInterop.MultiARData arData = new MultiARInterop.MultiARData();
@@ -54,6 +60,15 @@ public class MultiARManager : MonoBehaviour
 		{
 			return instance;
 		}
+	}
+
+	/// <summary>
+	/// Determines whether MultiARManager is successfully initialized.
+	/// </summary>
+	/// <returns><c>true</c> if MultiARManager is initialized; otherwise, <c>false</c>.</returns>
+	public bool IsInitialized()
+	{
+		return isInitialized;
 	}
 
 	/// <summary>
@@ -90,7 +105,7 @@ public class MultiARManager : MonoBehaviour
 			return arInterface.GetLightIntensity();
 		}
 
-		return 0f;
+		return 1f;
 	}
 
 	/// <summary>
@@ -331,6 +346,9 @@ public class MultiARManager : MonoBehaviour
 		{
 			Debug.LogError("No suitable AR-Interface found. Please check the scene setup.");
 		}
+
+		// set initialization status
+		isInitialized = (arInterface != null);
 	}
 
 	void Start()

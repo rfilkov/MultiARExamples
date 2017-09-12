@@ -34,7 +34,7 @@ public class ARKitInteface : MonoBehaviour, ARPlatformInterface
 	private ARTrackingStateReason cameraTrackingReason = ARTrackingStateReason.ARTrackingStateReasonNone;
 
 	// current light intensity
-	protected float currentLightIntensity = 0f;
+	protected float currentLightIntensity = 1f;
 	protected float currentColorTemperature = 0f;
 
 	// tracked planes timestamp
@@ -231,15 +231,17 @@ public class ARKitInteface : MonoBehaviour, ARPlatformInterface
 		};
 
 		// prioritize result types
-		ARHitTestResultType[] resultTypes = {
-			ARHitTestResultType.ARHitTestResultTypeExistingPlaneUsingExtent, 
-			// if you want to use infinite planes use this:
-			//ARHitTestResultType.ARHitTestResultTypeExistingPlane,
-			ARHitTestResultType.ARHitTestResultTypeHorizontalPlane, 
-			ARHitTestResultType.ARHitTestResultTypeFeaturePoint
-		}; 
+		List<ARHitTestResultType> allowedResultTypes = new List<ARHitTestResultType>();
+		allowedResultTypes.Add(ARHitTestResultType.ARHitTestResultTypeExistingPlaneUsingExtent);
+		allowedResultTypes.Add(ARHitTestResultType.ARHitTestResultTypeHorizontalPlane);
 
-		foreach (ARHitTestResultType resultType in resultTypes)
+		if(arManager && !arManager.hitTrackedServicesOnly)
+		{
+			allowedResultTypes.Add(ARHitTestResultType.ARHitTestResultTypeExistingPlane);  // infinite planes
+			allowedResultTypes.Add(ARHitTestResultType.ARHitTestResultTypeFeaturePoint);
+		}
+
+		foreach (ARHitTestResultType resultType in allowedResultTypes)
 		{
 			List<ARHitTestResult> hitResults = UnityARSessionNativeInterface.GetARSessionNativeInterface().HitTest(point, resultType);
 
@@ -319,6 +321,7 @@ public class ARKitInteface : MonoBehaviour, ARPlatformInterface
 			{
 				GameObject parentObj = anchoredObj.transform.parent.gameObject;
 				anchoredObj.transform.parent = null;
+				anchoredObj.SetActive(false);
 
 				Destroy(parentObj);
 			}
@@ -395,8 +398,8 @@ public class ARKitInteface : MonoBehaviour, ARPlatformInterface
 		//currentLight.lightmapBakeType = LightmapBakeType.Mixed;
 		currentLight.color = new Color32(255, 254, 244, 255);
 
-		// add the needed component
-		currentLight.gameObject.AddComponent<UnityARAmbient>();
+		// add the ar-light component
+		currentLight.gameObject.AddComponent<MultiARDirectionalLight>();
 
 		// reference to the AR directional light
 		//directionalLight = currentLight;
@@ -573,6 +576,7 @@ public class ARKitInteface : MonoBehaviour, ARPlatformInterface
 			{
 				GameObject parentObj = anchoredObj.transform.parent.gameObject;
 				anchoredObj.transform.parent = null;
+				anchoredObj.SetActive(false);
 
 				Destroy(parentObj);
 			}

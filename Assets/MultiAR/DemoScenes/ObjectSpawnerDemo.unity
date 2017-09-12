@@ -177,83 +177,52 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 50, y: -30, z: 0}
---- !u!1 &1070661728
-GameObject:
+--- !u!1001 &915080706
+Prefab:
   m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  serializedVersion: 5
-  m_Component:
-  - component: {fileID: 1070661732}
-  - component: {fileID: 1070661731}
-  - component: {fileID: 1070661730}
-  - component: {fileID: 1070661729}
-  m_Layer: 0
-  m_Name: MultiARController
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!114 &1070661729
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 1070661728}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: bcb2d476de6a28d49a689326ecbfc653, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  yuvMaterial: {fileID: 2100000, guid: f1d9352050a75486f878ab19fa578f16, type: 2}
-  trackedPlanePrefab: {fileID: 1372998203143648, guid: f879aaf3eeb0c467eb22cbaf08dc97a4,
-    type: 2}
---- !u!114 &1070661730
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 1070661728}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 997ad931e0571a74ea785567768be5b7, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  arCoreDevicePrefab: {fileID: 1905656715913530, guid: c10877f7cd5764de18d46d7b777d1faa,
-    type: 2}
-  trackedPlanePrefab: {fileID: 1654175882956584, guid: 6a35c744e5010405c847fad90282d2be,
-    type: 2}
---- !u!114 &1070661731
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 1070661728}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4a9964692d3e5bd489c065dc631df4c7, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  preferredPlatform: 1
-  getPointCloud: 1
-  pointCloudPrefab: {fileID: 1707953204718416, guid: 2f471897ca3904978b6ce3a09dae9a0f,
-    type: 2}
-  displayTrackedSurfaces: 1
-  infoText: {fileID: 2051310032}
---- !u!4 &1070661732
-Transform:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 1070661728}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_RootOrder: 3
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  serializedVersion: 2
+  m_Modification:
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 4682183042793072, guid: cb4d91dd0146cac4395f7dadfdec7aac, type: 2}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4682183042793072, guid: cb4d91dd0146cac4395f7dadfdec7aac, type: 2}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4682183042793072, guid: cb4d91dd0146cac4395f7dadfdec7aac, type: 2}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4682183042793072, guid: cb4d91dd0146cac4395f7dadfdec7aac, type: 2}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4682183042793072, guid: cb4d91dd0146cac4395f7dadfdec7aac, type: 2}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4682183042793072, guid: cb4d91dd0146cac4395f7dadfdec7aac, type: 2}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4682183042793072, guid: cb4d91dd0146cac4395f7dadfdec7aac, type: 2}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4682183042793072, guid: cb4d91dd0146cac4395f7dadfdec7aac, type: 2}
+      propertyPath: m_RootOrder
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 1541651302486692, guid: cb4d91dd0146cac4395f7dadfdec7aac, type: 2}
+      propertyPath: m_Name
+      value: MultiARController
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+  m_ParentPrefab: {fileID: 100100000, guid: cb4d91dd0146cac4395f7dadfdec7aac, type: 2}
+  m_IsPrefabParent: 0
 --- !u!1 &1135968237
 GameObject:
   m_ObjectHideFlags: 0

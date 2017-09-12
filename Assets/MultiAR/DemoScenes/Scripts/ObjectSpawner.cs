@@ -20,7 +20,7 @@ public class ObjectSpawner : MonoBehaviour
 	void Update () 
 	{
 		// check for tap
-		if (Input.touchCount > 0 && objectPrefab && arManager)
+		if (Input.touchCount > 0 && objectPrefab && arManager && arManager.IsInitialized())
 		{
 			if (Input.GetTouch(0).phase == TouchPhase.Began)
 			{
