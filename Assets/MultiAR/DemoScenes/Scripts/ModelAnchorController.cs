@@ -113,6 +113,8 @@ public class ModelAnchorController : MonoBehaviour
 		if(anchorTransform && modelTransform && modelTransform.parent && 
 			modelTransform.parent.gameObject.activeInHierarchy)
 		{
+			Debug.Log("AnchorTransform set at " + modelTransform.parent.position);
+
 			// activate the anchor transform if needed
 			if(!anchorTransform.gameObject.activeSelf)
 			{
@@ -134,6 +136,11 @@ public class ModelAnchorController : MonoBehaviour
 			return true;
 		}
 
+		if(!modelTransform || !modelTransform.parent)
+			Debug.LogWarning("modelTransform.parent is null.");
+		else
+			Debug.LogWarning("modelTransform.parent.gameObject.activeInHierarchy: " + modelTransform.parent.gameObject.activeInHierarchy);
+
 		return false;
 	}
 
@@ -143,6 +150,8 @@ public class ModelAnchorController : MonoBehaviour
 		// remove the anchor
 		if(anchorTransform.parent != null && anchorId != string.Empty)
 		{
+			Debug.Log("Removing anchor: " + anchorId);
+
 			arManager.RemoveGameObjectAnchor(anchorId);
 			anchorId = string.Empty;
 
@@ -150,6 +159,11 @@ public class ModelAnchorController : MonoBehaviour
 
 			return true;
 		}
+
+		if(!anchorTransform || !anchorTransform.parent)
+			Debug.LogWarning("anchorTransform.parent is null.");
+		else if(anchorId == string.Empty)
+			Debug.LogWarning("anchorId is empty.");
 
 		return false;
 	}
