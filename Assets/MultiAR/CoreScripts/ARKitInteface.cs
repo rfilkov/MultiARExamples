@@ -291,7 +291,8 @@ public class ARKitInteface : MonoBehaviour, ARPlatformInterface
 
 		if(gameObj)
 		{
-			GameObject anchorObj = GameObject.CreatePrimitive(PrimitiveType.Cube);  // new GameObject();
+			GameObject anchorObj = new GameObject();
+			//GameObject anchorObj = GameObject.CreatePrimitive(PrimitiveType.Cube);
 			anchorObj.transform.position = worldPosition;
 			anchorObj.transform.rotation = worldRotation;
 			anchorObj.transform.localScale = new Vector3(0.1f, 0.2f, 0.1f);  // for debug only

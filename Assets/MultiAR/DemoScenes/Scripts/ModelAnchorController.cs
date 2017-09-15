@@ -113,8 +113,6 @@ public class ModelAnchorController : MonoBehaviour
 		if(anchorTransform && modelTransform && modelTransform.parent && 
 			modelTransform.parent.gameObject.activeInHierarchy)
 		{
-			Debug.Log("AnchorTransform set at " + modelTransform.parent.position);
-
 			// activate the anchor transform if needed
 			if(!anchorTransform.gameObject.activeSelf)
 			{
@@ -124,6 +122,8 @@ public class ModelAnchorController : MonoBehaviour
 			anchorTransform.SetParent(modelTransform.parent, true);
 			anchorTransform.localPosition = Vector3.zero;
 			//anchorTransform.gameObject.name = anchorId;
+
+			Debug.Log("AnchorTransform set at " + anchorTransform.position);
 
 			// set the toggle status
 			if(anchorActiveToggle)
@@ -136,34 +136,30 @@ public class ModelAnchorController : MonoBehaviour
 			return true;
 		}
 
-		if(!modelTransform || !modelTransform.parent)
-			Debug.LogWarning("modelTransform.parent is null.");
-		else
-			Debug.LogWarning("modelTransform.parent.gameObject.activeInHierarchy: " + modelTransform.parent.gameObject.activeInHierarchy);
-
 		return false;
 	}
 
 	// removes the anchor and deactivates anchor-transform
 	private bool RemoveAnchorTransform()
 	{
+		if (!anchorTransform)
+			return false;
+		
 		// remove the anchor
 		if(anchorTransform.parent != null && anchorId != string.Empty)
 		{
 			Debug.Log("Removing anchor: " + anchorId);
 
+			// remove the parent (anchor) and deactivate the anchor transform
+			anchorTransform.parent = null;
+			anchorTransform.gameObject.SetActive(false);
+
 			arManager.RemoveGameObjectAnchor(anchorId);
 			anchorId = string.Empty;
 
-			anchorTransform.gameObject.SetActive(false);
 
 			return true;
 		}
-
-		if(!anchorTransform || !anchorTransform.parent)
-			Debug.LogWarning("anchorTransform.parent is null.");
-		else if(anchorId == string.Empty)
-			Debug.LogWarning("anchorId is empty.");
 
 		return false;
 	}
