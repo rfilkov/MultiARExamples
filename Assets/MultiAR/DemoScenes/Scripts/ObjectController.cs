@@ -23,6 +23,7 @@ public class ObjectController : MonoBehaviour
 	[Tooltip("Transform of Model3, if any.")]
 	public Transform model3;
 
+	[Tooltip("UI-Text to show information messages.")]
 	public Text infoText;
 
 	// reference to the MultiARManager
@@ -56,7 +57,7 @@ public class ObjectController : MonoBehaviour
 		{
 			if (Input.GetTouch(0).phase == TouchPhase.Began || Input.GetTouch(0).phase == TouchPhase.Moved)
 			{
-				// tap
+				// check if there is a model selected
 				if(currentModel == null)
 				{
 					Debug.LogError("No model selected!");
@@ -68,21 +69,17 @@ public class ObjectController : MonoBehaviour
 					return;
 				}
 
+				// update the currently selected model
 				Vector2 screenPos = Input.GetTouch(0).position;
 				currentModel = GetModelHit(screenPos);
-
-				if(infoText)
-				{
-					infoText.text = currentModel ? currentModel.gameObject.name : string.Empty;
-				}
 
 				MultiARInterop.TrackableHit hit;
 				if(currentModel && arManager.RaycastScreenToWorld(screenPos, out hit))
 				{
-					// check for world anchor
+					// anchor the model if needed
 					if(currentModel.parent == null)
 					{
-						arManager.AnchorGameObjectToWorld(currentModel.gameObject, hit.point, Quaternion.identity);
+						arManager.AnchorGameObjectToWorld(currentModel.gameObject, hit);
 					}
 
 					// set the new position
@@ -91,13 +88,19 @@ public class ObjectController : MonoBehaviour
 			}
 		}
 
-		// turn off the toggles, if the respective models are missing or inactive
+		// update the info
+		if(infoText)
+		{
+			infoText.text = currentModel ? "Selected: " + currentModel.gameObject.name : string.Empty;
+		}
+
+		// turn off the toggles, if the respective models are not active
 		UpdateToggleStatus(toggle1, model1);
 		UpdateToggleStatus(toggle2, model2);
 		UpdateToggleStatus(toggle3, model3);
 	}
 
-	// returns the model hit, or current model if no other was hit
+	// returns the model hit by the screen ray, or current model if no other was hit
 	private Transform GetModelHit(Vector2 screenPos)
 	{
 		Camera mainCamera = arManager.GetMainCamera();
@@ -148,6 +151,25 @@ public class ObjectController : MonoBehaviour
 		return false;
 	}
 
+	// removes the model anchor
+	private bool RemoveModelAnchor(Transform model)
+	{
+		// remove the anchor
+		if(model && arManager)
+		{
+			// get the anchorId
+			string anchorId = arManager.GetObjectAnchorId(model.gameObject);
+
+			if(anchorId != string.Empty)
+			{
+				arManager.RemoveGameObjectAnchor(anchorId);
+				return true;
+			}
+		}
+
+		return false;
+	}
+
 	// turn off the toggle, of model is missing or inactive
 	private void UpdateToggleStatus(Toggle toggle, Transform model)
 	{
@@ -165,11 +187,24 @@ public class ObjectController : MonoBehaviour
 	{
 		if(model1)
 		{
+			if(!bOn)
+			{
+				// remove the world anchor
+				RemoveModelAnchor(model1);
+			}
+
+			// activate or deactivate the object
 			model1.gameObject.SetActive(bOn);
 
 			if(bOn)
 			{
+				// make it currently selected
 				currentModel = model1;
+			}
+			else if(currentModel == model1)
+			{
+				// if it was selected, clear the selection
+				currentModel = null;
 			}
 		}
 	}
@@ -179,11 +214,24 @@ public class ObjectController : MonoBehaviour
 	{
 		if(model2)
 		{
+			if(!bOn)
+			{
+				// remove the world anchor
+				RemoveModelAnchor(model2);
+			}
+
+			// activate or deactivate the object
 			model2.gameObject.SetActive(bOn);
 
 			if(bOn)
 			{
+				// make it currently selected
 				currentModel = model2;
+			}
+			else if(currentModel == model2)
+			{
+				// if it was selected, clear the selection
+				currentModel = null;
 			}
 		}
 	}
@@ -193,11 +241,24 @@ public class ObjectController : MonoBehaviour
 	{
 		if(model2)
 		{
+			if(!bOn)
+			{
+				// remove the world anchor
+				RemoveModelAnchor(model3);
+			}
+
+			// activate or deactivate the object
 			model3.gameObject.SetActive(bOn);
 
 			if(bOn)
 			{
+				// make it currently selected
 				currentModel = model3;
+			}
+			else if(currentModel == model3)
+			{
+				// if it was selected, clear the selection
+				currentModel = null;
 			}
 		}
 	}

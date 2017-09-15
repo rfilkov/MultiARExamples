@@ -221,6 +221,22 @@ public class MultiARManager : MonoBehaviour
 	/// <summary>
 	/// Anchors the game object to world.
 	/// </summary>
+	/// <returns>The game object to world.</returns>
+	/// <param name="gameObj">Game object.</param>
+	/// <param name="hit">Trackable hit.</param>
+	public string AnchorGameObjectToWorld(GameObject gameObj, MultiARInterop.TrackableHit hit)
+	{
+		if(arInterface != null)
+		{
+			return arInterface.AnchorGameObjectToWorld(gameObj, hit);
+		}
+
+		return string.Empty;
+	}
+
+	/// <summary>
+	/// Anchors the game object to world.
+	/// </summary>
 	/// <returns>The anchor Id, or empty string.</returns>
 	/// <param name="gameObj">Game object.</param>
 	/// <param name="worldPosition">World position.</param>
@@ -282,6 +298,29 @@ public class MultiARManager : MonoBehaviour
 
 		return null;
 	}
+
+	/// <summary>
+	/// Gets the anchorId of the given object, or empty string if not found.
+	/// </summary>
+	/// <returns>The object anchorId.</returns>
+	/// <param name="gameObj">Game object.</param>
+	public string GetObjectAnchorId(GameObject gameObj)
+	{
+		if(gameObj == null)
+			return string.Empty;
+		
+		foreach(string anchorId in arData.allAnchorsDict.Keys)
+		{
+			GameObject anchoredObj = arData.allAnchorsDict[anchorId];
+			if(anchoredObj == gameObj)
+			{
+				return anchorId;
+			}
+		}
+
+		return string.Empty;
+	}
+
 
 	// -- // -- // -- // -- // -- // -- // -- // -- // -- // -- //
 

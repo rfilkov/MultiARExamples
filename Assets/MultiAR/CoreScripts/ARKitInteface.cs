@@ -267,6 +267,18 @@ public class ARKitInteface : MonoBehaviour, ARPlatformInterface
 	/// <summary>
 	/// Anchors the game object to world.
 	/// </summary>
+	/// <returns>The game object to world.</returns>
+	/// <param name="gameObj">Game object.</param>
+	/// <param name="hit">Trackable hit.</param>
+	public string AnchorGameObjectToWorld(GameObject gameObj, MultiARInterop.TrackableHit hit)
+	{
+		string anchorId = AnchorGameObjectToWorld(gameObj, hit.point, Quaternion.identity);
+		return anchorId;
+	}
+
+	/// <summary>
+	/// Anchors the game object to world.
+	/// </summary>
 	/// <returns>The anchor Id, or empty string.</returns>
 	/// <param name="gameObj">Game object.</param>
 	/// <param name="worldPosition">World position.</param>
@@ -289,6 +301,7 @@ public class ARKitInteface : MonoBehaviour, ARPlatformInterface
 			DontDestroyOnLoad(anchorObj);  // don't destroy it accross scenes
 
 			gameObj.transform.SetParent(anchorObj.transform, true);
+			gameObj.transform.localPosition = Vector3.zero;
 
 			MultiARInterop.MultiARData arData = arManager.GetARData();
 			arData.allAnchorsDict[sAnchorId] = gameObj;

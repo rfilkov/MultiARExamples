@@ -93,6 +93,14 @@ public interface ARPlatformInterface
 	/// <summary>
 	/// Anchors the game object to world.
 	/// </summary>
+	/// <returns>The game object to world.</returns>
+	/// <param name="gameObj">Game object.</param>
+	/// <param name="hit">Trackable hit.</param>
+	string AnchorGameObjectToWorld(GameObject gameObj, MultiARInterop.TrackableHit hit);
+
+	/// <summary>
+	/// Anchors the game object to world.
+	/// </summary>
 	/// <returns>The anchor Id, or empty string.</returns>
 	/// <param name="gameObj">Game object.</param>
 	/// <param name="worldPosition">World position.</param>

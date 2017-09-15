@@ -31,7 +31,7 @@ public class ObjectSpawner : MonoBehaviour
 				{
 					// instantiate the object and anchor it to the world position
 					GameObject spawnObj = Instantiate(objectPrefab, hit.point, Quaternion.identity);
-					arManager.AnchorGameObjectToWorld(spawnObj, hit.point, Quaternion.identity);
+					arManager.AnchorGameObjectToWorld(spawnObj, hit);
 
 					// look at the camera
 					Camera arCamera = arManager.GetMainCamera();

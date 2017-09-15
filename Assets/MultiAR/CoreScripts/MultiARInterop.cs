@@ -34,6 +34,7 @@ public class MultiARInterop
 		public Vector3 point;
 		public float distance;
 
+		public object psObject;
 		//public Plane plane;
 	}
 

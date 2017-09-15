@@ -11,6 +11,9 @@ public class ARCoreInteface : MonoBehaviour, ARPlatformInterface
 	[Tooltip("Reference to the TrackedPlane prefab.")]
 	public GameObject trackedPlanePrefab;
 
+	[Tooltip("Whether to attach the game objects to the planes, where they are anchored.")]
+	public bool attachObjectsToPlanes = false;
+
 	//public GameObject envLightPrefab;
 
 	[Tooltip("Whether the interface is enabled by MultiARManager.")]
@@ -219,12 +222,39 @@ public class ARCoreInteface : MonoBehaviour, ARPlatformInterface
 		{
 			hit.point = intHit.Point;
 			hit.distance = intHit.Distance;
-			//hit.plane = new Plane();  // not finished
+			hit.psObject = intHit.Plane;
 
 			return true;
 		}
 
 		return false;
+	}
+
+	/// <summary>
+	/// Anchors the game object to world.
+	/// </summary>
+	/// <returns>The game object to world.</returns>
+	/// <param name="gameObj">Game object.</param>
+	/// <param name="hit">Trackable hit.</param>
+	public string AnchorGameObjectToWorld(GameObject gameObj, MultiARInterop.TrackableHit hit)
+	{
+		string anchorId = AnchorGameObjectToWorld(gameObj, hit.point, Quaternion.identity);
+
+		if(!string.IsNullOrEmpty(anchorId) && hit.psObject != null && attachObjectsToPlanes)
+		{
+			// valid anchor - attach the tracked plane
+			TrackedPlane trackedPlane = (TrackedPlane)hit.psObject;
+
+			GoogleARCore.HelloAR.PlaneAttachment planeAttachment = gameObj.GetComponent<GoogleARCore.HelloAR.PlaneAttachment>();
+			if(planeAttachment == null)
+			{
+				planeAttachment = gameObj.AddComponent<GoogleARCore.HelloAR.PlaneAttachment>();
+			}
+
+			planeAttachment.Attach(trackedPlane);
+		}
+
+		return anchorId;
 	}
 
 	/// <summary>
@@ -245,9 +275,12 @@ public class ARCoreInteface : MonoBehaviour, ARPlatformInterface
 			DontDestroyOnLoad(anchor.gameObject);  // don't destroy it accross scenes
 
 			gameObj.transform.SetParent(anchor.transform, true);
+			gameObj.transform.localPosition = Vector3.zero;
 
 			MultiARInterop.MultiARData arData = arManager.GetARData();
 			arData.allAnchorsDict[anchor.Id] = gameObj;
+
+			return anchor.Id;
 		}
 
 		return string.Empty;
@@ -281,6 +314,16 @@ public class ARCoreInteface : MonoBehaviour, ARPlatformInterface
 				anchoredObj.transform.parent = null;
 
 				//Destroy(parentObj);  // ARCore uses the object internally
+			}
+
+			if(anchoredObj)
+			{
+				// remove the plane attachment
+				GoogleARCore.HelloAR.PlaneAttachment planeAttachment = anchoredObj.GetComponent<GoogleARCore.HelloAR.PlaneAttachment>();
+				if(planeAttachment != null)
+				{
+					Destroy(planeAttachment);
+				}
 			}
 
 			return true;
