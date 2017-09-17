@@ -51,10 +51,15 @@ public class ModelAnchorController : MonoBehaviour
 		// check for tap
 		if (Input.touchCount > 0 && arManager && arManager.IsInitialized())
 		{
+			// don't consoder taps over the UI
+			if(UnityEngine.EventSystems.EventSystem.current.IsPointerOverGameObject())
+				return;
+			
 			if (Input.GetTouch(0).phase == TouchPhase.Began || Input.GetTouch(0).phase == TouchPhase.Moved)
 			{
 				if(modelTransform)
 				{
+					// raycast world
 					Vector2 screenPos = Input.GetTouch(0).position;
 
 					MultiARInterop.TrackableHit hit;

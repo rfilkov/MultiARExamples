@@ -55,6 +55,10 @@ public class ObjectController : MonoBehaviour
 		// check for tap
 		if (Input.touchCount > 0 && arManager && arManager.IsInitialized())
 		{
+			// don't consoder taps over the UI
+			if(UnityEngine.EventSystems.EventSystem.current.IsPointerOverGameObject())
+				return;
+
 			if (Input.GetTouch(0).phase == TouchPhase.Began || Input.GetTouch(0).phase == TouchPhase.Moved)
 			{
 				// check if there is a model selected
@@ -73,6 +77,7 @@ public class ObjectController : MonoBehaviour
 				Vector2 screenPos = Input.GetTouch(0).position;
 				currentModel = GetModelHit(screenPos);
 
+				// raycast world
 				MultiARInterop.TrackableHit hit;
 				if(currentModel && arManager.RaycastScreenToWorld(screenPos, out hit))
 				{

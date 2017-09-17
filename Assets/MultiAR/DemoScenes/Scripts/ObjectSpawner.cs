@@ -22,8 +22,13 @@ public class ObjectSpawner : MonoBehaviour
 		// check for tap
 		if (Input.touchCount > 0 && objectPrefab && arManager && arManager.IsInitialized())
 		{
+			// don't consoder taps over the UI
+			if(UnityEngine.EventSystems.EventSystem.current.IsPointerOverGameObject())
+				return;
+
 			if (Input.GetTouch(0).phase == TouchPhase.Began)
 			{
+				// raycast world
 				Vector2 screenPos = Input.GetTouch(0).position;
 				MultiARInterop.TrackableHit hit;
 
