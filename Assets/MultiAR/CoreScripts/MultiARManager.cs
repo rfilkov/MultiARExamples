@@ -267,12 +267,107 @@ public class MultiARManager : MonoBehaviour
 	}
 
 	/// <summary>
+	/// Attaches a game object to anchor.
+	/// </summary>
+	/// <returns>The anchor Id, or empty string.</returns>
+	/// <param name="gameObj">Game object.</param>
+	/// <param name="anchorId">Anchor identifier.</param>
+	/// <param name="makeObjActive">If set to <c>true</c> makes the game object active.</param>
+	/// <param name="createNewAnchor">If set to <c>true</c> creates new anchor, if needed.</param>
+	public string AttachObjectToAnchor(GameObject gameObj, string anchorId, bool makeObjActive, bool createNewAnchor)
+	{
+		if(gameObj && !string.IsNullOrEmpty(anchorId))
+		{
+			// add the object to the anchor list
+			if(arData.allAnchorsDict.ContainsKey(anchorId))
+			{
+				List<GameObject> anchoredObjs = arData.allAnchorsDict[anchorId];
+				if(anchoredObjs.Count > 0 && anchoredObjs[0] && anchoredObjs[0].transform.parent)
+				{
+					// make it parent
+					gameObj.transform.SetParent(anchoredObjs[0].transform.parent, true);
+					if(makeObjActive && !gameObj.activeSelf)
+					{
+						gameObj.SetActive(true);
+					}
+
+					anchoredObjs.Add(gameObj);
+					arData.allAnchorsDict[anchorId] = anchoredObjs;
+
+					return anchorId;
+				}
+			}
+		}
+		else if(gameObj && createNewAnchor)
+		{
+			// create new anchor
+			anchorId = AnchorGameObjectToWorld(gameObj, gameObj.transform.position, Quaternion.identity);
+			if(anchorId != string.Empty && makeObjActive && !gameObj.activeSelf)
+			{
+				gameObj.SetActive(true);
+			}
+
+			return anchorId;
+		}
+
+		return string.Empty;
+	}
+
+	/// <summary>
+	/// Detaches a game object from anchor.
+	/// </summary>
+	/// <returns>The anchor Id, or empty string.</returns>
+	/// <param name="gameObj">Game object.</param>
+	/// <param name="anchorId">Anchor identifier.</param>
+	/// <param name="keepObjActive">If set to <c>true</c> keeps the object active afterwards.</param>
+	/// <param name="keepEmptyAnchor">If set to <c>true</c> doesn't remove the anchor when no more objects are attached to it.</param>
+	public string DetachObjectFromAnchor(GameObject gameObj, string anchorId, bool keepObjActive, bool keepEmptyAnchor)
+	{
+		if(gameObj && !string.IsNullOrEmpty(anchorId))
+		{
+			// remove the object from the anchor list
+			if(arData.allAnchorsDict.ContainsKey(anchorId))
+			{
+				List<GameObject> anchoredObjs = arData.allAnchorsDict[anchorId];
+
+				// remove the parent
+				gameObj.transform.parent = null;
+				if(keepObjActive && !gameObj.activeSelf)
+				{
+					gameObj.SetActive(true);
+				}
+
+				anchoredObjs.Remove(gameObj);
+				arData.allAnchorsDict[anchorId] = anchoredObjs;
+
+				// remove the anchor, too
+				if(anchoredObjs.Count == 0 && !keepEmptyAnchor)
+				{
+					RemoveGameObjectAnchor(anchorId);
+					anchorId = string.Empty;
+				}
+
+				return anchorId;
+			}
+		}
+
+		return string.Empty;
+	}
+
+	/// <summary>
 	/// Gets the anchored objects count.
 	/// </summary>
 	/// <returns>The anchored objects count.</returns>
 	public int GetAnchoredObjectsCount()
 	{
-		return arData.allAnchorsDict.Count;
+		int iObjCount = 0;
+
+		foreach(string anchorId in arData.allAnchorsDict.Keys)
+		{
+			iObjCount += arData.allAnchorsDict[anchorId].Count;
+		}
+
+		return iObjCount;
 	}
 
 	/// <summary>
@@ -289,7 +384,7 @@ public class MultiARManager : MonoBehaviour
 	/// </summary>
 	/// <returns>The anchored object or null.</returns>
 	/// <param name="anchorId">Anchor identifier.</param>
-	public GameObject GetAnchoredObject(string anchorId)
+	public List<GameObject> GetAnchoredObjects(string anchorId)
 	{
 		if(arData.allAnchorsDict.ContainsKey(anchorId))
 		{
@@ -311,10 +406,14 @@ public class MultiARManager : MonoBehaviour
 		
 		foreach(string anchorId in arData.allAnchorsDict.Keys)
 		{
-			GameObject anchoredObj = arData.allAnchorsDict[anchorId];
-			if(anchoredObj == gameObj)
+			List<GameObject> anchoredObjs = arData.allAnchorsDict[anchorId];
+
+			foreach(GameObject anchoredObj in anchoredObjs)
 			{
-				return anchorId;
+				if(anchoredObj == gameObj)
+				{
+					return anchorId;
+				}
 			}
 		}
 

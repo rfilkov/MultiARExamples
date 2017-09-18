@@ -269,16 +269,24 @@ public class ARCoreInteface : MonoBehaviour, ARPlatformInterface
 		if(!isInitialized || (cameraTrackingState == FrameTrackingState.TrackingNotInitialized))
 			return string.Empty;
 
-		if(gameObj && arManager)
+		if(arManager)
 		{
 			Anchor anchor = Session.CreateAnchor(worldPosition, worldRotation);
 			DontDestroyOnLoad(anchor.gameObject);  // don't destroy it accross scenes
 
-			gameObj.transform.SetParent(anchor.transform, true);
-			gameObj.transform.localPosition = Vector3.zero;
+			if(gameObj)
+			{
+				gameObj.transform.SetParent(anchor.transform, true);
+				gameObj.transform.localPosition = Vector3.zero;
+			}
 
 			MultiARInterop.MultiARData arData = arManager.GetARData();
-			arData.allAnchorsDict[anchor.Id] = gameObj;
+			arData.allAnchorsDict[anchor.Id] = new List<GameObject>();
+
+			if(gameObj)
+			{
+				arData.allAnchorsDict[anchor.Id].Add(gameObj);
+			}
 
 			return anchor.Id;
 		}
@@ -304,25 +312,28 @@ public class ARCoreInteface : MonoBehaviour, ARPlatformInterface
 			// all anchor game objects remain in inactive state
 
 			// get the child game object
-			GameObject anchoredObj = arData.allAnchorsDict[anchorId];
+			List<GameObject> anchoredObjs = arData.allAnchorsDict[anchorId];
 			arData.allAnchorsDict.Remove(anchorId);
 
-			// detach the parent
-			if(anchoredObj && anchoredObj.transform.parent)
+			foreach(GameObject anchoredObj in anchoredObjs)
 			{
-				GameObject parentObj = anchoredObj.transform.parent.gameObject;
-				anchoredObj.transform.parent = null;
-
-				//Destroy(parentObj);  // ARCore uses the object internally
-			}
-
-			if(anchoredObj)
-			{
-				// remove the plane attachment
-				GoogleARCore.HelloAR.PlaneAttachment planeAttachment = anchoredObj.GetComponent<GoogleARCore.HelloAR.PlaneAttachment>();
-				if(planeAttachment != null)
+				// detach the parent
+				if(anchoredObj && anchoredObj.transform.parent)
 				{
-					Destroy(planeAttachment);
+					GameObject parentObj = anchoredObj.transform.parent.gameObject;
+					anchoredObj.transform.parent = null;
+
+					//Destroy(parentObj);  // ARCore uses the object internally
+				}
+
+				if(anchoredObj)
+				{
+					// remove the plane attachment
+					GoogleARCore.HelloAR.PlaneAttachment planeAttachment = anchoredObj.GetComponent<GoogleARCore.HelloAR.PlaneAttachment>();
+					if(planeAttachment != null)
+					{
+						Destroy(planeAttachment);
+					}
 				}
 			}
 
@@ -477,15 +488,16 @@ public class ARCoreInteface : MonoBehaviour, ARPlatformInterface
 
 		foreach(string anchorId in arData.allAnchorsDict.Keys)
 		{
-			GameObject anchoredObj = arData.allAnchorsDict[anchorId];
+			List<GameObject> anchoredObjs = arData.allAnchorsDict[anchorId];
 
-			if(anchoredObj)
+			foreach(GameObject anchoredObj in anchoredObjs)
 			{
 				Transform parentTrans = anchoredObj.transform.parent;
 
 				if(parentTrans == null)
 				{
-					alAnchorsToRemove.Add(anchorId);
+					if(!alAnchorsToRemove.Contains(anchorId))
+						alAnchorsToRemove.Add(anchorId);
 					anchoredObj.SetActive(false);
 				}
 				else
@@ -494,7 +506,8 @@ public class ARCoreInteface : MonoBehaviour, ARPlatformInterface
 
 					if(anchor == null || anchor.TrackingState == AnchorTrackingState.StoppedTracking)
 					{
-						alAnchorsToRemove.Add(anchorId);
+						if(!alAnchorsToRemove.Contains(anchorId))
+							alAnchorsToRemove.Add(anchorId);
 
 						anchoredObj.transform.parent = null;  
 						anchoredObj.SetActive(false);

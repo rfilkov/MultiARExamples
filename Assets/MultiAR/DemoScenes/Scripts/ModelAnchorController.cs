@@ -86,7 +86,13 @@ public class ModelAnchorController : MonoBehaviour
 
 		if(infoText)
 		{
-			infoText.text = !string.IsNullOrEmpty(anchorId) ? "Anchor: " + anchorId : "No anchor";
+			string sMsg = (modelTransform && modelTransform.gameObject.activeSelf ? 
+				modelTransform.gameObject.name + " at " + modelTransform.transform.position + ", " : string.Empty);
+			sMsg += (anchorTransform && anchorTransform.gameObject.activeSelf ? 
+				anchorTransform.gameObject.name + " at " + anchorTransform.transform.position + "\n" : string.Empty);
+			sMsg += !string.IsNullOrEmpty(anchorId) ? "Anchor: " + anchorId : "No anchor";
+
+			infoText.text = sMsg;
 		}
 	}
 
@@ -115,19 +121,19 @@ public class ModelAnchorController : MonoBehaviour
 	// sets the anchor-transform position to match the model's anchor
 	private bool SetAnchorTransformPosition()
 	{
-		if(anchorTransform && modelTransform && modelTransform.parent && 
+		if(anchorTransform && arManager && modelTransform && modelTransform.parent && 
 			modelTransform.parent.gameObject.activeInHierarchy)
 		{
+			Debug.Log("Attaching anchor transform to: " + anchorId);
+
 			// activate the anchor transform if needed
-			if(!anchorTransform.gameObject.activeSelf)
-			{
-				anchorTransform.gameObject.SetActive(true);
-			}
+			anchorId = arManager.AttachObjectToAnchor(anchorTransform.gameObject, anchorId, true, true);
 
-			anchorTransform.SetParent(modelTransform.parent, true);
-			anchorTransform.localPosition = Vector3.zero;
-			//anchorTransform.gameObject.name = anchorId;
-
+			if(anchorId != string.Empty)
+				anchorTransform.localPosition = Vector3.zero; // place it at anchor's position
+			else
+				anchorTransform.gameObject.SetActive(false); // no anchor - deactivate the transform
+			
 			Debug.Log("AnchorTransform set at " + anchorTransform.position);
 
 			// set the toggle status
@@ -153,15 +159,11 @@ public class ModelAnchorController : MonoBehaviour
 		// remove the anchor
 		if(anchorTransform.parent != null && anchorId != string.Empty)
 		{
-			Debug.Log("Removing anchor: " + anchorId);
+			Debug.Log("Detaching anchor transform from: " + anchorId);
 
 			// remove the parent (anchor) and deactivate the anchor transform
-			anchorTransform.parent = null;
 			anchorTransform.gameObject.SetActive(false);
-
-			arManager.RemoveGameObjectAnchor(anchorId);
-			anchorId = string.Empty;
-
+			anchorId = arManager.DetachObjectFromAnchor(anchorTransform.gameObject, anchorId, false, false);
 
 			return true;
 		}

@@ -289,23 +289,28 @@ public class ARKitInteface : MonoBehaviour, ARPlatformInterface
 		if(!isInitialized || !arManager)
 			return sAnchorId;
 
+		GameObject anchorObj = new GameObject();
+		//GameObject anchorObj = GameObject.CreatePrimitive(PrimitiveType.Cube);
+		anchorObj.transform.position = worldPosition;
+		anchorObj.transform.rotation = worldRotation;
+		anchorObj.transform.localScale = new Vector3(0.1f, 0.2f, 0.1f);  // for debug only
+
+		UnityARUserAnchorData anchorData = UnityARSessionNativeInterface.GetARSessionNativeInterface().AddUserAnchorFromGameObject(anchorObj); 
+		sAnchorId = anchorData.identifierStr;
+		DontDestroyOnLoad(anchorObj);  // don't destroy it accross scenes
+
 		if(gameObj)
 		{
-			GameObject anchorObj = new GameObject();
-			//GameObject anchorObj = GameObject.CreatePrimitive(PrimitiveType.Cube);
-			anchorObj.transform.position = worldPosition;
-			anchorObj.transform.rotation = worldRotation;
-			anchorObj.transform.localScale = new Vector3(0.1f, 0.2f, 0.1f);  // for debug only
-
-			UnityARUserAnchorData anchorData = UnityARSessionNativeInterface.GetARSessionNativeInterface().AddUserAnchorFromGameObject(anchorObj); 
-			sAnchorId = anchorData.identifierStr;
-			DontDestroyOnLoad(anchorObj);  // don't destroy it accross scenes
-
 			gameObj.transform.SetParent(anchorObj.transform, true);
 			gameObj.transform.localPosition = Vector3.zero;
+		}
 
-			MultiARInterop.MultiARData arData = arManager.GetARData();
-			arData.allAnchorsDict[sAnchorId] = gameObj;
+		MultiARInterop.MultiARData arData = arManager.GetARData();
+		arData.allAnchorsDict[sAnchorId] = new List<GameObject>();
+
+		if(gameObj)
+		{
+			arData.allAnchorsDict[sAnchorId].Add(gameObj);
 		}
 
 		return sAnchorId;
@@ -327,17 +332,20 @@ public class ARKitInteface : MonoBehaviour, ARPlatformInterface
 			// remove the anchor from the system
 			UnityARSessionNativeInterface.GetARSessionNativeInterface().RemoveUserAnchor(anchorId);
 
-			// get the child game object
-			GameObject anchoredObj = arData.allAnchorsDict[anchorId];
+			// get the child game objects
+			List<GameObject> anchoredObjs = arData.allAnchorsDict[anchorId];
 			arData.allAnchorsDict.Remove(anchorId);
 
-			if(anchoredObj && anchoredObj.transform.parent)
+			foreach(GameObject anchoredObj in anchoredObjs)
 			{
-				GameObject parentObj = anchoredObj.transform.parent.gameObject;
-				anchoredObj.transform.parent = null;
-				anchoredObj.SetActive(false);
+				if(anchoredObj && anchoredObj.transform.parent)
+				{
+					GameObject parentObj = anchoredObj.transform.parent.gameObject;
+					anchoredObj.transform.parent = null;
+					anchoredObj.SetActive(false);
 
-				Destroy(parentObj);
+					Destroy(parentObj);
+				}
 			}
 
 			return true;
@@ -583,16 +591,19 @@ public class ARKitInteface : MonoBehaviour, ARPlatformInterface
 		MultiARInterop.MultiARData arData = arManager.GetARData();
 		if (arData.allAnchorsDict.ContainsKey(anchor.identifier))
 		{
-			GameObject anchoredObj = arData.allAnchorsDict[anchor.identifier];
+			List<GameObject> anchoredObjs = arData.allAnchorsDict[anchor.identifier];
 			arData.allAnchorsDict.Remove(anchor.identifier);
 
-			if(anchoredObj && anchoredObj.transform.parent)
+			foreach(GameObject anchoredObj in anchoredObjs)
 			{
-				GameObject parentObj = anchoredObj.transform.parent.gameObject;
-				anchoredObj.transform.parent = null;
-				anchoredObj.SetActive(false);
+				if(anchoredObj && anchoredObj.transform.parent)
+				{
+					GameObject parentObj = anchoredObj.transform.parent.gameObject;
+					anchoredObj.transform.parent = null;
+					anchoredObj.SetActive(false);
 
-				Destroy(parentObj);
+					Destroy(parentObj);
+				}
 			}
 
 			Debug.Log("Anchor removed: " + anchor.identifier);

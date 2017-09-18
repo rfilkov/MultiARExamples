@@ -59,7 +59,7 @@ public class MultiARInterop
 		public double pointCloudTimestamp = 0.0;
 
 		// anchored objects
-		public Dictionary<string, GameObject> allAnchorsDict = new Dictionary<string, GameObject>();
+		public Dictionary<string, List<GameObject>> allAnchorsDict = new Dictionary<string, List<GameObject>>();
 	}
 
 	/// <summary>
