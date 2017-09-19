@@ -68,7 +68,7 @@ public class ModelAnchorController : MonoBehaviour
 		}
 
 		// check if anchorId is still valid
-		if(arManager && anchorId != string.Empty && arManager.IsValidAnchorId(anchorId))
+		if(arManager && anchorId != string.Empty && !arManager.IsValidAnchorId(anchorId))
 		{
 			anchorId = string.Empty;
 		}
