@@ -256,11 +256,12 @@ public class MultiARManager : MonoBehaviour
 	/// </summary>
 	/// <returns><c>true</c>, if game object anchor was removed, <c>false</c> otherwise.</returns>
 	/// <param name="anchorId">Anchor identifier.</param>
-	public bool RemoveGameObjectAnchor(string anchorId)
+	/// <param name="keepObjActive">If set to <c>true</c> keeps the object active afterwards.</param>
+	public bool RemoveGameObjectAnchor(string anchorId, bool keepObjActive)
 	{
 		if(arInterface != null)
 		{
-			return arInterface.RemoveGameObjectAnchor(anchorId);
+			return arInterface.RemoveGameObjectAnchor(anchorId, keepObjActive);
 		}
 
 		return false;
@@ -343,7 +344,7 @@ public class MultiARManager : MonoBehaviour
 				// remove the anchor, too
 				if(anchoredObjs.Count == 0 && !keepEmptyAnchor)
 				{
-					RemoveGameObjectAnchor(anchorId);
+					RemoveGameObjectAnchor(anchorId, keepObjActive);
 					anchorId = string.Empty;
 				}
 
@@ -352,6 +353,15 @@ public class MultiARManager : MonoBehaviour
 		}
 
 		return string.Empty;
+	}
+
+	/// <summary>
+	/// Gets the anchors count.
+	/// </summary>
+	/// <returns>The anchors count.</returns>
+	public int GetAnchorsCount()
+	{
+		return arData.allAnchorsDict.Keys.Count;
 	}
 
 	/// <summary>
@@ -377,6 +387,21 @@ public class MultiARManager : MonoBehaviour
 	public List<string> GetAllObjectAnchorIds()
 	{
 		return new List<string>(arData.allAnchorsDict.Keys);
+	}
+
+	/// <summary>
+	/// Determines whether the specified anchorId is valid.
+	/// </summary>
+	/// <returns><c>true</c> if anchorId is valid; otherwise, <c>false</c>.</returns>
+	/// <param name="anchorId">Anchor identifier.</param>
+	public bool IsValidAnchorId(string anchorId)
+	{
+		if(!string.IsNullOrEmpty(anchorId))
+		{
+			return arData.allAnchorsDict.ContainsKey(anchorId);
+		}
+
+		return false;
 	}
 
 	/// <summary>
@@ -527,10 +552,11 @@ public class MultiARManager : MonoBehaviour
 		if(infoText)
 		{
 			int numPlanes = GetTrackedPlanesCount();
-			int numAnchors = GetAnchoredObjectsCount();
+			int numAnchors = GetAnchorsCount();
+			int numObjects = GetAnchoredObjectsCount();
 
 			infoText.text = "Tracker: " + arInterface.GetCameraTrackingState () + " " + arInterface.GetTrackingErrorMessage () +
-			string.Format ("\nLight: {0:F3}", arInterface.GetLightIntensity ()) + ", Planes: " + numPlanes + ", Anchors: " + numAnchors;
+				string.Format ("\nLight: {0:F3}", arInterface.GetLightIntensity ()) + ", Planes: " + numPlanes + ", Anchors: " + numAnchors + ", Objects: " + numObjects;
 				//+ "\nTimestamp: " + lastFrameTimestamp.ToString();
 		}
 

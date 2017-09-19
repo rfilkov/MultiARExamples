@@ -34,141 +34,60 @@ public class ModelAnchorController : MonoBehaviour
 		// get reference to MultiARManager
 		arManager = MultiARManager.Instance;
 
-		if(infoText)
-		{
-			infoText.text = "Please select a model.";
-		}
-
-		// select the activity toggle at start
-		if(modelActiveToggle)
-		{
-			modelActiveToggle.isOn = true;
-		}
+//		// select the model toggle at start
+//		if(modelActiveToggle)
+//		{
+//			modelActiveToggle.isOn = true;
+//		}
 	}
 	
 	void Update () 
 	{
+		// don't consider taps over the UI
+		if(UnityEngine.EventSystems.EventSystem.current.IsPointerOverGameObject())
+			return;
+
 		// check for tap
 		if (Input.touchCount > 0 && arManager && arManager.IsInitialized())
 		{
-			// don't consoder taps over the UI
-			if(UnityEngine.EventSystems.EventSystem.current.IsPointerOverGameObject())
-				return;
-			
 			if (Input.GetTouch(0).phase == TouchPhase.Began || Input.GetTouch(0).phase == TouchPhase.Moved)
 			{
-				if(modelTransform)
+				if(modelTransform && modelTransform.gameObject.activeSelf)
 				{
 					// raycast world
 					Vector2 screenPos = Input.GetTouch(0).position;
-
 					MultiARInterop.TrackableHit hit;
-					if(modelTransform.gameObject.activeInHierarchy && 
-						arManager.RaycastScreenToWorld(screenPos, out hit))
-					{
-						// anchor the model to the hit point
-						if(anchorActiveToggle.isOn && modelTransform.parent == null)
-						{
-							anchorId = arManager.AnchorGameObjectToWorld(modelTransform.gameObject, hit);
-							SetAnchorTransformPosition();
-						}
 
-						// set the new position
+					if(arManager.RaycastScreenToWorld(screenPos, out hit))
+					{
+						// set model's new position
 						SetModelWorldPos(hit.point);
 					}
 				}
 			}
 		}
 
+		// check if anchorId is still valid
+		if(arManager && anchorId != string.Empty && arManager.IsValidAnchorId(anchorId))
+		{
+			anchorId = string.Empty;
+		}
+
 		// update the model-active and anchor-active transforms
 		UpdateModelToggle(modelActiveToggle, modelTransform);
 		UpdateModelToggle(anchorActiveToggle, anchorTransform);
 
+		// update the info-text
 		if(infoText)
 		{
 			string sMsg = (modelTransform && modelTransform.gameObject.activeSelf ? 
-				modelTransform.gameObject.name + " at " + modelTransform.transform.position + ", " : string.Empty);
+				"Model at " + modelTransform.transform.position + ", " : "No model, ");
 			sMsg += (anchorTransform && anchorTransform.gameObject.activeSelf ? 
-				anchorTransform.gameObject.name + " at " + anchorTransform.transform.position + "\n" : string.Empty);
-			sMsg += !string.IsNullOrEmpty(anchorId) ? "Anchor: " + anchorId : "No anchor";
+				"Anchor at " + anchorTransform.transform.position : "No anchor");
+			sMsg += !string.IsNullOrEmpty(anchorId) ? "\nAnchorId: " + anchorId : string.Empty;
 
 			infoText.text = sMsg;
 		}
-	}
-
-	// returns the model hit by the screen ray, or current model if no other was hit
-	private Transform GetModelHit(Vector2 screenPos)
-	{
-		Camera mainCamera = arManager.GetMainCamera();
-
-		if(mainCamera)
-		{
-			Ray ray = mainCamera.ScreenPointToRay(screenPos);
-
-			RaycastHit rayHit;
-			if(Physics.Raycast(ray, out rayHit))
-			{
-				if(rayHit.transform == modelTransform)
-				{
-					return modelTransform;
-				}
-			}
-		}
-
-		return null;
-	}
-
-	// sets the anchor-transform position to match the model's anchor
-	private bool SetAnchorTransformPosition()
-	{
-		if(anchorTransform && arManager && modelTransform && modelTransform.parent && 
-			modelTransform.parent.gameObject.activeInHierarchy)
-		{
-			Debug.Log("Attaching anchor transform to: " + anchorId);
-
-			// activate the anchor transform if needed
-			anchorId = arManager.AttachObjectToAnchor(anchorTransform.gameObject, anchorId, true, true);
-
-			if(anchorId != string.Empty)
-				anchorTransform.localPosition = Vector3.zero; // place it at anchor's position
-			else
-				anchorTransform.gameObject.SetActive(false); // no anchor - deactivate the transform
-			
-			Debug.Log("AnchorTransform set at " + anchorTransform.position);
-
-			// set the toggle status
-			if(anchorActiveToggle)
-			{
-				bIntAction = true;
-				anchorActiveToggle.isOn = anchorTransform.gameObject.activeSelf;
-				bIntAction = false;
-			}
-
-			return true;
-		}
-
-		return false;
-	}
-
-	// removes the anchor and deactivates anchor-transform
-	private bool RemoveAnchorTransform()
-	{
-		if (!anchorTransform)
-			return false;
-		
-		// remove the anchor
-		if(anchorTransform.parent != null && anchorId != string.Empty)
-		{
-			Debug.Log("Detaching anchor transform from: " + anchorId);
-
-			// remove the parent (anchor) and deactivate the anchor transform
-			anchorTransform.gameObject.SetActive(false);
-			anchorId = arManager.DetachObjectFromAnchor(anchorTransform.gameObject, anchorId, false, false);
-
-			return true;
-		}
-
-		return false;
 	}
 
 	// positions the controlled model in the world
@@ -197,7 +116,7 @@ public class ModelAnchorController : MonoBehaviour
 	{
 		if(toggle)
 		{
-			if(model != null && toggle.isOn != model.gameObject.activeInHierarchy)
+			if(model != null && toggle.isOn != model.gameObject.activeSelf)
 			{
 				bIntAction = true;
 				toggle.isOn = model.gameObject.activeInHierarchy;
@@ -209,49 +128,115 @@ public class ModelAnchorController : MonoBehaviour
 	// invoked by the model toggle
 	public void ModelToggleSelected(bool bOn)
 	{
-		if(bIntAction)
+		if(bIntAction || !modelTransform || !arManager)
 			return;
 
-		if(!bOn)
+		if(bOn)
 		{
-			// remove anchor transform, if any
-			RemoveAnchorTransform();
+			// activate model if needed
+			if(!modelTransform.gameObject.activeSelf)
+			{
+				modelTransform.gameObject.SetActive(true);
+			}
+
+			if(anchorTransform && anchorTransform.gameObject.activeSelf)
+			{
+				// set model at anchor's position
+				SetModelWorldPos(anchorTransform.position);
+			}
+			else
+			{
+				// raycast center of the screen
+				Vector2 screenPos = new Vector2(Screen.width / 2f, Screen.height / 2f);
+				MultiARInterop.TrackableHit hit;
+
+				if(arManager.RaycastScreenToWorld(screenPos, out hit))
+				{
+					// set model position
+					SetModelWorldPos(hit.point);
+				}
+			}
+
+			// attach to existing anchor, if needed
+			if(arManager.IsValidAnchorId(anchorId))
+			{
+				arManager.AttachObjectToAnchor(modelTransform.gameObject, anchorId, false, false);
+			}
 		}
-		
-		if(modelTransform)
+		else
 		{
-			// activate or deactivate model
-			modelTransform.gameObject.SetActive(bOn);
+			// detach from the anchor, if needed
+			if(arManager.IsValidAnchorId(anchorId))
+			{
+				anchorId = arManager.DetachObjectFromAnchor(modelTransform.gameObject, anchorId, false, false);
+			}
+
+			// deactivate the model if needed
+			if(modelTransform.gameObject.activeSelf)
+			{
+				modelTransform.gameObject.SetActive(false);
+			}
 		}
 	}
 
 	// invoked by the anchor
 	public void AnchorToggleSelected(bool bOn)
 	{
-		if(bIntAction)
+		if(bIntAction || !anchorTransform || !arManager)
 			return;
 		
-		if(anchorTransform && arManager)
+		if(bOn)
 		{
-			if(bOn)
+			// activate the anchor transform, if needed
+			if(!anchorTransform.gameObject.activeSelf)
 			{
-				// activate the model, if needed
-				if(!modelTransform.gameObject.activeSelf)
+				anchorTransform.gameObject.SetActive(true);
+			}
+
+			// create the anchor if needed
+			if(!arManager.IsValidAnchorId(anchorId))
+			{
+				if(modelTransform && modelTransform.gameObject.activeSelf)
 				{
-					modelTransform.gameObject.SetActive(true);
+					// create the world anchor at model's position
+					anchorId = arManager.AnchorGameObjectToWorld(anchorTransform.gameObject, modelTransform.position, Quaternion.identity);
+				}
+				else
+				{
+					// raycast center of the screen
+					Vector2 screenPos = new Vector2(Screen.width / 2f, Screen.height / 2f);
+					MultiARInterop.TrackableHit hit;
+
+					if(arManager.RaycastScreenToWorld(screenPos, out hit))
+					{
+						// create the world anchor at hit's position
+						anchorId = arManager.AnchorGameObjectToWorld(anchorTransform.gameObject, hit);
+					}
 				}
 
-				// create the anchor at model's position
-				if(modelTransform.gameObject.activeSelf && modelTransform.parent == null)
+				// attach the model to the same anchor
+				if(arManager.IsValidAnchorId(anchorId) && modelTransform && modelTransform.gameObject.activeSelf)
 				{
-					anchorId = arManager.AnchorGameObjectToWorld(modelTransform.gameObject, modelTransform.position, Quaternion.identity);
-					SetAnchorTransformPosition();
+					arManager.AttachObjectToAnchor(modelTransform.gameObject, anchorId, false, false);
 				}
 			}
-			else
+		}
+		else
+		{
+			// remove the anchor as needed
+			if(arManager.IsValidAnchorId(anchorId))
 			{
-				// remove the anchor and deactivate the anchor transform
-				RemoveAnchorTransform();
+				// create the world anchor
+				if(arManager.RemoveGameObjectAnchor(anchorId, true))
+				{
+					anchorId = string.Empty;
+				}
+			}
+
+			// deactivate the anchor transform, if needed
+			if(anchorTransform.gameObject.activeSelf)
+			{
+				anchorTransform.gameObject.SetActive(false);
 			}
 		}
 	}

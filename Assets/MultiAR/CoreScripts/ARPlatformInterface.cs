@@ -112,6 +112,7 @@ public interface ARPlatformInterface
 	/// </summary>
 	/// <returns><c>true</c>, if game object anchor was removed, <c>false</c> otherwise.</returns>
 	/// <param name="anchorId">Anchor identifier.</param>
-	bool RemoveGameObjectAnchor(string anchorId);
+	/// <param name="keepObjActive">If set to <c>true</c> keeps the object active afterwards.</param>
+	bool RemoveGameObjectAnchor(string anchorId, bool keepObjActive);
 
 }

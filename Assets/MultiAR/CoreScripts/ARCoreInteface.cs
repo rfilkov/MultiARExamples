@@ -299,7 +299,8 @@ public class ARCoreInteface : MonoBehaviour, ARPlatformInterface
 	/// </summary>
 	/// <returns><c>true</c>, if game object anchor was removed, <c>false</c> otherwise.</returns>
 	/// <param name="anchorId">Anchor identifier.</param>
-	public bool RemoveGameObjectAnchor(string anchorId)
+	/// <param name="keepObjActive">If set to <c>true</c> keeps the object active afterwards.</param>
+	public bool RemoveGameObjectAnchor(string anchorId, bool keepObjActive)
 	{
 		if(!isInitialized || !arManager)
 			return false;
@@ -322,6 +323,11 @@ public class ARCoreInteface : MonoBehaviour, ARPlatformInterface
 				{
 					GameObject parentObj = anchoredObj.transform.parent.gameObject;
 					anchoredObj.transform.parent = null;
+
+					if(!keepObjActive)
+					{
+						anchoredObj.SetActive(false);
+					}
 
 					//Destroy(parentObj);  // ARCore uses the object internally
 				}

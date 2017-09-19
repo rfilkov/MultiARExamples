@@ -52,24 +52,19 @@ public class ObjectController : MonoBehaviour
 	
 	void Update () 
 	{
+		// don't consider taps over the UI
+		if(UnityEngine.EventSystems.EventSystem.current.IsPointerOverGameObject())
+			return;
+
 		// check for tap
 		if (Input.touchCount > 0 && arManager && arManager.IsInitialized())
 		{
-			// don't consoder taps over the UI
-			if(UnityEngine.EventSystems.EventSystem.current.IsPointerOverGameObject())
-				return;
-
 			if (Input.GetTouch(0).phase == TouchPhase.Began || Input.GetTouch(0).phase == TouchPhase.Moved)
 			{
 				// check if there is a model selected
 				if(currentModel == null)
 				{
 					Debug.LogError("No model selected!");
-					if(infoText)
-					{
-						infoText.text = "Please select a model.";
-					}
-
 					return;
 				}
 
@@ -96,7 +91,7 @@ public class ObjectController : MonoBehaviour
 		// update the info
 		if(infoText)
 		{
-			infoText.text = currentModel ? "Selected: " + currentModel.gameObject.name : string.Empty;
+			infoText.text = currentModel ? "Selected: " + currentModel.gameObject.name : "No model selected";
 		}
 
 		// turn off the toggles, if the respective models are not active
@@ -167,7 +162,7 @@ public class ObjectController : MonoBehaviour
 
 			if(anchorId != string.Empty)
 			{
-				arManager.RemoveGameObjectAnchor(anchorId);
+				arManager.RemoveGameObjectAnchor(anchorId, false);
 				return true;
 			}
 		}
@@ -185,6 +180,20 @@ public class ObjectController : MonoBehaviour
 				toggle.isOn = false;
 			}
 		}
+	}
+
+	// returns the 1st active model
+	private Transform GetActiveModel()
+	{
+		if(model1 && model1.gameObject.activeSelf)
+			return model1;
+		else if(model2 && model2.gameObject.activeSelf)
+			return model2;
+		else if(model3 && model3.gameObject.activeSelf)
+			return model3;
+
+		// no model is currently selected
+		return null;
 	}
 
 	// invoked by the 1st toggle
@@ -208,8 +217,8 @@ public class ObjectController : MonoBehaviour
 			}
 			else if(currentModel == model1)
 			{
-				// if it was selected, clear the selection
-				currentModel = null;
+				// if it was selected, reset the selection
+				currentModel = GetActiveModel();
 			}
 		}
 	}
@@ -235,8 +244,8 @@ public class ObjectController : MonoBehaviour
 			}
 			else if(currentModel == model2)
 			{
-				// if it was selected, clear the selection
-				currentModel = null;
+				// if it was selected, reset the selection
+				currentModel = GetActiveModel();
 			}
 		}
 	}
@@ -262,8 +271,8 @@ public class ObjectController : MonoBehaviour
 			}
 			else if(currentModel == model3)
 			{
-				// if it was selected, clear the selection
-				currentModel = null;
+				// if it was selected, reset the selection
+				currentModel = GetActiveModel();
 			}
 		}
 	}
