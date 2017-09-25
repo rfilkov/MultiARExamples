@@ -68,23 +68,27 @@ namespace UnityEngine.XR.iOS
             Resolution currentResolution = Screen.currentResolution;
 
             // Texture Y
-            _videoTextureY = Texture2D.CreateExternalTexture(currentResolution.width, currentResolution.height,
-                TextureFormat.R8, false, false, (System.IntPtr)handles.textureY);
-            _videoTextureY.filterMode = FilterMode.Bilinear;
-            _videoTextureY.wrapMode = TextureWrapMode.Repeat;
-            _videoTextureY.UpdateExternalTexture(handles.textureY);
+            if (_videoTextureY == null) {
+              _videoTextureY = Texture2D.CreateExternalTexture(currentResolution.width, currentResolution.height,
+                  TextureFormat.R8, false, false, (System.IntPtr)handles.textureY);
+              _videoTextureY.filterMode = FilterMode.Bilinear;
+              _videoTextureY.wrapMode = TextureWrapMode.Repeat;
+              m_ClearMaterial.SetTexture("_textureY", _videoTextureY);
+            }
 
             // Texture CbCr
-            _videoTextureCbCr = Texture2D.CreateExternalTexture(currentResolution.width, currentResolution.height,
-                TextureFormat.RG16, false, false, (System.IntPtr)handles.textureCbCr);
-            _videoTextureCbCr.filterMode = FilterMode.Bilinear;
-            _videoTextureCbCr.wrapMode = TextureWrapMode.Repeat;
+            if (_videoTextureCbCr == null) {
+              _videoTextureCbCr = Texture2D.CreateExternalTexture(currentResolution.width, currentResolution.height,
+                  TextureFormat.RG16, false, false, (System.IntPtr)handles.textureCbCr);
+              _videoTextureCbCr.filterMode = FilterMode.Bilinear;
+              _videoTextureCbCr.wrapMode = TextureWrapMode.Repeat;
+              m_ClearMaterial.SetTexture("_textureCbCr", _videoTextureCbCr);
+            }
+
+            _videoTextureY.UpdateExternalTexture(handles.textureY);
             _videoTextureCbCr.UpdateExternalTexture(handles.textureCbCr);
 
-            m_ClearMaterial.SetTexture("_textureY", _videoTextureY);
-            m_ClearMaterial.SetTexture("_textureCbCr", _videoTextureCbCr);
             int isPortrait = 0;
-
             float rotation = 0;
             if (screenOrientation == ScreenOrientation.Portrait) {
                 rotation = -90;
