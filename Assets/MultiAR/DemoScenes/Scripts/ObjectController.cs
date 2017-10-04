@@ -57,9 +57,11 @@ public class ObjectController : MonoBehaviour
 			return;
 
 		// check for tap
-		if (Input.touchCount > 0 && arManager && arManager.IsInitialized())
+		if (arManager && arManager.IsInitialized())
 		{
-			if (Input.GetTouch(0).phase == TouchPhase.Began || Input.GetTouch(0).phase == TouchPhase.Moved)
+			MultiARInterop.InputAction action = arManager.GetInputAction();
+
+			if (action == MultiARInterop.InputAction.Click || action == MultiARInterop.InputAction.Grip)
 			{
 				// check if there is a model selected
 				if(currentModel == null)
@@ -69,8 +71,8 @@ public class ObjectController : MonoBehaviour
 				}
 
 				// update the currently selected model
-				Vector2 screenPos = Input.GetTouch(0).position;
-				currentModel = GetModelHit(screenPos);
+				//Vector2 screenPos = Input.GetTouch(0).position;
+				//currentModel = GetModelHit(screenPos);  // TODO: to be fixed
 
 				// raycast world
 				MultiARInterop.TrackableHit hit;

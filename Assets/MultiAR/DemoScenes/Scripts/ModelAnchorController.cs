@@ -48,14 +48,16 @@ public class ModelAnchorController : MonoBehaviour
 			return;
 
 		// check for tap
-		if (Input.touchCount > 0 && arManager && arManager.IsInitialized())
+		if (arManager && arManager.IsInitialized())
 		{
-			if (Input.GetTouch(0).phase == TouchPhase.Began || Input.GetTouch(0).phase == TouchPhase.Moved)
+			MultiARInterop.InputAction action = arManager.GetInputAction();
+
+			if(action == MultiARInterop.InputAction.Click || action == MultiARInterop.InputAction.Grip)
 			{
 				if(modelTransform && modelTransform.gameObject.activeSelf)
 				{
 					// raycast world
-					Vector2 screenPos = Input.GetTouch(0).position;
+					//Vector2 screenPos = Input.GetTouch(0).position;
 					MultiARInterop.TrackableHit hit;
 
 					if(arManager.RaycastToWorld(true, out hit))
