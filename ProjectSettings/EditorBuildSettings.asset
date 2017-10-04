@@ -5,12 +5,12 @@ EditorBuildSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 2
   m_Scenes:
-  - enabled: 0
+  - enabled: 1
     path: Assets/MultiAR/DemoScenes/ObjectSpawnerDemo.unity
     guid: 759cf221615bf61408e8f2b4db46803b
   - enabled: 0
     path: Assets/MultiAR/DemoScenes/ObjectControllerDemo.unity
     guid: d9abba600e4274f4ca734d64aa1ff49f
-  - enabled: 1
+  - enabled: 0
     path: Assets/MultiAR/DemoScenes/AnchorUnanchorDemo.unity
     guid: fd687dfe27e151f458e63ae8970b74c3

@@ -74,7 +74,7 @@ public class ObjectController : MonoBehaviour
 
 				// raycast world
 				MultiARInterop.TrackableHit hit;
-				if(currentModel && arManager.RaycastScreenToWorld(screenPos, out hit))
+				if(currentModel && arManager.RaycastToWorld(true, out hit))
 				{
 					// anchor the model if needed
 					if(currentModel.parent == null)

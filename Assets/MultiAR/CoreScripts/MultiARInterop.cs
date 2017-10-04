@@ -27,6 +27,20 @@ public class MultiARInterop
 	}
 
 	/// <summary>
+	/// Input action types.
+	/// </summary>
+	public enum InputAction : int
+	{
+		None = 0,
+		Click = 1,
+		Grip = 2,
+		Release = 3,
+		Gesture = 11,
+		SpeechCommand = 12,
+		CustomCommand = 19
+	}
+
+	/// <summary>
 	/// Contains information about a raycast hit against a physical object
 	/// </summary>
 	public struct TrackableHit

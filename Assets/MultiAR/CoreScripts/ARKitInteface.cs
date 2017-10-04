@@ -43,6 +43,11 @@ public class ARKitInteface : MonoBehaviour, ARPlatformInterface
 	// plane anchors
 	private Dictionary<string, ARPlaneAnchorGameObject> planeAnchorDict = new Dictionary<string, ARPlaneAnchorGameObject>();
 
+	// input action and screen position
+	private MultiARInterop.InputAction inputAction = MultiARInterop.InputAction.None;
+	private Vector2 inputPos = Vector2.zero;
+	private double inputTimestamp = 0.0;
+
 
 	/// <summary>
 	/// Gets the AR platform supported by the interface.
@@ -213,17 +218,45 @@ public class ARKitInteface : MonoBehaviour, ARPlatformInterface
 	}
 
 	/// <summary>
-	/// Raycasts from screen point to the world.
+	/// Gets the input action.
+	/// </summary>
+	/// <returns>The input action.</returns>
+	public MultiARInterop.InputAction GetInputAction()
+	{
+		return inputAction;
+	}
+
+	/// <summary>
+	/// Gets the input-action timestamp.
+	/// </summary>
+	/// <returns>The input-action timestamp.</returns>
+	public double GetInputTimestamp()
+	{
+		return inputTimestamp;
+	}
+
+	/// <summary>
+	/// Clears the input action.
+	/// </summary>
+	public void ClearInputAction()
+	{
+		inputAction = MultiARInterop.InputAction.None;
+		inputTimestamp = lastFrameTimestamp;
+	}
+
+	/// <summary>
+	/// Raycasts from screen point or camera to the world.
 	/// </summary>
 	/// <returns><c>true</c>, if a plane was hit, <c>false</c> otherwise.</returns>
 	/// <param name="screenPos">Screen position.</param>
 	/// <param name="hit">Hit data.</param>
-	public bool RaycastScreenToWorld(Vector2 screenPos, out MultiARInterop.TrackableHit hit)
+	public bool RaycastToWorld(bool fromInputPos, out MultiARInterop.TrackableHit hit)
 	{
 		hit = new MultiARInterop.TrackableHit();
 		if(!isInitialized)
 			return false;
 
+		Vector2 screenPos = fromInputPos ? inputPos : new Vector2(Screen.width / 2f, Screen.height / 2f);
 		var viewPos = mainCamera.ScreenToViewportPoint(screenPos);
 		ARPoint point = new ARPoint {
 			x = viewPos.x,
@@ -627,13 +660,49 @@ public class ARKitInteface : MonoBehaviour, ARPlatformInterface
 
 
 
-//	void Update()
-//	{
-//		if(!isInitialized)
-//			return;
-//
-//		// ....
-//	}
+	void Update()
+	{
+		if(!isInitialized)
+			return;
 
+		// check for input (touch)
+		CheckForInputAction();
+	}
+
+	// check for input action (phone touch)
+	private void CheckForInputAction()
+	{
+		if (Input.touchCount > 0)
+		{
+			Touch touch = Input.GetTouch(0);
+			bool bInputAction = true;
+
+			switch(touch.phase)
+			{
+			case TouchPhase.Began:
+				inputAction = MultiARInterop.InputAction.Click;
+				break;
+
+			case TouchPhase.Moved:
+			case TouchPhase.Stationary:
+				inputAction = MultiARInterop.InputAction.Grip;
+				break;
+
+			case TouchPhase.Ended:
+				inputAction = MultiARInterop.InputAction.Release;
+				break;
+
+			default:
+				bInputAction = false;
+				break;
+			}
+
+			if(bInputAction)
+			{
+				inputPos = touch.position;
+				inputTimestamp = lastFrameTimestamp;
+			}
+		}
+	}
 
 }

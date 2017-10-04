@@ -24,15 +24,17 @@ public class ObjectSpawner : MonoBehaviour
 			return;
 
 		// check for tap
-		if (Input.touchCount > 0 && objectPrefab && arManager && arManager.IsInitialized())
+		if (objectPrefab && arManager && arManager.IsInitialized())
 		{
-			if (Input.GetTouch(0).phase == TouchPhase.Began)
+			MultiARInterop.InputAction action = arManager.GetInputAction();
+
+			if (action == MultiARInterop.InputAction.Click)
 			{
 				// raycast world
-				Vector2 screenPos = Input.GetTouch(0).position;
+				//Vector2 screenPos = Input.GetTouch(0).position;
 				MultiARInterop.TrackableHit hit;
 
-				if(arManager.RaycastScreenToWorld(screenPos, out hit))
+				if(arManager.RaycastToWorld(true, out hit))
 				{
 					// instantiate the object and anchor it to the world position
 					GameObject spawnObj = Instantiate(objectPrefab, hit.point, Quaternion.identity);

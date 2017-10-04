@@ -58,7 +58,7 @@ public class ModelAnchorController : MonoBehaviour
 					Vector2 screenPos = Input.GetTouch(0).position;
 					MultiARInterop.TrackableHit hit;
 
-					if(arManager.RaycastScreenToWorld(screenPos, out hit))
+					if(arManager.RaycastToWorld(true, out hit))
 					{
 						// set model's new position
 						SetModelWorldPos(hit.point);
@@ -146,11 +146,10 @@ public class ModelAnchorController : MonoBehaviour
 			}
 			else
 			{
-				// raycast center of the screen
-				Vector2 screenPos = new Vector2(Screen.width / 2f, Screen.height / 2f);
+				// raycast from center of the screen
+				//Vector2 screenPos = new Vector2(Screen.width / 2f, Screen.height / 2f);
 				MultiARInterop.TrackableHit hit;
-
-				if(arManager.RaycastScreenToWorld(screenPos, out hit))
+				if(arManager.RaycastToWorld(false, out hit))
 				{
 					// set model position
 					SetModelWorldPos(hit.point);
@@ -204,10 +203,9 @@ public class ModelAnchorController : MonoBehaviour
 				else
 				{
 					// raycast center of the screen
-					Vector2 screenPos = new Vector2(Screen.width / 2f, Screen.height / 2f);
+					//Vector2 screenPos = new Vector2(Screen.width / 2f, Screen.height / 2f);
 					MultiARInterop.TrackableHit hit;
-
-					if(arManager.RaycastScreenToWorld(screenPos, out hit))
+					if(arManager.RaycastToWorld(false, out hit))
 					{
 						// create the world anchor at hit's position
 						anchorId = arManager.AnchorGameObjectToWorld(anchorTransform.gameObject, hit);

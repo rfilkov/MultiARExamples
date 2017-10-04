@@ -83,12 +83,29 @@ public interface ARPlatformInterface
 	MultiARInterop.TrackedPlane[] GetTrackedPlanes();
 
 	/// <summary>
-	/// Raycasts from screen point to the world.
+	/// Gets the input action.
+	/// </summary>
+	/// <returns>The input action.</returns>
+	MultiARInterop.InputAction GetInputAction();
+
+	/// <summary>
+	/// Gets the input-action timestamp.
+	/// </summary>
+	/// <returns>The input-action timestamp.</returns>
+	double GetInputTimestamp();
+
+	/// <summary>
+	/// Clears the input action.
+	/// </summary>
+	void ClearInputAction();
+
+	/// <summary>
+	/// Raycasts from screen point or camera to the world.
 	/// </summary>
 	/// <returns><c>true</c>, if a plane was hit, <c>false</c> otherwise.</returns>
 	/// <param name="screenPos">Screen position.</param>
 	/// <param name="hit">Hit data.</param>
-	bool RaycastScreenToWorld(Vector2 screenPos, out MultiARInterop.TrackableHit hit);
+	bool RaycastToWorld(bool fromInputPos, out MultiARInterop.TrackableHit hit);
 
 	/// <summary>
 	/// Anchors the game object to world.

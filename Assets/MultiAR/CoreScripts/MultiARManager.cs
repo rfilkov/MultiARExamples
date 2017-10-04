@@ -202,16 +202,55 @@ public class MultiARManager : MonoBehaviour
 	}
 
 	/// <summary>
-	/// Raycasts from screen point to the world.
+	/// Gets the input action.
+	/// </summary>
+	/// <returns>The input action.</returns>
+	public MultiARInterop.InputAction GetInputAction()
+	{
+		if(arInterface != null)
+		{
+			return arInterface.GetInputAction();
+		}
+
+		return MultiARInterop.InputAction.None;
+	}
+
+	/// <summary>
+	/// Gets the input-action timestamp.
+	/// </summary>
+	/// <returns>The input-action timestamp.</returns>
+	public double GetInputTimestamp()
+	{
+		if(arInterface != null)
+		{
+			return arInterface.GetInputTimestamp();
+		}
+
+		return 0.0;
+	}
+
+	/// <summary>
+	/// Clears the input action.
+	/// </summary>
+	public void ClearInputAction()
+	{
+		if(arInterface != null)
+		{
+			arInterface.ClearInputAction();
+		}
+	}
+
+	/// <summary>
+	/// Raycasts from screen point or camera to the world.
 	/// </summary>
 	/// <returns><c>true</c>, if a plane was hit, <c>false</c> otherwise.</returns>
 	/// <param name="screenPos">Screen position.</param>
 	/// <param name="hit">Hit data.</param>
-	public bool RaycastScreenToWorld(Vector2 screenPos, out MultiARInterop.TrackableHit hit)
+	public bool RaycastToWorld(bool fromInputPos, out MultiARInterop.TrackableHit hit)
 	{
 		if(arInterface != null)
 		{
-			return arInterface.RaycastScreenToWorld(screenPos, out hit);
+			return arInterface.RaycastToWorld(fromInputPos, out hit);
 		}
 
 		hit = new MultiARInterop.TrackableHit();
