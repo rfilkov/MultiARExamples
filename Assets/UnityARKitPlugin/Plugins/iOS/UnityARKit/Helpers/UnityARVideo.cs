@@ -25,7 +25,11 @@ namespace UnityEngine.XR.iOS
 
 		void UpdateFrame(UnityARCamera cam)
 		{
-			_displayTransform = new Matrix4x4(cam.displayTransform.column0, cam.displayTransform.column1, cam.displayTransform.column2, cam.displayTransform.column3);
+			_displayTransform = new Matrix4x4();
+			_displayTransform.SetColumn(0, cam.displayTransform.column0);
+			_displayTransform.SetColumn(1, cam.displayTransform.column1);
+			_displayTransform.SetColumn(2, cam.displayTransform.column2);
+			_displayTransform.SetColumn(3, cam.displayTransform.column3);		
 		}
 
 		void InitializeCommandBuffer()
