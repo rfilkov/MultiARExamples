@@ -146,6 +146,15 @@ public class MultiARManager : MonoBehaviour
 	}
 
 	/// <summary>
+	/// Gets the length of the point cloud data.
+	/// </summary>
+	/// <returns>The point cloud data length.</returns>
+	public int GetPointCloudLength()
+	{
+		return arData.pointCloudLength;
+	}
+
+	/// <summary>
 	/// Gets the current point cloud data.
 	/// </summary>
 	/// <returns>The point cloud data.</returns>
