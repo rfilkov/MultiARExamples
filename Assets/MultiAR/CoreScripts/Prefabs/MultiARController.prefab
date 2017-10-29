@@ -22,6 +22,7 @@ GameObject:
   - component: {fileID: 114962951517112342}
   - component: {fileID: 114504722886925034}
   - component: {fileID: 114787928919029918}
+  - component: {fileID: 114120882542670782}
   m_Layer: 0
   m_Name: MultiARController
   m_TagString: Untagged
@@ -42,6 +43,19 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &114120882542670782
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1541651302486692}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0f49820bf643da549a177ffe70e82ce0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  surfaceRenderMaterial: {fileID: 0}
+  useSurfaceColliders: 1
 --- !u!114 &114504722886925034
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -71,6 +85,7 @@ MonoBehaviour:
     type: 2}
   trackedPlanePrefab: {fileID: 1654175882956584, guid: 6a35c744e5010405c847fad90282d2be,
     type: 2}
+  attachObjectsToPlanes: 0
 --- !u!114 &114962951517112342
 MonoBehaviour:
   m_ObjectHideFlags: 1

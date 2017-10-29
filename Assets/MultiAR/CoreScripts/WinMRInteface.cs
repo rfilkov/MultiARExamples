@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿#if UNITY_WSA_10_0 // (UNITY_WSA_10_0 && NETFX_CORE)
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.XR;
@@ -9,7 +10,7 @@ public class WinMRInteface : MonoBehaviour, ARPlatformInterface
 	[Tooltip("Material used for surface rendering. If left empty, will use the default surface material")]
 	public Material surfaceRenderMaterial;
 
-	[Tooltip("Whether the detected surfaces should have mesh colliders. This is needed for ray-casting.")]
+	[Tooltip("Whether the detected surfaces should have mesh colliders. This is needed for ray-casting to world.")]
 	public bool useSurfaceColliders = true;
 
 	[Tooltip("The layer used by the surface collider. 1 means default.")]
@@ -70,11 +71,11 @@ public class WinMRInteface : MonoBehaviour, ARPlatformInterface
 	/// <returns><c>true</c> if the platform is available; otherwise, <c>false</c>.</returns>
 	public bool IsPlatformAvailable()
 	{
-#if UNITY_EDITOR || UNITY_WSA
+//#if UNITY_EDITOR || UNITY_WSA_10_0
 		return true;
-#else
-		return false;
-#endif
+//#else
+//		return false;
+//#endif
 	}
 
 	/// <summary>
@@ -738,3 +739,5 @@ public class WinMRInteface : MonoBehaviour, ARPlatformInterface
 	}
 
 }
+
+#endif
