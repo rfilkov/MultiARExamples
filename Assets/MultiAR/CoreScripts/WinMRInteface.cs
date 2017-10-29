@@ -184,7 +184,7 @@ public class WinMRInteface : MonoBehaviour, ARPlatformInterface
 	/// Gets the currently tracked planes.
 	/// </summary>
 	/// <returns>The tracked planes.</returns>
-	public MultiARInterop.TrackedPlane[] GetTrackedPlanes()
+	public MultiARInterop.TrackedPlane[] GetTrackedPlanes(bool bGetPoints)
 	{
 		MultiARInterop.TrackedPlane[] trackedPlanes = new MultiARInterop.TrackedPlane[0];
 
@@ -200,7 +200,15 @@ public class WinMRInteface : MonoBehaviour, ARPlatformInterface
 
 				trackedPlanes[i].position = surfaceTransform.position;
 				trackedPlanes[i].rotation = surfaceTransform.rotation;
-				trackedPlanes[i].bounds = Vector2.zero; // todo
+
+				if(bGetPoints)
+				{
+					MeshFilter meshFilter = surfaceTransform.GetComponent<MeshFilter>();
+					Mesh mesh = meshFilter ? meshFilter.mesh : null;
+
+					trackedPlanes[i].bounds = mesh ? mesh.bounds.size : Vector3.zero; // todo
+					trackedPlanes[i].points = mesh ? mesh.vertices : new Vector3[0];
+				}
 			}
 		}
 
@@ -235,6 +243,66 @@ public class WinMRInteface : MonoBehaviour, ARPlatformInterface
 	}
 
 	/// <summary>
+	/// Raycasts from screen point or camera to the scene colliders.
+	/// </summary>
+	/// <returns><c>true</c>, if an object was hit, <c>false</c> otherwise.</returns>
+	/// <param name="fromInputPos">Whether to use the last input position for the raycast, or not.</param>
+	/// <param name="hit">Hit data.</param>
+	public bool RaycastToScene(bool fromInputPos, out MultiARInterop.TrackableHit hit)
+	{
+		hit = new MultiARInterop.TrackableHit();
+		if(!isInitialized)
+			return false;
+
+		// ray-cast
+		Transform camTransform = mainCamera.transform;
+		RaycastHit rayHit;
+
+		if(Physics.Raycast(camTransform.position, camTransform.forward, out rayHit, 
+			MultiARInterop.MAX_RAYCAST_DIST, Physics.DefaultRaycastLayers))
+		{
+			hit.point = rayHit.point;
+			hit.distance = rayHit.distance;
+			hit.psObject = rayHit;
+
+			return true;
+		}
+
+		return false;
+	}
+
+	/// <summary>
+	/// Raycasts from screen point or camera to the scene colliders, and returns all hits.
+	/// </summary>
+	/// <returns><c>true</c>, if an object was hit, <c>false</c> otherwise.</returns>
+	/// <param name="fromInputPos">Whether to use the last input position for the raycast, or not.</param>
+	/// <param name="hit">Array of hit data.</param>
+	public bool RaycastAllToScene(bool fromInputPos, out MultiARInterop.TrackableHit[] hits)
+	{
+		hits = new MultiARInterop.TrackableHit[0];
+		if(!isInitialized)
+			return false;
+
+		// ray-cast
+		Transform camTransform = mainCamera.transform;
+		RaycastHit[] rayHits = Physics.RaycastAll(camTransform.position, camTransform.forward, 
+			MultiARInterop.MAX_RAYCAST_DIST, Physics.DefaultRaycastLayers);
+		hits = new MultiARInterop.TrackableHit[rayHits.Length];
+
+		for(int i = 0; i < rayHits.Length; i++)
+		{
+			RaycastHit rayHit = rayHits[i];
+			hits[i] = new MultiARInterop.TrackableHit();
+
+			hits[i].point = rayHit.point;
+			hits[i].distance = rayHit.distance;
+			hits[i].psObject = rayHit;
+		}
+
+		return (hits.Length > 0);
+	}
+
+	/// <summary>
 	/// Raycasts from screen point or camera to the world.
 	/// </summary>
 	/// <returns><c>true</c>, if a plane was hit, <c>false</c> otherwise.</returns>
@@ -247,7 +315,9 @@ public class WinMRInteface : MonoBehaviour, ARPlatformInterface
 			return false;
 
 		// ray-cast
-		RaycastHit[] rayHits = Physics.RaycastAll(mainCamera.transform.position, mainCamera.transform.forward, 20f, Physics.DefaultRaycastLayers);
+		Transform camTransform = mainCamera.transform;
+		RaycastHit[] rayHits = Physics.RaycastAll(camTransform.position, camTransform.forward, 
+			MultiARInterop.MAX_RAYCAST_DIST, Physics.DefaultRaycastLayers);
 
 		for(int i = 0; i < rayHits.Length; i++)
 		{
@@ -450,12 +520,16 @@ public class WinMRInteface : MonoBehaviour, ARPlatformInterface
 		WorldManager.OnPositionalLocatorStateChanged += WorldManager_OnPositionalLocatorStateChanged;
 
 		// set tracking space type
-		Debug.Log("Before: " + XRDevice.GetTrackingSpaceType());
-		if(!XRDevice.SetTrackingSpaceType(TrackingSpaceType.RoomScale))
+		//Debug.Log("Before: " + XRDevice.GetTrackingSpaceType());
+		if(XRDevice.GetTrackingSpaceType() != TrackingSpaceType.RoomScale)
 		{
-			Debug.LogError("Cannot set room-scale space type!");
+			if(!XRDevice.SetTrackingSpaceType(TrackingSpaceType.RoomScale))
+			{
+				Debug.LogError("Cannot set room-scale space type!");
+			}
 		}
-		Debug.Log("After: " + XRDevice.GetTrackingSpaceType());
+
+		Debug.Log("TrackingSpaceType: " + XRDevice.GetTrackingSpaceType());
 
 		// create surface renderer
 		GameObject objRenderer = new GameObject();

@@ -185,7 +185,7 @@ public class ARCoreInteface : MonoBehaviour, ARPlatformInterface
 	/// Gets the currently tracked planes.
 	/// </summary>
 	/// <returns>The tracked planes.</returns>
-	public MultiARInterop.TrackedPlane[] GetTrackedPlanes()
+	public MultiARInterop.TrackedPlane[] GetTrackedPlanes(bool bGetPoints)
 	{
 		MultiARInterop.TrackedPlane[] trackedPlanes = new MultiARInterop.TrackedPlane[allTrackedPlanes.Count];
 
@@ -196,7 +196,15 @@ public class ARCoreInteface : MonoBehaviour, ARPlatformInterface
 
 			trackedPlanes[i].position = plane.Position;
 			trackedPlanes[i].rotation = plane.Rotation;
-			trackedPlanes[i].bounds = plane.Bounds;
+
+			if(bGetPoints)
+			{
+				trackedPlanes[i].bounds = new Vector3(plane.Bounds.x, 0f, plane.Bounds.y);
+
+				List<Vector3> alPoints = new List<Vector3>();
+				plane.GetBoundaryPolygon(ref alPoints);
+				trackedPlanes[i].points = alPoints.ToArray();
+			}
 		}
 
 		return trackedPlanes;
@@ -227,6 +235,65 @@ public class ARCoreInteface : MonoBehaviour, ARPlatformInterface
 	{
 		inputAction = MultiARInterop.InputAction.None;
 		inputTimestamp = lastFrameTimestamp;
+	}
+
+	/// <summary>
+	/// Raycasts from screen point or camera to the scene colliders.
+	/// </summary>
+	/// <returns><c>true</c>, if an object was hit, <c>false</c> otherwise.</returns>
+	/// <param name="fromInputPos">Whether to use the last input position for the raycast, or not.</param>
+	/// <param name="hit">Hit data.</param>
+	public bool RaycastToScene(bool fromInputPos, out MultiARInterop.TrackableHit hit)
+	{
+		hit = new MultiARInterop.TrackableHit();
+		if(!isInitialized)
+			return false;
+
+		// ray-cast
+		Vector2 screenPos = fromInputPos ? inputPos : new Vector2(Screen.width / 2f, Screen.height / 2f);
+		RaycastHit rayHit;
+
+		if(Physics.Raycast(mainCamera.ScreenPointToRay(screenPos), out rayHit, MultiARInterop.MAX_RAYCAST_DIST, Physics.DefaultRaycastLayers))
+		{
+			hit.point = rayHit.point;
+			hit.distance = rayHit.distance;
+			hit.psObject = rayHit;
+
+			return true;
+		}
+
+		return false;
+	}
+
+	/// <summary>
+	/// Raycasts from screen point or camera to the scene colliders, and returns all hits.
+	/// </summary>
+	/// <returns><c>true</c>, if an object was hit, <c>false</c> otherwise.</returns>
+	/// <param name="fromInputPos">Whether to use the last input position for the raycast, or not.</param>
+	/// <param name="hits">Array of hit data.</param>
+	public bool RaycastAllToScene(bool fromInputPos, out MultiARInterop.TrackableHit[] hits)
+	{
+		hits = new MultiARInterop.TrackableHit[0];
+		if(!isInitialized)
+			return false;
+
+		// ray-cast
+		Vector2 screenPos = fromInputPos ? inputPos : new Vector2(Screen.width / 2f, Screen.height / 2f);
+		RaycastHit[] rayHits = Physics.RaycastAll(mainCamera.ScreenPointToRay(screenPos), 
+			MultiARInterop.MAX_RAYCAST_DIST, Physics.DefaultRaycastLayers);
+		hits = new MultiARInterop.TrackableHit[rayHits.Length];
+
+		for(int i = 0; i < rayHits.Length; i++)
+		{
+			RaycastHit rayHit = rayHits[i];
+			hits[i] = new MultiARInterop.TrackableHit();
+
+			hits[i].point = rayHit.point;
+			hits[i].distance = rayHit.distance;
+			hits[i].psObject = rayHit;
+		}
+
+		return (hits.Length > 0);
 	}
 
 	/// <summary>

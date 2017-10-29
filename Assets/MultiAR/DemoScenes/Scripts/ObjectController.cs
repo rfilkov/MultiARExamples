@@ -71,8 +71,7 @@ public class ObjectController : MonoBehaviour
 				}
 
 				// update the currently selected model
-				//Vector2 screenPos = Input.GetTouch(0).position;
-				//currentModel = GetModelHit(screenPos);  // TODO: to be fixed
+				currentModel = GetModelHit();
 
 				// raycast world
 				MultiARInterop.TrackableHit hit;
@@ -102,30 +101,26 @@ public class ObjectController : MonoBehaviour
 		UpdateToggleStatus(toggle3, model3);
 	}
 
-	// returns the model hit by the screen ray, or current model if no other was hit
-	private Transform GetModelHit(Vector2 screenPos)
+	// returns the model hit by the input ray, or current model if no other was hit
+	private Transform GetModelHit()
 	{
-		Camera mainCamera = arManager.GetMainCamera();
+		MultiARInterop.TrackableHit hit;
 
-		if(mainCamera)
+		if(arManager.RaycastToScene(true, out hit))
 		{
-			Ray ray = mainCamera.ScreenPointToRay(screenPos);
+			RaycastHit rayHit = (RaycastHit)hit.psObject;
 
-			RaycastHit rayHit;
-			if(Physics.Raycast(ray, out rayHit))
+			if(rayHit.transform == model1)
 			{
-				if(rayHit.transform == model1)
-				{
-					return model1;
-				}
-				else if(rayHit.transform == model2)
-				{
-					return model2;
-				}
-				else if(rayHit.transform == model3)
-				{
-					return model3;
-				}
+				return model1;
+			}
+			else if(rayHit.transform == model2)
+			{
+				return model2;
+			}
+			else if(rayHit.transform == model3)
+			{
+				return model3;
 			}
 		}
 

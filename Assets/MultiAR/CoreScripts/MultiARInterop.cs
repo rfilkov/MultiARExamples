@@ -59,7 +59,9 @@ public class MultiARInterop
 	{
 		public Vector3 position;
 		public Quaternion rotation;
-		public Vector2 bounds;
+		public Vector3 bounds;
+
+		public Vector3[] points;
 	}
 
 	/// <summary>
@@ -81,6 +83,10 @@ public class MultiARInterop
 	/// </summary>
 	public const int MAX_POINT_COUNT = 61440;
 
+	/// <summary>
+	/// Maximum raycast distance.
+	/// </summary>
+	public const float MAX_RAYCAST_DIST = 20f;
 
 	/// <summary>
 	/// Gets the main camera in the scene

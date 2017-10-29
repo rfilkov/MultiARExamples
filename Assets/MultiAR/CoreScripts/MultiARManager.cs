@@ -198,11 +198,11 @@ public class MultiARManager : MonoBehaviour
 	/// Gets the currently tracked planes.
 	/// </summary>
 	/// <returns>The tracked planes.</returns>
-	public MultiARInterop.TrackedPlane[] GetTrackedPlanes()
+	public MultiARInterop.TrackedPlane[] GetTrackedPlanes(bool bGetPoints)
 	{
 		if(arInterface != null)
 		{
-			return arInterface.GetTrackedPlanes();
+			return arInterface.GetTrackedPlanes(bGetPoints);
 		}
 
 		// no tracked planes
@@ -247,6 +247,40 @@ public class MultiARManager : MonoBehaviour
 		{
 			arInterface.ClearInputAction();
 		}
+	}
+
+	/// <summary>
+	/// Raycasts from screen point or camera to the scene colliders.
+	/// </summary>
+	/// <returns><c>true</c>, if an object was hit, <c>false</c> otherwise.</returns>
+	/// <param name="fromInputPos">Whether to use the last input position for the raycast, or not.</param>
+	/// <param name="hit">Hit data.</param>
+	public bool RaycastToScene(bool fromInputPos, out MultiARInterop.TrackableHit hit)
+	{
+		if(arInterface != null)
+		{
+			return arInterface.RaycastToScene(fromInputPos, out hit);
+		}
+
+		hit = new MultiARInterop.TrackableHit();
+		return false;
+	}
+
+	/// <summary>
+	/// Raycasts from screen point or camera to the scene colliders, and returns all hits.
+	/// </summary>
+	/// <returns><c>true</c>, if an object was hit, <c>false</c> otherwise.</returns>
+	/// <param name="fromInputPos">Whether to use the last input position for the raycast, or not.</param>
+	/// <param name="hits">Array of hit data.</param>
+	public bool RaycastAllToScene(bool fromInputPos, out MultiARInterop.TrackableHit[] hits)
+	{
+		if(arInterface != null)
+		{
+			return arInterface.RaycastAllToScene(fromInputPos, out hits);
+		}
+
+		hits = new MultiARInterop.TrackableHit[0];
+		return false;
 	}
 
 	/// <summary>

@@ -80,7 +80,7 @@ public interface ARPlatformInterface
 	/// Gets the currently tracked planes.
 	/// </summary>
 	/// <returns>The tracked planes.</returns>
-	MultiARInterop.TrackedPlane[] GetTrackedPlanes();
+	MultiARInterop.TrackedPlane[] GetTrackedPlanes(bool bGetPoints);
 
 	/// <summary>
 	/// Gets the input action.
@@ -98,6 +98,22 @@ public interface ARPlatformInterface
 	/// Clears the input action.
 	/// </summary>
 	void ClearInputAction();
+
+	/// <summary>
+	/// Raycasts from screen point or camera to the scene colliders.
+	/// </summary>
+	/// <returns><c>true</c>, if an object was hit, <c>false</c> otherwise.</returns>
+	/// <param name="fromInputPos">Whether to use the last input position for the raycast, or not.</param>
+	/// <param name="hit">Hit data.</param>
+	bool RaycastToScene(bool fromInputPos, out MultiARInterop.TrackableHit hit);
+
+	/// <summary>
+	/// Raycasts from screen point or camera to the scene colliders, and returns all hits.
+	/// </summary>
+	/// <returns><c>true</c>, if an object was hit, <c>false</c> otherwise.</returns>
+	/// <param name="fromInputPos">Whether to use the last input position for the raycast, or not.</param>
+	/// <param name="hits">Array of hit data.</param>
+	bool RaycastAllToScene(bool fromInputPos, out MultiARInterop.TrackableHit[] hits);
 
 	/// <summary>
 	/// Raycasts from screen point or camera to the world.
