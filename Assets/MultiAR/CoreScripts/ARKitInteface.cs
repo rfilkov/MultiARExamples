@@ -613,8 +613,9 @@ public class ARKitInteface : MonoBehaviour, ARPlatformInterface
 		lastFrameTimestamp = GetCurrentTimestamp();
 
 		// current light intensity
-		currentLightIntensity = camera.lightEstimation.ambientIntensity / 1000f;
-		currentColorTemperature = camera.lightEstimation.ambientColorTemperature;
+		UnityARLightEstimate lightEstimate = camera.lightData.arLightEstimate;
+		currentLightIntensity = lightEstimate.ambientIntensity / 1000f;
+		currentColorTemperature = lightEstimate.ambientColorTemperature;
 
 		// point cloud
 		if(arManager.getPointCloud)
