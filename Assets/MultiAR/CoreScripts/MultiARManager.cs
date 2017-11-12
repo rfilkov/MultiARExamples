@@ -22,6 +22,13 @@ public class MultiARManager : MonoBehaviour
 	[Tooltip("Whether the world raycasts may hit tracked surfaces only, or points from the cloud in general.")]
 	public bool hitTrackedServicesOnly = false;
 
+	public enum ShowCursorEnum : int { Never, OnSurfacesOnly, OnSceneObjects, Always };
+	[Tooltip("How the cursor should be visualized.")]
+	public ShowCursorEnum showCursor = ShowCursorEnum.Always;
+
+	[Tooltip("The cursor object that will be visualized.")]
+	public Transform cursorObject;
+
 	[Tooltip("UI-Text to display tracker information messages.")]
 	public UnityEngine.UI.Text infoText;
 
@@ -167,47 +174,61 @@ public class MultiARManager : MonoBehaviour
 	}
 
 	/// <summary>
-	/// Gets the tracked planes timestamp.
+	/// Gets the tracked surfaces timestamp.
 	/// </summary>
-	/// <returns>The tracked planes timestamp.</returns>
-	public double GetTrackedPlanesTimestamp()
+	/// <returns>The tracked surfaces timestamp.</returns>
+	public double GetTrackedSurfacesTimestamp()
 	{
 		if(arInterface != null)
 		{
-			return arInterface.GetTrackedPlanesTimestamp();
+			return arInterface.GetTrackedSurfacesTimestamp();
 		}
 
 		return 0.0;
 	}
 
 	/// <summary>
-	/// Gets the count of currently tracked planes.
+	/// Gets the count of currently tracked surfaces.
 	/// </summary>
-	/// <returns>The tracked planes count.</returns>
-	public int GetTrackedPlanesCount()
+	/// <returns>The tracked surfaces count.</returns>
+	public int GetTrackedSurfacesCount()
 	{
 		if(arInterface != null)
 		{
-			return arInterface.GetTrackedPlanesCount();
+			return arInterface.GetTrackedSurfacesCount();
 		}
 
 		return 0;
 	}
 
 	/// <summary>
-	/// Gets the currently tracked planes.
+	/// Gets the currently tracked surfaces.
 	/// </summary>
-	/// <returns>The tracked planes.</returns>
-	public MultiARInterop.TrackedPlane[] GetTrackedPlanes(bool bGetPoints)
+	/// <returns>The tracked surfaces.</returns>
+	public MultiARInterop.TrackedPlane[] GetTrackedSurfaces(bool bGetPoints)
 	{
 		if(arInterface != null)
 		{
-			return arInterface.GetTrackedPlanes(bGetPoints);
+			return arInterface.GetTrackedSurfaces(bGetPoints);
 		}
 
 		// no tracked planes
 		MultiARInterop.TrackedPlane[] trackedPlanes = new MultiARInterop.TrackedPlane[0];
 		return trackedPlanes;
+	}
+
+	/// <summary>
+	/// Determines whether input action is available.for processing
+	/// </summary>
+	/// <returns><c>true</c> input action is available; otherwise, <c>false</c>.</returns>
+	public bool IsInputAvailable()
+	{
+		if(arInterface != null)
+		{
+			return arInterface.IsInputAvailable();
+		}
+
+		return false;
 	}
 
 	/// <summary>
@@ -633,12 +654,12 @@ public class MultiARManager : MonoBehaviour
 		// show the tracking state
 		if(infoText)
 		{
-			int numPlanes = GetTrackedPlanesCount();
+			int numSurfaces = GetTrackedSurfacesCount();
 			int numAnchors = GetAnchorsCount();
 			int numObjects = GetAnchoredObjectsCount();
 
 			infoText.text = "Tracker: " + arInterface.GetCameraTrackingState () + " " + arInterface.GetTrackingErrorMessage () +
-				string.Format ("\nLight: {0:F3}", arInterface.GetLightIntensity ()) + ", Planes: " + numPlanes + ", Anchors: " + numAnchors + ", Objects: " + numObjects;
+				string.Format ("\nLight: {0:F3}", arInterface.GetLightIntensity ()) + ", Surfaces: " + numSurfaces + ", Anchors: " + numAnchors + ", Objects: " + numObjects;
 				//+ "\nTimestamp: " + lastFrameTimestamp.ToString();
 		}
 
@@ -650,6 +671,7 @@ public class MultiARManager : MonoBehaviour
 			return;
 		}
 
+		// don't fall asleep
 		Screen.sleepTimeout = SleepTimeout.NeverSleep;
 
 		// display the point cloud
@@ -668,6 +690,27 @@ public class MultiARManager : MonoBehaviour
 			pointCloudMesh.vertices = arData.pointCloudData;
 			pointCloudMesh.SetIndices(indices, MeshTopology.Points, 0, false);
 		}
+
+		// show cursor if needed
+		if(cursorObject && showCursor != ShowCursorEnum.Never)
+		{
+			MultiARInterop.TrackableHit hit;
+			hit.point = Vector3.zero;
+
+			// check how to raycast
+			bool isFromInputPos = IsInputAvailable();
+
+			if(showCursor == ShowCursorEnum.OnSurfacesOnly)
+				RaycastToWorld(isFromInputPos, out hit);
+			else
+				RaycastToScene(isFromInputPos, out hit);
+
+			if(showCursor == ShowCursorEnum.Always || hit.point != Vector3.zero)
+			{
+				MultiARInterop.ShowCursor(cursorObject, hit, 0.02f, 2f, 100f);
+			}
+		}
+
 	}
 
 }

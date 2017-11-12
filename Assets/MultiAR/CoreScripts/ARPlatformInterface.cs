@@ -65,22 +65,28 @@ public interface ARPlatformInterface
 	string GetTrackingErrorMessage();
 
 	/// <summary>
-	/// Gets the tracked planes timestamp.
+	/// Gets the tracked surfaces timestamp.
 	/// </summary>
-	/// <returns>The tracked planes timestamp.</returns>
-	double GetTrackedPlanesTimestamp();
+	/// <returns>The tracked surfaces timestamp.</returns>
+	double GetTrackedSurfacesTimestamp();
 
 	/// <summary>
-	/// Gets the count of currently tracked planes.
+	/// Gets the count of currently tracked surfaces.
 	/// </summary>
-	/// <returns>The tracked planes count.</returns>
-	int GetTrackedPlanesCount();
+	/// <returns>The tracked surfaces count.</returns>
+	int GetTrackedSurfacesCount();
 
 	/// <summary>
-	/// Gets the currently tracked planes.
+	/// Gets the currently tracked surfaces.
 	/// </summary>
-	/// <returns>The tracked planes.</returns>
-	MultiARInterop.TrackedPlane[] GetTrackedPlanes(bool bGetPoints);
+	/// <returns>The tracked surfaces.</returns>
+	MultiARInterop.TrackedPlane[] GetTrackedSurfaces(bool bGetPoints);
+
+	/// <summary>
+	/// Determines whether input action is available.for processing
+	/// </summary>
+	/// <returns><c>true</c> input action is available; otherwise, <c>false</c>.</returns>
+	bool IsInputAvailable();
 
 	/// <summary>
 	/// Gets the input action.

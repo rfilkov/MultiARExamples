@@ -164,28 +164,28 @@ public class ARCoreInteface : MonoBehaviour, ARPlatformInterface
 	}
 
 	/// <summary>
-	/// Gets the tracked planes timestamp.
+	/// Gets the tracked surfaces timestamp.
 	/// </summary>
-	/// <returns>The tracked planes timestamp.</returns>
-	public double GetTrackedPlanesTimestamp()
+	/// <returns>The tracked surfaces timestamp.</returns>
+	public double GetTrackedSurfacesTimestamp()
 	{
 		return lastFrameTimestamp;
 	}
 
 	/// <summary>
-	/// Gets the count of currently tracked planes.
+	/// Gets the count of currently tracked surfaces.
 	/// </summary>
-	/// <returns>The tracked planes count.</returns>
-	public int GetTrackedPlanesCount()
+	/// <returns>The tracked surfaces count.</returns>
+	public int GetTrackedSurfacesCount()
 	{
 		return allTrackedPlanes.Count;
 	}
 
 	/// <summary>
-	/// Gets the currently tracked planes.
+	/// Gets the currently tracked surfaces.
 	/// </summary>
-	/// <returns>The tracked planes.</returns>
-	public MultiARInterop.TrackedPlane[] GetTrackedPlanes(bool bGetPoints)
+	/// <returns>The tracked surfaces.</returns>
+	public MultiARInterop.TrackedPlane[] GetTrackedSurfaces(bool bGetPoints)
 	{
 		MultiARInterop.TrackedPlane[] trackedPlanes = new MultiARInterop.TrackedPlane[allTrackedPlanes.Count];
 
@@ -208,6 +208,15 @@ public class ARCoreInteface : MonoBehaviour, ARPlatformInterface
 		}
 
 		return trackedPlanes;
+	}
+
+	/// <summary>
+	/// Determines whether input action is available.for processing
+	/// </summary>
+	/// <returns><c>true</c> input action is available; otherwise, <c>false</c>.</returns>
+	public bool IsInputAvailable()
+	{
+		return (inputAction != MultiARInterop.InputAction.None);
 	}
 
 	/// <summary>
@@ -251,12 +260,18 @@ public class ARCoreInteface : MonoBehaviour, ARPlatformInterface
 
 		// ray-cast
 		Vector2 screenPos = fromInputPos ? inputPos : new Vector2(Screen.width / 2f, Screen.height / 2f);
-		RaycastHit rayHit;
+		Ray screenRay = mainCamera.ScreenPointToRay(screenPos);
 
-		if(Physics.Raycast(mainCamera.ScreenPointToRay(screenPos), out rayHit, MultiARInterop.MAX_RAYCAST_DIST, Physics.DefaultRaycastLayers))
+		hit.rayPos = screenRay.origin;
+		hit.rayDir = screenRay.direction;
+
+		RaycastHit rayHit;
+		if(Physics.Raycast(screenRay, out rayHit, MultiARInterop.MAX_RAYCAST_DIST, Physics.DefaultRaycastLayers))
 		{
 			hit.point = rayHit.point;
+			hit.normal = rayHit.normal;
 			hit.distance = rayHit.distance;
+
 			hit.psObject = rayHit;
 
 			return true;
@@ -279,8 +294,9 @@ public class ARCoreInteface : MonoBehaviour, ARPlatformInterface
 
 		// ray-cast
 		Vector2 screenPos = fromInputPos ? inputPos : new Vector2(Screen.width / 2f, Screen.height / 2f);
-		RaycastHit[] rayHits = Physics.RaycastAll(mainCamera.ScreenPointToRay(screenPos), 
-			MultiARInterop.MAX_RAYCAST_DIST, Physics.DefaultRaycastLayers);
+		Ray screenRay = mainCamera.ScreenPointToRay(screenPos);
+
+		RaycastHit[] rayHits = Physics.RaycastAll(screenRay, MultiARInterop.MAX_RAYCAST_DIST, Physics.DefaultRaycastLayers);
 		hits = new MultiARInterop.TrackableHit[rayHits.Length];
 
 		for(int i = 0; i < rayHits.Length; i++)
@@ -288,8 +304,13 @@ public class ARCoreInteface : MonoBehaviour, ARPlatformInterface
 			RaycastHit rayHit = rayHits[i];
 			hits[i] = new MultiARInterop.TrackableHit();
 
+			hits[i].rayPos = screenRay.origin;
+			hits[i].rayDir = screenRay.direction;
+
 			hits[i].point = rayHit.point;
+			hits[i].normal = rayHit.normal;
 			hits[i].distance = rayHit.distance;
+
 			hits[i].psObject = rayHit;
 		}
 
@@ -318,10 +339,17 @@ public class ARCoreInteface : MonoBehaviour, ARPlatformInterface
 		}
 
 		Vector2 screenPos = fromInputPos ? inputPos : new Vector2(Screen.width / 2f, Screen.height / 2f);
-		if (Session.Raycast(mainCamera.ScreenPointToRay(screenPos), raycastFilter, out intHit))
+		Ray screenRay = mainCamera.ScreenPointToRay(screenPos);
+
+		hit.rayPos = screenRay.origin;
+		hit.rayDir = screenRay.direction;
+
+		if (Session.Raycast(screenRay, raycastFilter, out intHit))
 		{
 			hit.point = intHit.Point;
+			hit.normal = intHit.Normal;
 			hit.distance = intHit.Distance;
+
 			hit.psObject = intHit.Plane;
 
 			return true;

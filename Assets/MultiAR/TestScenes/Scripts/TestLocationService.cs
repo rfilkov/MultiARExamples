@@ -200,7 +200,7 @@ public class TestLocationService : MonoBehaviour
 //			camToWorld.SetTRS(Vector3.zero, camToWorldRot, Vector3.one);
 
 			// get tracked surfaces
-			MultiARInterop.TrackedPlane[] trackedSurfaces = loadedSurfaces == null ? marManager.GetTrackedPlanes(true) : loadedSurfaces;
+			MultiARInterop.TrackedPlane[] trackedSurfaces = loadedSurfaces == null ? marManager.GetTrackedSurfaces(true) : loadedSurfaces;
 
 //			gyroEnabled = false;
 //			if (gyroInfoText) 
@@ -396,17 +396,17 @@ public class TestLocationService : MonoBehaviour
 
 		// original surfaces
 		data.surfacesOrig = new JsonTrackedSurfaces();
-		data.surfacesOrig.timestamp = marManager.GetTrackedPlanesTimestamp();
-		data.surfacesOrig.surfaceCount = marManager.GetTrackedPlanesCount();
+		data.surfacesOrig.timestamp = marManager.GetTrackedSurfacesTimestamp();
+		data.surfacesOrig.surfaceCount = marManager.GetTrackedSurfacesCount();
 		data.surfacesOrig.surfaces = new JsonSurface[data.surfacesOrig.surfaceCount];
 
 		// surfaces
 		data.surfaces = new JsonTrackedSurfaces();
-		data.surfaces.timestamp = marManager.GetTrackedPlanesTimestamp();
-		data.surfaces.surfaceCount = marManager.GetTrackedPlanesCount();
+		data.surfaces.timestamp = marManager.GetTrackedSurfacesTimestamp();
+		data.surfaces.surfaceCount = marManager.GetTrackedSurfacesCount();
 		data.surfaces.surfaces = new JsonSurface[data.surfaces.surfaceCount];
 
-		MultiARInterop.TrackedPlane[] trackedSurfaces = marManager.GetTrackedPlanes(true);
+		MultiARInterop.TrackedPlane[] trackedSurfaces = marManager.GetTrackedSurfaces(true);
 		for (int i = 0; i < data.surfaces.surfaceCount; i++) 
 		{
 			// original surfaces

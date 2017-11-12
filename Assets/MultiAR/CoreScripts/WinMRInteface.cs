@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.XR;
 using UnityEngine.XR.WSA;
+using UnityEngine.XR.WSA.Input;
 
 public class WinMRInteface : MonoBehaviour, ARPlatformInterface 
 {
@@ -41,7 +42,7 @@ public class WinMRInteface : MonoBehaviour, ARPlatformInterface
 	protected float currentLightIntensity = 1f;
 
 	// tracked planes timestamp
-	private double trackedPlanesTimestamp = 0.0;
+	private double trackedSurfacesTimestamp = 0.0;
 
 	// surface renderer
 	private SpatialMappingRenderer surfaceRenderer;
@@ -54,6 +55,8 @@ public class WinMRInteface : MonoBehaviour, ARPlatformInterface
 	private MultiARInterop.InputAction inputAction = MultiARInterop.InputAction.None;
 	//private Vector2 inputPos = Vector2.zero;
 	private double inputTimestamp = 0.0;
+	// gesture recognizer for HoloLens
+	private GestureRecognizer gestureRecognizer = null;
 
 
 	/// <summary>
@@ -164,28 +167,28 @@ public class WinMRInteface : MonoBehaviour, ARPlatformInterface
 	}
 
 	/// <summary>
-	/// Gets the tracked planes timestamp.
+	/// Gets the tracked surfaces timestamp.
 	/// </summary>
-	/// <returns>The tracked planes timestamp.</returns>
-	public double GetTrackedPlanesTimestamp()
+	/// <returns>The tracked surfaces timestamp.</returns>
+	public double GetTrackedSurfacesTimestamp()
 	{
-		return trackedPlanesTimestamp;
+		return trackedSurfacesTimestamp;
 	}
 
 	/// <summary>
-	/// Gets the count of currently tracked planes.
+	/// Gets the count of currently tracked surfaces.
 	/// </summary>
-	/// <returns>The tracked planes count.</returns>
-	public int GetTrackedPlanesCount()
+	/// <returns>The tracked surfaces count.</returns>
+	public int GetTrackedSurfacesCount()
 	{
 		return surfaceRenderer ? surfaceRenderer.transform.childCount : 0;
 	}
 
 	/// <summary>
-	/// Gets the currently tracked planes.
+	/// Gets the currently tracked surfaces.
 	/// </summary>
-	/// <returns>The tracked planes.</returns>
-	public MultiARInterop.TrackedPlane[] GetTrackedPlanes(bool bGetPoints)
+	/// <returns>The tracked surfaces.</returns>
+	public MultiARInterop.TrackedPlane[] GetTrackedSurfaces(bool bGetPoints)
 	{
 		MultiARInterop.TrackedPlane[] trackedPlanes = new MultiARInterop.TrackedPlane[0];
 
@@ -217,12 +220,29 @@ public class WinMRInteface : MonoBehaviour, ARPlatformInterface
 	}
 
 	/// <summary>
+	/// Determines whether input action is available.for processing
+	/// </summary>
+	/// <returns><c>true</c> input action is available; otherwise, <c>false</c>.</returns>
+	public bool IsInputAvailable()
+	{
+		return (inputAction != MultiARInterop.InputAction.None);
+	}
+
+	/// <summary>
 	/// Gets the input action.
 	/// </summary>
 	/// <returns>The input action.</returns>
 	public MultiARInterop.InputAction GetInputAction()
 	{
-		return inputAction;
+		MultiARInterop.InputAction currentAction = inputAction;
+
+		// click should be one time only
+		if(currentAction == MultiARInterop.InputAction.Click)
+		{
+			inputAction = MultiARInterop.InputAction.None;
+		}
+
+		return currentAction;
 	}
 
 	/// <summary>
@@ -252,18 +272,23 @@ public class WinMRInteface : MonoBehaviour, ARPlatformInterface
 	public bool RaycastToScene(bool fromInputPos, out MultiARInterop.TrackableHit hit)
 	{
 		hit = new MultiARInterop.TrackableHit();
-		if(!isInitialized)
+		if(!isInitialized || !mainCamera)
 			return false;
 
 		// ray-cast
 		Transform camTransform = mainCamera.transform;
-		RaycastHit rayHit;
+		Ray camRay = new Ray(camTransform.position, camTransform.forward);
 
-		if(Physics.Raycast(camTransform.position, camTransform.forward, out rayHit, 
-			MultiARInterop.MAX_RAYCAST_DIST, Physics.DefaultRaycastLayers))
+		hit.rayPos = camRay.origin;
+		hit.rayDir = camRay.direction;
+
+		RaycastHit rayHit;
+		if(Physics.Raycast(camRay, out rayHit, MultiARInterop.MAX_RAYCAST_DIST, Physics.DefaultRaycastLayers))
 		{
 			hit.point = rayHit.point;
+			hit.normal = rayHit.normal;
 			hit.distance = rayHit.distance;
+
 			hit.psObject = rayHit;
 
 			return true;
@@ -281,13 +306,14 @@ public class WinMRInteface : MonoBehaviour, ARPlatformInterface
 	public bool RaycastAllToScene(bool fromInputPos, out MultiARInterop.TrackableHit[] hits)
 	{
 		hits = new MultiARInterop.TrackableHit[0];
-		if(!isInitialized)
+		if(!isInitialized || !mainCamera)
 			return false;
 
 		// ray-cast
 		Transform camTransform = mainCamera.transform;
-		RaycastHit[] rayHits = Physics.RaycastAll(camTransform.position, camTransform.forward, 
-			MultiARInterop.MAX_RAYCAST_DIST, Physics.DefaultRaycastLayers);
+		Ray camRay = new Ray(camTransform.position, camTransform.forward);
+
+		RaycastHit[] rayHits = Physics.RaycastAll(camRay, MultiARInterop.MAX_RAYCAST_DIST, Physics.DefaultRaycastLayers);
 		hits = new MultiARInterop.TrackableHit[rayHits.Length];
 
 		for(int i = 0; i < rayHits.Length; i++)
@@ -295,8 +321,13 @@ public class WinMRInteface : MonoBehaviour, ARPlatformInterface
 			RaycastHit rayHit = rayHits[i];
 			hits[i] = new MultiARInterop.TrackableHit();
 
+			hits[i].rayPos = camRay.origin;
+			hits[i].rayDir = camRay.direction;
+
 			hits[i].point = rayHit.point;
+			hits[i].normal = rayHit.normal;
 			hits[i].distance = rayHit.distance;
+
 			hits[i].psObject = rayHit;
 		}
 
@@ -312,23 +343,33 @@ public class WinMRInteface : MonoBehaviour, ARPlatformInterface
 	public bool RaycastToWorld(bool fromInputPos, out MultiARInterop.TrackableHit hit)
 	{
 		hit = new MultiARInterop.TrackableHit();
-		if(!isInitialized || !surfaceCollider)
+		if(!isInitialized || !surfaceCollider || !mainCamera)
 			return false;
 
 		// ray-cast
 		Transform camTransform = mainCamera.transform;
-		RaycastHit[] rayHits = Physics.RaycastAll(camTransform.position, camTransform.forward, 
-			MultiARInterop.MAX_RAYCAST_DIST, Physics.DefaultRaycastLayers);
+		Ray camRay = new Ray(camTransform.position, camTransform.forward);
+
+		hit.rayPos = camRay.origin;
+		hit.rayDir = camRay.direction;
+
+		int layerMask = 1 << LayerMask.NameToLayer("SpatialSurface");
+		RaycastHit[] rayHits = Physics.RaycastAll(camRay, MultiARInterop.MAX_RAYCAST_DIST, layerMask);
 
 		for(int i = 0; i < rayHits.Length; i++)
 		{
 			RaycastHit rayHit = rayHits[i];
 
 			// check for child of SpatialMappingCollider
-			if(rayHit.transform.GetComponentInParent<SpatialMappingCollider>() != null)
+			//if(rayHit.transform.GetComponentInParent<SpatialMappingCollider>() != null)
+			if(rayHit.collider != null)
 			{
 				hit.point = rayHit.point;
+				hit.normal = rayHit.normal;
 				hit.distance = rayHit.distance;
+
+				hit.psObject = rayHit;
+				Debug.Log(string.Format("Hit {0} at position {1}.", rayHit.collider.gameObject, rayHit.point));
 
 				return true;
 			}
@@ -362,8 +403,8 @@ public class WinMRInteface : MonoBehaviour, ARPlatformInterface
 		if(!isInitialized || !arManager)
 			return sAnchorId;
 
-		//GameObject anchorObj = new GameObject();
-		GameObject anchorObj = GameObject.CreatePrimitive(PrimitiveType.Cube);
+		GameObject anchorObj = new GameObject();
+		//GameObject anchorObj = GameObject.CreatePrimitive(PrimitiveType.Cube);
 		sAnchorId = System.Guid.NewGuid().ToString();
 		anchorObj.name = sAnchorId;
 
@@ -469,7 +510,7 @@ public class WinMRInteface : MonoBehaviour, ARPlatformInterface
 		// set camera parameters
 		currentCamera.clearFlags = CameraClearFlags.SolidColor;
 		currentCamera.backgroundColor = new Color(0f, 0f, 0f, 0f);
-		currentCamera.nearClipPlane = 0.85f;  // HoloLens recommended
+		//currentCamera.nearClipPlane = 0.85f;  // HoloLens recommended
 		//currentCamera.farClipPlane = 100f;
 
 		// reference to the AR main camera
@@ -521,16 +562,28 @@ public class WinMRInteface : MonoBehaviour, ARPlatformInterface
 		WorldManager.OnPositionalLocatorStateChanged += WorldManager_OnPositionalLocatorStateChanged;
 
 		// set tracking space type
-		//Debug.Log("Before: " + XRDevice.GetTrackingSpaceType());
-		if(XRDevice.GetTrackingSpaceType() != TrackingSpaceType.RoomScale)
-		{
-			if(!XRDevice.SetTrackingSpaceType(TrackingSpaceType.RoomScale))
-			{
-				Debug.LogError("Cannot set room-scale space type!");
-			}
-		}
+//		Debug.Log("Before: " + XRDevice.GetTrackingSpaceType());
+//		if(XRDevice.GetTrackingSpaceType() != TrackingSpaceType.Stationary)
+//		{
+//			if(!XRDevice.SetTrackingSpaceType(TrackingSpaceType.Stationary))
+//			{
+//				Debug.LogError("Cannot set stationary space type!");
+//			}
+//		}
 
 		Debug.Log("TrackingSpaceType: " + XRDevice.GetTrackingSpaceType());
+		Debug.Log("Screen size: " + Screen.width + " x " + Screen.height);
+
+		// create gesture input
+		gestureRecognizer = new GestureRecognizer();
+		gestureRecognizer.SetRecognizableGestures(GestureSettings.Tap | GestureSettings.Hold);
+
+		gestureRecognizer.Tapped += GestureRecognizer_Tapped;
+		gestureRecognizer.HoldStarted += GestureRecognizer_HoldStarted;
+		gestureRecognizer.HoldCompleted += GestureRecognizer_HoldCompleted;
+		gestureRecognizer.HoldCanceled += GestureRecognizer_HoldCanceled;
+
+		gestureRecognizer.StartCapturingGestures();
 
 		// create surface renderer
 		GameObject objRenderer = new GameObject();
@@ -589,6 +642,16 @@ public class WinMRInteface : MonoBehaviour, ARPlatformInterface
 			{
 				Destroy(surfaceCollider.gameObject);
 				surfaceCollider = null;
+			}
+
+			if(gestureRecognizer != null)
+			{
+				gestureRecognizer.StopCapturingGestures();
+
+				gestureRecognizer.Tapped -= GestureRecognizer_Tapped;
+				gestureRecognizer.HoldStarted -= GestureRecognizer_HoldStarted;
+				gestureRecognizer.HoldCompleted -= GestureRecognizer_HoldCompleted;
+				gestureRecognizer.HoldCanceled -= GestureRecognizer_HoldCanceled;
 			}
 
 			if(arManager)
@@ -650,6 +713,37 @@ public class WinMRInteface : MonoBehaviour, ARPlatformInterface
 		}
 	}
 
+	// invoked when the tap-gesture is done by the user
+	void GestureRecognizer_Tapped(TappedEventArgs obj)
+	{
+		inputAction = MultiARInterop.InputAction.Click;
+		inputTimestamp = lastFrameTimestamp;
+		//Debug.Log("GestureRecognizer_Tapped");
+	}
+
+	// invoked when the hold-gesture is started by the user
+	void GestureRecognizer_HoldStarted(HoldStartedEventArgs obj)
+	{
+		inputAction = MultiARInterop.InputAction.Grip;
+		inputTimestamp = lastFrameTimestamp;
+		Debug.Log("GestureRecognizer_HoldStarted");
+	}
+
+	// invoked when the hold-gesture is completed by the user
+	void GestureRecognizer_HoldCompleted(HoldCompletedEventArgs obj)
+	{
+		inputAction = MultiARInterop.InputAction.Release;
+		inputTimestamp = lastFrameTimestamp;
+		Debug.Log("GestureRecognizer_HoldCompleted");
+	}
+
+	// invoked when the hold-gesture is canceled by the user
+	void GestureRecognizer_HoldCanceled(HoldCanceledEventArgs obj)
+	{
+		inputAction = MultiARInterop.InputAction.None;
+		Debug.Log("GestureRecognizer_HoldCanceled");
+	}
+
 
 	void Update()
 	{
@@ -671,30 +765,30 @@ public class WinMRInteface : MonoBehaviour, ARPlatformInterface
 	// check for input action (mouse)
 	private void CheckForInputAction()
 	{
-		bool bInputAction = true;
-
-		if(Input.GetMouseButtonDown(0))
-		{
-			inputAction = MultiARInterop.InputAction.Click;
-		}
-		else if(Input.GetMouseButton(0))
-		{
-			inputAction = MultiARInterop.InputAction.Grip;
-		}
-		else if(Input.GetMouseButtonUp(0))
-		{
-			inputAction = MultiARInterop.InputAction.Release;
-		}
-		else
-		{
-			bInputAction = false;
-		}
-
-		if(bInputAction)
-		{
-			//inputPos = Input.mousePosition;
-			inputTimestamp = lastFrameTimestamp;
-		}
+//		bool bInputAction = true;
+//
+//		if(Input.GetMouseButtonDown(0))
+//		{
+//			inputAction = MultiARInterop.InputAction.Click;
+//		}
+//		else if(Input.GetMouseButton(0))
+//		{
+//			inputAction = MultiARInterop.InputAction.Grip;
+//		}
+//		else if(Input.GetMouseButtonUp(0))
+//		{
+//			inputAction = MultiARInterop.InputAction.Release;
+//		}
+//		else
+//		{
+//			bInputAction = false;
+//		}
+//
+//		if(bInputAction)
+//		{
+//			//inputPos = Input.mousePosition;
+//			inputTimestamp = lastFrameTimestamp;
+//		}
 	}
 
 	// checks for changes in rendered surfaces
@@ -720,8 +814,8 @@ public class WinMRInteface : MonoBehaviour, ARPlatformInterface
 			if(surfacesCheckSum != checkSum)
 			{
 				surfacesCheckSum = checkSum;
-				trackedPlanesTimestamp = GetCurrentTimestamp();
-				Debug.Log("surfacesCheckSum: " + surfacesCheckSum + ", trackedPlanesTimestamp: " + trackedPlanesTimestamp);
+				trackedSurfacesTimestamp = GetCurrentTimestamp();
+				//Debug.Log("surfacesCheckSum: " + surfacesCheckSum + ", trackedPlanesTimestamp: " + trackedPlanesTimestamp);
 			}
 
 			yield return new WaitForSeconds(surfaceRenderer.secondsBetweenUpdates);
