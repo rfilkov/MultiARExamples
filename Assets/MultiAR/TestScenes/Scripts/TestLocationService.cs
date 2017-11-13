@@ -37,7 +37,7 @@ public class TestLocationService : MonoBehaviour
 	private bool startHeadingSet = false;
 
 	private List<Transform> alPlaneTrans = new List<Transform>();
-	private MultiARInterop.TrackedPlane[] loadedSurfaces = null;
+	private MultiARInterop.TrackedSurface[] loadedSurfaces = null;
 
 
 	void Start () 
@@ -200,7 +200,7 @@ public class TestLocationService : MonoBehaviour
 //			camToWorld.SetTRS(Vector3.zero, camToWorldRot, Vector3.one);
 
 			// get tracked surfaces
-			MultiARInterop.TrackedPlane[] trackedSurfaces = loadedSurfaces == null ? marManager.GetTrackedSurfaces(true) : loadedSurfaces;
+			MultiARInterop.TrackedSurface[] trackedSurfaces = loadedSurfaces == null ? marManager.GetTrackedSurfaces(true) : loadedSurfaces;
 
 //			gyroEnabled = false;
 //			if (gyroInfoText) 
@@ -210,7 +210,7 @@ public class TestLocationService : MonoBehaviour
 
 			for (int i = 0; i < trackedSurfaces.Length; i++) 
 			{
-				Transform surfaceTrans = GetPlaneTransform(i);
+				Transform surfaceTrans = GetSurfaceTransform(i);
 
 				if (surfaceTrans) 
 				{
@@ -226,7 +226,7 @@ public class TestLocationService : MonoBehaviour
 			}
 
 			// destroy the remaining surface transforms
-			RemoveExtraPlainTransforms(trackedSurfaces.Length);
+			RemoveExtraSurfaceTransforms(trackedSurfaces.Length);
 		}
 
 	}
@@ -260,7 +260,7 @@ public class TestLocationService : MonoBehaviour
 
 
 	// returns the transform for i-th tracked plane
-	private Transform GetPlaneTransform(int i)
+	private Transform GetSurfaceTransform(int i)
 	{
 		if (!planeTransformPrefab)
 			return null;
@@ -276,7 +276,7 @@ public class TestLocationService : MonoBehaviour
 
 
 	// destroys the extra plane-transforms
-	private void RemoveExtraPlainTransforms(int planeCount)
+	private void RemoveExtraSurfaceTransforms(int planeCount)
 	{
 		while (alPlaneTrans.Count > planeCount) 
 		{
@@ -394,11 +394,11 @@ public class TestLocationService : MonoBehaviour
 		Matrix4x4 matSceneToWorld = Matrix4x4.identity;
 		matSceneToWorld.SetTRS(Vector3.zero, Quaternion.Euler(sceneToWorldRot), Vector3.one);
 
-		// original surfaces
-		data.surfacesOrig = new JsonTrackedSurfaces();
-		data.surfacesOrig.timestamp = marManager.GetTrackedSurfacesTimestamp();
-		data.surfacesOrig.surfaceCount = marManager.GetTrackedSurfacesCount();
-		data.surfacesOrig.surfaces = new JsonSurface[data.surfacesOrig.surfaceCount];
+//		// original surfaces
+//		data.surfacesOrig = new JsonTrackedSurfaces();
+//		data.surfacesOrig.timestamp = marManager.GetTrackedSurfacesTimestamp();
+//		data.surfacesOrig.surfaceCount = marManager.GetTrackedSurfacesCount();
+//		data.surfacesOrig.surfaces = new JsonSurface[data.surfacesOrig.surfaceCount];
 
 		// surfaces
 		data.surfaces = new JsonTrackedSurfaces();
@@ -406,16 +406,17 @@ public class TestLocationService : MonoBehaviour
 		data.surfaces.surfaceCount = marManager.GetTrackedSurfacesCount();
 		data.surfaces.surfaces = new JsonSurface[data.surfaces.surfaceCount];
 
-		MultiARInterop.TrackedPlane[] trackedSurfaces = marManager.GetTrackedSurfaces(true);
+		MultiARInterop.TrackedSurface[] trackedSurfaces = marManager.GetTrackedSurfaces(true);
 		for (int i = 0; i < data.surfaces.surfaceCount; i++) 
 		{
-			// original surfaces
-			data.surfacesOrig.surfaces[i] = new JsonSurface();
-
-			data.surfacesOrig.surfaces[i].position = trackedSurfaces[i].position;
-			data.surfacesOrig.surfaces[i].rotation = trackedSurfaces[i].rotation.eulerAngles;
-			data.surfacesOrig.surfaces[i].bounds = trackedSurfaces[i].bounds;
-			data.surfacesOrig.surfaces[i].points = trackedSurfaces[i].points;
+//			// original surfaces
+//			data.surfacesOrig.surfaces[i] = new JsonSurface();
+//
+//			data.surfacesOrig.surfaces[i].position = trackedSurfaces[i].position;
+//			data.surfacesOrig.surfaces[i].rotation = trackedSurfaces[i].rotation.eulerAngles;
+//			data.surfacesOrig.surfaces[i].bounds = trackedSurfaces[i].bounds;
+//			data.surfacesOrig.surfaces[i].points = trackedSurfaces[i].points;
+//			data.surfacesOrig.surfaces[i].triangles = trackedSurfaces[i].triangles;
 
 			// transformed surfaces
 			data.surfaces.surfaces[i] = new JsonSurface();
@@ -423,16 +424,18 @@ public class TestLocationService : MonoBehaviour
 			data.surfaces.surfaces[i].position = matSceneToWorld.MultiplyPoint3x4(trackedSurfaces[i].position);
 			data.surfaces.surfaces[i].rotation = trackedSurfaces[i].rotation.eulerAngles + sceneToWorldRot;
 			data.surfaces.surfaces[i].bounds = trackedSurfaces[i].bounds;
+			data.surfaces.surfaces[i].points = trackedSurfaces[i].points;
+			data.surfaces.surfaces[i].triangles = trackedSurfaces[i].triangles;
 
-			if (trackedSurfaces[i].points != null) 
-			{
-				data.surfaces.surfaces[i].points = new Vector3[trackedSurfaces[i].points.Length];
-
-				for (int p = 0; p < trackedSurfaces[i].points.Length; p++) 
-				{
-					data.surfaces.surfaces[i].points[p] = matSceneToWorld.MultiplyPoint3x4(trackedSurfaces[i].points[p]);
-				}
-			}
+//			if (trackedSurfaces[i].points != null) 
+//			{
+//				data.surfaces.surfaces[i].points = new Vector3[trackedSurfaces[i].points.Length];
+//
+//				for (int p = 0; p < trackedSurfaces[i].points.Length; p++) 
+//				{
+//					data.surfaces.surfaces[i].points[p] = matSceneToWorld.MultiplyPoint3x4(trackedSurfaces[i].points[p]);
+//				}
+//			}
 		}
 
 //		// point cloud
@@ -489,26 +492,27 @@ public class TestLocationService : MonoBehaviour
 
 			if (data.surfaces != null) 
 			{
-				loadedSurfaces = new MultiARInterop.TrackedPlane[data.surfaces.surfaceCount];
+				loadedSurfaces = new MultiARInterop.TrackedSurface[data.surfaces.surfaceCount];
 
 				for (int i = 0; i < data.surfaces.surfaceCount; i++) 
 				{
-					loadedSurfaces[i] = new MultiARInterop.TrackedPlane();
+					loadedSurfaces[i] = new MultiARInterop.TrackedSurface();
 
 					loadedSurfaces[i].position = matWorldToScene.MultiplyPoint3x4(data.surfaces.surfaces[i].position);
 					loadedSurfaces[i].rotation = Quaternion.Euler(data.surfaces.surfaces[i].rotation + worldToSceneRot);
 					loadedSurfaces[i].bounds = data.surfaces.surfaces[i].bounds;
 					loadedSurfaces[i].points = data.surfaces.surfaces[i].points;
+					loadedSurfaces[i].triangles = data.surfaces.surfaces[i].triangles;
 
-					if (data.surfaces.surfaces[i].points != null) 
-					{
-						loadedSurfaces[i].points = new Vector3[data.surfaces.surfaces[i].points.Length];
-
-						for (int p = 0; i < data.surfaces.surfaces[i].points.Length; p++) 
-						{
-							loadedSurfaces[i].points[p] = matWorldToScene.MultiplyPoint3x4(data.surfaces.surfaces[i].points[p]);
-						}
-					}
+//					if (data.surfaces.surfaces[i].points != null) 
+//					{
+//						loadedSurfaces[i].points = new Vector3[data.surfaces.surfaces[i].points.Length];
+//
+//						for (int p = 0; i < data.surfaces.surfaces[i].points.Length; p++) 
+//						{
+//							loadedSurfaces[i].points[p] = matWorldToScene.MultiplyPoint3x4(data.surfaces.surfaces[i].points[p]);
+//						}
+//					}
 				}
 			}
 

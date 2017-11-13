@@ -191,9 +191,9 @@ public class ARKitInteface : MonoBehaviour, ARPlatformInterface
 	/// Gets the currently tracked surfaces.
 	/// </summary>
 	/// <returns>The tracked surfaces.</returns>
-	public MultiARInterop.TrackedPlane[] GetTrackedSurfaces(bool bGetPoints)
+	public MultiARInterop.TrackedSurface[] GetTrackedSurfaces(bool bGetPoints)
 	{
-		MultiARInterop.TrackedPlane[] trackedPlanes = new MultiARInterop.TrackedPlane[planeAnchorDict.Count];
+		MultiARInterop.TrackedSurface[] trackedPlanes = new MultiARInterop.TrackedSurface[planeAnchorDict.Count];
 
 		// get current planes list
 		List<ARPlaneAnchorGameObject> listPlaneObjs = new List<ARPlaneAnchorGameObject>(planeAnchorDict.Values);
@@ -202,7 +202,7 @@ public class ARKitInteface : MonoBehaviour, ARPlatformInterface
 		foreach (ARPlaneAnchorGameObject arpag in listPlaneObjs) 
 		{
 			ARPlaneAnchor planeAnchor = arpag.planeAnchor;
-			trackedPlanes[i] = new MultiARInterop.TrackedPlane();
+			trackedPlanes[i] = new MultiARInterop.TrackedSurface();
 
 			trackedPlanes[i].position = UnityARMatrixOps.GetPosition(planeAnchor.transform);
 			trackedPlanes[i].rotation = UnityARMatrixOps.GetRotation(planeAnchor.transform);

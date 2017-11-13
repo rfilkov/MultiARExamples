@@ -188,19 +188,19 @@ public class WinMRInteface : MonoBehaviour, ARPlatformInterface
 	/// Gets the currently tracked surfaces.
 	/// </summary>
 	/// <returns>The tracked surfaces.</returns>
-	public MultiARInterop.TrackedPlane[] GetTrackedSurfaces(bool bGetPoints)
+	public MultiARInterop.TrackedSurface[] GetTrackedSurfaces(bool bGetPoints)
 	{
-		MultiARInterop.TrackedPlane[] trackedPlanes = new MultiARInterop.TrackedPlane[0];
+		MultiARInterop.TrackedSurface[] trackedPlanes = new MultiARInterop.TrackedSurface[0];
 
 		if(surfaceRenderer)
 		{
 			int numSurfaces = surfaceRenderer.transform.childCount;
-			trackedPlanes = new MultiARInterop.TrackedPlane[numSurfaces];
+			trackedPlanes = new MultiARInterop.TrackedSurface[numSurfaces];
 
 			for(int i = 0; i < numSurfaces; i++)
 			{
 				Transform surfaceTransform = surfaceRenderer.transform.GetChild(i);
-				trackedPlanes[i] = new MultiARInterop.TrackedPlane();
+				trackedPlanes[i] = new MultiARInterop.TrackedSurface();
 
 				trackedPlanes[i].position = surfaceTransform.position;
 				trackedPlanes[i].rotation = surfaceTransform.rotation;
@@ -211,7 +211,8 @@ public class WinMRInteface : MonoBehaviour, ARPlatformInterface
 					Mesh mesh = meshFilter ? meshFilter.mesh : null;
 
 					trackedPlanes[i].bounds = mesh ? mesh.bounds.size : Vector3.zero; // todo
-					trackedPlanes[i].points = mesh ? mesh.vertices : new Vector3[0];
+					trackedPlanes[i].points = mesh ? mesh.vertices : null;
+					trackedPlanes[i].triangles = mesh ? mesh.triangles : null;
 				}
 			}
 		}

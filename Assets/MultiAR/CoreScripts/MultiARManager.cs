@@ -205,7 +205,7 @@ public class MultiARManager : MonoBehaviour
 	/// Gets the currently tracked surfaces.
 	/// </summary>
 	/// <returns>The tracked surfaces.</returns>
-	public MultiARInterop.TrackedPlane[] GetTrackedSurfaces(bool bGetPoints)
+	public MultiARInterop.TrackedSurface[] GetTrackedSurfaces(bool bGetPoints)
 	{
 		if(arInterface != null)
 		{
@@ -213,7 +213,7 @@ public class MultiARManager : MonoBehaviour
 		}
 
 		// no tracked planes
-		MultiARInterop.TrackedPlane[] trackedPlanes = new MultiARInterop.TrackedPlane[0];
+		MultiARInterop.TrackedSurface[] trackedPlanes = new MultiARInterop.TrackedSurface[0];
 		return trackedPlanes;
 	}
 

@@ -80,7 +80,7 @@ public interface ARPlatformInterface
 	/// Gets the currently tracked surfaces.
 	/// </summary>
 	/// <returns>The tracked surfaces.</returns>
-	MultiARInterop.TrackedPlane[] GetTrackedSurfaces(bool bGetPoints);
+	MultiARInterop.TrackedSurface[] GetTrackedSurfaces(bool bGetPoints);
 
 	/// <summary>
 	/// Determines whether input action is available.for processing

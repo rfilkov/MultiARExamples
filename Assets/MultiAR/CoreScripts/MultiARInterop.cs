@@ -56,15 +56,16 @@ public class MultiARInterop
 	}
 
 	/// <summary>
-	/// Contains information about the currently tracked planes
+	/// Contains information about the currently tracked surfaces
 	/// </summary>
-	public struct TrackedPlane
+	public struct TrackedSurface
 	{
 		public Vector3 position;
 		public Quaternion rotation;
 		public Vector3 bounds;
 
 		public Vector3[] points;
+		public int[] triangles;
 	}
 
 	/// <summary>

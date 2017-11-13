@@ -185,14 +185,14 @@ public class ARCoreInteface : MonoBehaviour, ARPlatformInterface
 	/// Gets the currently tracked surfaces.
 	/// </summary>
 	/// <returns>The tracked surfaces.</returns>
-	public MultiARInterop.TrackedPlane[] GetTrackedSurfaces(bool bGetPoints)
+	public MultiARInterop.TrackedSurface[] GetTrackedSurfaces(bool bGetPoints)
 	{
-		MultiARInterop.TrackedPlane[] trackedPlanes = new MultiARInterop.TrackedPlane[allTrackedPlanes.Count];
+		MultiARInterop.TrackedSurface[] trackedPlanes = new MultiARInterop.TrackedSurface[allTrackedPlanes.Count];
 
 		for(int i = 0; i < allTrackedPlanes.Count; i++)
 		{
 			TrackedPlane plane = allTrackedPlanes[i];
-			trackedPlanes[i] = new MultiARInterop.TrackedPlane();
+			trackedPlanes[i] = new MultiARInterop.TrackedSurface();
 
 			trackedPlanes[i].position = plane.Position;
 			trackedPlanes[i].rotation = plane.Rotation;
