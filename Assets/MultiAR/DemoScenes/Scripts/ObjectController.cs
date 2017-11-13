@@ -57,7 +57,7 @@ public class ObjectController : MonoBehaviour
 			return;
 
 		// check for tap
-		if (arManager && arManager.IsInitialized())
+		if (arManager && arManager.IsInitialized() && arManager.IsInputAvailable())
 		{
 			MultiARInterop.InputAction action = arManager.GetInputAction();
 

@@ -243,7 +243,7 @@ public class ARCoreInteface : MonoBehaviour, ARPlatformInterface
 	public void ClearInputAction()
 	{
 		inputAction = MultiARInterop.InputAction.None;
-		inputTimestamp = lastFrameTimestamp;
+		//inputTimestamp = lastFrameTimestamp;
 	}
 
 	/// <summary>

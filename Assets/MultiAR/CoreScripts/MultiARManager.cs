@@ -239,7 +239,15 @@ public class MultiARManager : MonoBehaviour
 	{
 		if(arInterface != null)
 		{
-			return arInterface.GetInputAction();
+			MultiARInterop.InputAction inputAction = arInterface.GetInputAction();
+
+			// input action should be consumed only once
+			if(inputAction == MultiARInterop.InputAction.Click)
+			{
+				arInterface.ClearInputAction();
+			}
+
+			return inputAction;
 		}
 
 		return MultiARInterop.InputAction.None;

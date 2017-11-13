@@ -235,15 +235,7 @@ public class WinMRInteface : MonoBehaviour, ARPlatformInterface
 	/// <returns>The input action.</returns>
 	public MultiARInterop.InputAction GetInputAction()
 	{
-		MultiARInterop.InputAction currentAction = inputAction;
-
-		// click should be one time only
-		if(currentAction == MultiARInterop.InputAction.Click)
-		{
-			inputAction = MultiARInterop.InputAction.None;
-		}
-
-		return currentAction;
+		return inputAction;
 	}
 
 	/// <summary>
@@ -261,7 +253,7 @@ public class WinMRInteface : MonoBehaviour, ARPlatformInterface
 	public void ClearInputAction()
 	{
 		inputAction = MultiARInterop.InputAction.None;
-		inputTimestamp = lastFrameTimestamp;
+		//inputTimestamp = lastFrameTimestamp;
 	}
 
 	/// <summary>
