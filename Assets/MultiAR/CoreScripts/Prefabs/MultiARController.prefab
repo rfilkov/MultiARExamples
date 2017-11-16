@@ -263,7 +263,7 @@ MonoBehaviour:
   pointCloudPrefab: {fileID: 1707953204718416, guid: 2f471897ca3904978b6ce3a09dae9a0f,
     type: 2}
   displayTrackedSurfaces: 1
-  hitTrackedServicesOnly: 1
+  hitTrackedSurfacesOnly: 1
   showCursor: 3
   cursorObject: {fileID: 4194544903986052}
   infoText: {fileID: 0}

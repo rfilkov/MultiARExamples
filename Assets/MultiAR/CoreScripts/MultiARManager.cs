@@ -20,7 +20,7 @@ public class MultiARManager : MonoBehaviour
 	public bool displayTrackedSurfaces = false;
 
 	[Tooltip("Whether the world raycasts may hit tracked surfaces only, or points from the cloud in general.")]
-	public bool hitTrackedServicesOnly = false;
+	public bool hitTrackedSurfacesOnly = true;
 
 	public enum ShowCursorEnum : int { Never, OnSurfacesOnly, OnSceneObjects, Always };
 	[Tooltip("How the cursor should be visualized.")]
@@ -221,11 +221,11 @@ public class MultiARManager : MonoBehaviour
 	/// Determines whether input action is available.for processing
 	/// </summary>
 	/// <returns><c>true</c> input action is available; otherwise, <c>false</c>.</returns>
-	public bool IsInputAvailable()
+	public bool IsInputAvailable(bool inclRelease)
 	{
 		if(arInterface != null)
 		{
-			return arInterface.IsInputAvailable();
+			return arInterface.IsInputAvailable(inclRelease);
 		}
 
 		return false;
@@ -242,7 +242,7 @@ public class MultiARManager : MonoBehaviour
 			MultiARInterop.InputAction inputAction = arInterface.GetInputAction();
 
 			// input action should be consumed only once
-			if(inputAction == MultiARInterop.InputAction.Click)
+			if(inputAction != MultiARInterop.InputAction.None)
 			{
 				arInterface.ClearInputAction();
 			}
@@ -706,16 +706,28 @@ public class MultiARManager : MonoBehaviour
 			hit.point = Vector3.zero;
 
 			// check how to raycast
-			bool isFromInputPos = IsInputAvailable();
+			bool isFromInputPos = IsInputAvailable(false);
 
-			if(showCursor == ShowCursorEnum.OnSurfacesOnly)
+			if (showCursor == ShowCursorEnum.OnSurfacesOnly) 
+			{
 				RaycastToWorld(isFromInputPos, out hit);
+			}
 			else
-				RaycastToScene(isFromInputPos, out hit);
+			{
+				if (!RaycastToScene (isFromInputPos, out hit)) 
+				{
+					RaycastToWorld(isFromInputPos, out hit);
+				}
+			}
+
+			if (infoText) 
+			{
+				infoText.text += "\ninputPos: " + isFromInputPos + ", hit: " + hit.point + ", obj: " + (hit.psObject != null ? hit.psObject.ToString() : "");
+			}
 
 			if(showCursor == ShowCursorEnum.Always || hit.point != Vector3.zero)
 			{
-				MultiARInterop.ShowCursor(cursorObject, hit, 0.02f, 2f, 100f);
+				MultiARInterop.ShowCursor(cursorObject, hit, 0.03f, 2f, 50f);
 			}
 		}
 

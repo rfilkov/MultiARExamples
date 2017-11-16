@@ -224,9 +224,14 @@ public class WinMRInteface : MonoBehaviour, ARPlatformInterface
 	/// Determines whether input action is available.for processing
 	/// </summary>
 	/// <returns><c>true</c> input action is available; otherwise, <c>false</c>.</returns>
-	public bool IsInputAvailable()
+	public bool IsInputAvailable(bool inclRelease)
 	{
-		return (inputAction != MultiARInterop.InputAction.None);
+		if (inputAction != MultiARInterop.InputAction.None) 
+		{
+			return !inclRelease ? inputAction != MultiARInterop.InputAction.Release : true;
+		}
+
+		return false;
 	}
 
 	/// <summary>

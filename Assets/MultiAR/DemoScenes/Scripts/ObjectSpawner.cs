@@ -24,7 +24,7 @@ public class ObjectSpawner : MonoBehaviour
 			return;
 
 		// check for tap
-		if (objectPrefab && arManager && arManager.IsInitialized() && arManager.IsInputAvailable())
+		if (objectPrefab && arManager && arManager.IsInitialized() && arManager.IsInputAvailable(true))
 		{
 			MultiARInterop.InputAction action = arManager.GetInputAction();
 

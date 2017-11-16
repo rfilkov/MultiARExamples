@@ -86,7 +86,7 @@ public interface ARPlatformInterface
 	/// Determines whether input action is available.for processing
 	/// </summary>
 	/// <returns><c>true</c> input action is available; otherwise, <c>false</c>.</returns>
-	bool IsInputAvailable();
+	bool IsInputAvailable(bool inclRelease);
 
 	/// <summary>
 	/// Gets the input action.
