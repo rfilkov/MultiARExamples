@@ -213,9 +213,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0f49820bf643da549a177ffe70e82ce0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  surfaceRenderMaterial: {fileID: 2100000, guid: db609c97cfc8f33498a041f25909d840,
-    type: 2}
-  useSurfaceColliders: 1
 --- !u!114 &114504722886925034
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -264,6 +261,10 @@ MonoBehaviour:
     type: 2}
   displayTrackedSurfaces: 1
   hitTrackedSurfacesOnly: 1
+  useOverlaySurface: 2
+  overlaySurfaceMaterial: {fileID: 2100000, guid: db609c97cfc8f33498a041f25909d840,
+    type: 2}
+  overlaySurfaceColliders: 1
   showCursor: 3
   cursorObject: {fileID: 4194544903986052}
   infoText: {fileID: 0}

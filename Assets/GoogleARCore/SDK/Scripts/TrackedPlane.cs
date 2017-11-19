@@ -80,7 +80,7 @@ namespace GoogleARCore
         /// </summary>
         public TrackedPlane SubsumedBy { get; private set; }
 
-        private ApiPlaneData m_apiPlaneData;
+        public ApiPlaneData m_apiPlaneData;
 
         private Matrix4x4 m_unityWorldTPlane;
 

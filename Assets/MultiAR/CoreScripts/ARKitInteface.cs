@@ -210,16 +210,29 @@ public class ARKitInteface : MonoBehaviour, ARPlatformInterface
 
 			if(bGetPoints)
 			{
-				trackedPlanes[i].points = new Vector3[4];
+				Vector3[] meshVertices = new Vector3[4];
 
 				Matrix4x4 planeMatrix = new Matrix4x4();
 				planeMatrix.SetTRS(trackedPlanes[i].position, trackedPlanes[i].rotation, Vector3.one);
 
 				Vector3 planeExtents = trackedPlanes[i].bounds * 0.5f;
-				trackedPlanes[i].points[0] = planeMatrix.MultiplyPoint3x4(new Vector3(-planeExtents.x, planeExtents.y, planeExtents.z));
-				trackedPlanes[i].points[1] = planeMatrix.MultiplyPoint3x4(new Vector3(planeExtents.x, planeExtents.y, planeExtents.z));
-				trackedPlanes[i].points[2] = planeMatrix.MultiplyPoint3x4(new Vector3(planeExtents.x, planeExtents.y, -planeExtents.z));
-				trackedPlanes[i].points[3] = planeMatrix.MultiplyPoint3x4(new Vector3(-planeExtents.x, planeExtents.y, -planeExtents.z));
+				meshVertices[0] = planeMatrix.MultiplyPoint3x4(new Vector3(-planeExtents.x, planeExtents.y, planeExtents.z));
+				meshVertices[1] = planeMatrix.MultiplyPoint3x4(new Vector3(planeExtents.x, planeExtents.y, planeExtents.z));
+				meshVertices[2] = planeMatrix.MultiplyPoint3x4(new Vector3(planeExtents.x, planeExtents.y, -planeExtents.z));
+				meshVertices[3] = planeMatrix.MultiplyPoint3x4(new Vector3(-planeExtents.x, planeExtents.y, -planeExtents.z));
+				trackedPlanes[i].points = meshVertices;
+
+				List<int> meshIndices = new List<int>();
+				int verticeLength = meshVertices.Length;
+
+				for (int v = 1; v < verticeLength - 1; v++)
+				{
+					meshIndices.Add(0);
+					meshIndices.Add(v);
+					meshIndices.Add(v + 1);
+				}
+
+				trackedPlanes[i].triangles = meshIndices.ToArray();
 			}
 
 			i++;

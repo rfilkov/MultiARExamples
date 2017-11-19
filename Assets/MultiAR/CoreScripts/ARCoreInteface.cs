@@ -46,6 +46,9 @@ public class ARCoreInteface : MonoBehaviour, ARPlatformInterface
 	// all detected planes
 	private List<TrackedPlane> allTrackedPlanes = new List<TrackedPlane>();
 
+	// the overlay surfaces
+	private Dictionary<int, OverlaySurfaceUpdater> dictOverlaySurfaces = new Dictionary<int, OverlaySurfaceUpdater>();
+	private List<int> alSurfacesToDelete = new List<int>();
 
 	// colors to use for plane display
 	private Color[] planeColors = new Color[] { 
@@ -204,6 +207,18 @@ public class ARCoreInteface : MonoBehaviour, ARPlatformInterface
 				List<Vector3> alPoints = new List<Vector3>();
 				plane.GetBoundaryPolygon(ref alPoints);
 				trackedPlanes[i].points = alPoints.ToArray();
+
+				List<int> meshIndices = new List<int>();
+				int verticeLength = alPoints.Count;
+
+				for (int v = 1; v < verticeLength - 1; v++)
+				{
+					meshIndices.Add(0);
+					meshIndices.Add(v);
+					meshIndices.Add(v + 1);
+				}
+
+				trackedPlanes[i].triangles = meshIndices.ToArray();
 			}
 		}
 
@@ -626,6 +641,47 @@ public class ARCoreInteface : MonoBehaviour, ARPlatformInterface
 		// get all tracked planes
 		Frame.GetAllPlanes(ref allTrackedPlanes);
 
+		// create the overlay surfaces if needed
+		if(arManager.useOverlaySurface != MultiARManager.SurfaceRenderEnum.None)
+		{
+			alSurfacesToDelete.Clear();
+			alSurfacesToDelete.AddRange(dictOverlaySurfaces.Keys);
+
+			for(int i = 0; i < allTrackedPlanes.Count; i++)
+			{
+				int surfId = allTrackedPlanes[i].m_apiPlaneData.id;
+
+				if(!dictOverlaySurfaces.ContainsKey(surfId))
+				{
+					GameObject overlaySurfaceObj = new GameObject();
+					overlaySurfaceObj.name = "surface-" + surfId;
+
+					OverlaySurfaceUpdater overlaySurface = overlaySurfaceObj.AddComponent<OverlaySurfaceUpdater>();
+					overlaySurface.SetSurfaceMaterial(arManager.overlaySurfaceMaterial);
+					overlaySurface.SetSurfaceCollider(arManager.overlaySurfaceColliders);
+
+					dictOverlaySurfaces.Add(surfId, overlaySurface);
+				}
+
+				// update the surface mesh
+				bool bValidSurface = UpdateOverlaySurface(dictOverlaySurfaces[surfId], allTrackedPlanes[i]);
+
+				if(bValidSurface && alSurfacesToDelete.Contains(surfId))
+				{
+					alSurfacesToDelete.Remove(surfId);
+				}
+			}
+
+			// delete not tracked surfaces
+			foreach(int surfId in alSurfacesToDelete)
+			{
+				OverlaySurfaceUpdater overlaySurface = dictOverlaySurfaces[surfId];
+				dictOverlaySurfaces.Remove(surfId);
+
+				Destroy(overlaySurface.gameObject);
+			}
+		}
+
 		// check the status of the anchors
 		List<string> alAnchorsToRemove = new List<string>();
 
@@ -667,6 +723,48 @@ public class ARCoreInteface : MonoBehaviour, ARPlatformInterface
 
 		// clean up
 		alAnchorsToRemove.Clear();
+	}
+
+	// Update overlay surface mesh. Returns true on success, false if the surface needs to be deleted
+	private bool UpdateOverlaySurface(OverlaySurfaceUpdater overlaySurface, TrackedPlane trackedSurface)
+	{
+		// check for validity
+		if (overlaySurface == null || trackedSurface == null)
+		{
+			return false;
+		}
+		else if (trackedSurface.SubsumedBy != null)
+		{
+			return false;
+		}
+		else if (!trackedSurface.IsValid || Frame.TrackingState != FrameTrackingState.Tracking)
+		{
+			overlaySurface.SetEnabled(false);
+			return true;
+		}
+
+		// estimate mesh vertices & indices
+		overlaySurface.SetEnabled(true);
+
+		List<Vector3> meshVertices = new List<Vector3>();
+		List<int> meshIndices = new List<int>();
+
+		// GetBoundaryPolygon returns points in clockwise order.
+		trackedSurface.GetBoundaryPolygon(ref meshVertices);
+		int verticeLength = meshVertices.Count;
+
+		// Generate triangle (4, 5, 6) and (4, 6, 7).
+		for (int i = 1; i < verticeLength - 1; i++)
+		{
+			meshIndices.Add(0);
+			meshIndices.Add(i);
+			meshIndices.Add(i + 1);
+		}
+
+		// update the surface mesh
+		overlaySurface.UpdateSurfaceMesh(meshVertices, meshIndices);
+
+		return true;
 	}
 
 	// check for input action (phone touch)

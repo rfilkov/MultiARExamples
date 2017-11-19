@@ -649,6 +649,15 @@ public class MultiARManager : MonoBehaviour
 				pointCloudMesh.Clear();
 			}
 		}
+
+		if(overlaySurfaceMaterial == null && useOverlaySurface != SurfaceRenderEnum.None)
+		{
+			// get the default material
+			if(useOverlaySurface == MultiARManager.SurfaceRenderEnum.Occlusion)
+				overlaySurfaceMaterial = (Material)Resources.Load("SpatialMappingOcclusion", typeof(Material));
+			else if(useOverlaySurface == MultiARManager.SurfaceRenderEnum.Visualization)
+				overlaySurfaceMaterial = (Material)Resources.Load("SpatialMappingWireframe", typeof(Material));
+		}
 	}
 
 	void OnDestroy()

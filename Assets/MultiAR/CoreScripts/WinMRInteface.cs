@@ -11,6 +11,10 @@ public class WinMRInteface : MonoBehaviour, ARPlatformInterface
 	//[Tooltip("The layer used by the surface collider. 1 means default.")]
 	//private int surfaceColliderLayer = 31;
 
+	public enum WinMRDeviceType : int { Transparent, Occluded };
+	[Tooltip("Device type used by Windows Mixed Reality.")]
+	public WinMRDeviceType deviceType = WinMRDeviceType.Transparent;
+
 	// Whether the interface is enabled by MultiARManager
 	private bool isInterfaceEnabled = false;
 
@@ -592,21 +596,6 @@ public class WinMRInteface : MonoBehaviour, ARPlatformInterface
 			if(arManager.overlaySurfaceMaterial)
 			{
 				surfaceRenderer.visualMaterial = arManager.overlaySurfaceMaterial;
-			}
-			else
-			{
-				// get the default material
-				Material matSurface = null;
-
-				if(arManager.useOverlaySurface == MultiARManager.SurfaceRenderEnum.Occlusion)
-					matSurface = (Material)Resources.Load("SpatialMappingOcclusion", typeof(Material));
-				else if(arManager.useOverlaySurface == MultiARManager.SurfaceRenderEnum.Visualization)
-					matSurface = (Material)Resources.Load("SpatialMappingWireframe", typeof(Material));
-
-				if(matSurface)
-				{
-					surfaceRenderer.visualMaterial = matSurface;
-				}
 			}
 		}
 
