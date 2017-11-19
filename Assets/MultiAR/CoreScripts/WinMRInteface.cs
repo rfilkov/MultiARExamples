@@ -8,14 +8,8 @@ using UnityEngine.XR.WSA.Input;
 
 public class WinMRInteface : MonoBehaviour, ARPlatformInterface 
 {
-	[Tooltip("Material used for surface rendering. If left empty, will use the default surface material")]
-	public Material surfaceRenderMaterial;
-
-	[Tooltip("Whether the detected surfaces should have mesh colliders. This is needed for ray-casting to world.")]
-	public bool useSurfaceColliders = true;
-
-	[Tooltip("The layer used by the surface collider. 1 means default.")]
-	private int surfaceColliderLayer = 31;
+	//[Tooltip("The layer used by the surface collider. 1 means default.")]
+	//private int surfaceColliderLayer = 31;
 
 	// Whether the interface is enabled by MultiARManager
 	private bool isInterfaceEnabled = false;
@@ -591,17 +585,33 @@ public class WinMRInteface : MonoBehaviour, ARPlatformInterface
 		surfaceRenderer = objRenderer.AddComponent<SpatialMappingRenderer>();
 		surfaceRenderer.surfaceParent = objRenderer;
 
-		if(arManager.displayTrackedSurfaces)
+		if(arManager.displayTrackedSurfaces || arManager.useOverlaySurface != MultiARManager.SurfaceRenderEnum.None)
 		{
-			surfaceRenderer.renderState = SpatialMappingRenderer.RenderState.Visualization;
-			if(surfaceRenderMaterial)
+			surfaceRenderer.renderState = (SpatialMappingRenderer.RenderState)arManager.useOverlaySurface;
+			
+			if(arManager.overlaySurfaceMaterial)
 			{
-				surfaceRenderer.visualMaterial = surfaceRenderMaterial;
+				surfaceRenderer.visualMaterial = arManager.overlaySurfaceMaterial;
+			}
+			else
+			{
+				// get the default material
+				Material matSurface = null;
+
+				if(arManager.useOverlaySurface == MultiARManager.SurfaceRenderEnum.Occlusion)
+					matSurface = (Material)Resources.Load("SpatialMappingOcclusion", typeof(Material));
+				else if(arManager.useOverlaySurface == MultiARManager.SurfaceRenderEnum.Visualization)
+					matSurface = (Material)Resources.Load("SpatialMappingWireframe", typeof(Material));
+
+				if(matSurface)
+				{
+					surfaceRenderer.visualMaterial = matSurface;
+				}
 			}
 		}
 
 		// create surface collider
-		if(useSurfaceColliders)
+		if(arManager.overlaySurfaceColliders)
 		{
 			GameObject objCollider = new GameObject();
 			objCollider.name = "SurfaceCollider";
@@ -611,7 +621,7 @@ public class WinMRInteface : MonoBehaviour, ARPlatformInterface
 			surfaceCollider.surfaceParent = objCollider;
 
 			surfaceCollider.lodType = SpatialMappingBase.LODType.Low;
-			surfaceCollider.layer = surfaceColliderLayer;
+			//surfaceCollider.layer = surfaceColliderLayer;
 		}
 
 		// starts co-routine to check rendered surfaces

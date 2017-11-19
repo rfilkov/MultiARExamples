@@ -22,6 +22,16 @@ public class MultiARManager : MonoBehaviour
 	[Tooltip("Whether the world raycasts may hit tracked surfaces only, or points from the cloud in general.")]
 	public bool hitTrackedSurfacesOnly = true;
 
+	public enum SurfaceRenderEnum : int { None, Occlusion, Visualization };
+	[Tooltip("Whether to create scene surfaces to overlay the ar-detected surfaces.")]
+	public SurfaceRenderEnum useOverlaySurface = SurfaceRenderEnum.Visualization;
+
+	[Tooltip("Material used by overlay surfaces. If left empty, the default surface material will be used.")]
+	public Material overlaySurfaceMaterial;
+
+	[Tooltip("Whether the overlay surfaces should have colliders.")]
+	public bool overlaySurfaceColliders = true;
+
 	public enum ShowCursorEnum : int { Never, OnSurfacesOnly, OnSceneObjects, Always };
 	[Tooltip("How the cursor should be visualized.")]
 	public ShowCursorEnum showCursor = ShowCursorEnum.Always;
