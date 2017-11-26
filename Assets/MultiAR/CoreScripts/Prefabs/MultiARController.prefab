@@ -262,7 +262,9 @@ MonoBehaviour:
   displayTrackedSurfaces: 1
   hitTrackedSurfacesOnly: 1
   useOverlaySurface: 2
-  overlaySurfaceMaterial: {fileID: 2100000, guid: db609c97cfc8f33498a041f25909d840,
+  surfaceVisualizationMaterial: {fileID: 2100000, guid: db609c97cfc8f33498a041f25909d840,
+    type: 2}
+  surfaceOcclusionMaterial: {fileID: 2100000, guid: 859f17bceb12dab4caae4ba154d5cc87,
     type: 2}
   overlaySurfaceColliders: 1
   showCursor: 3

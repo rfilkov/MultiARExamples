@@ -92,6 +92,10 @@ public class MultiARInterop
 	/// </summary>
 	public const float MAX_RAYCAST_DIST = 20f;
 
+	// the index of the "by default" spatial surface layer
+	public const int SPATIAL_SURFACE_LAYER = 31;
+
+
 	/// <summary>
 	/// Gets the main camera in the scene
 	/// </summary>
@@ -147,5 +151,83 @@ public class MultiARInterop
 		cursorTrans.rotation = Quaternion.Lerp(cursorTrans.rotation, targetRotation, smoothFactor * Time.deltaTime);
 	}
 
+
+	/// <summary>
+	/// Returns the screen image as 2d-texture, or null in case of error
+	/// </summary>
+	/// <returns>The photo JPEG.</returns>
+	/// <param name="mainCamera">Main camera.</param>
+	public static Texture2D MakeScreenShot(Camera mainCamera)
+	{
+		if (mainCamera == null)
+			return null;
+		
+		int resWidth = Screen.width;
+		int resHeight = Screen.height;
+
+		RenderTexture rt = new RenderTexture(resWidth, resHeight, 24);
+
+		// render the main camera image
+		if (mainCamera && mainCamera.enabled) 
+		{
+			mainCamera.targetTexture = rt;
+			mainCamera.Render();
+			mainCamera.targetTexture = null;
+		}
+
+		// get the screenshot
+		RenderTexture prevActiveTex = RenderTexture.active;
+		RenderTexture.active = rt;
+
+		Texture2D screenShot = new Texture2D(resWidth, resHeight, TextureFormat.RGB24, false);
+		screenShot.ReadPixels(new Rect(0, 0, resWidth, resHeight), 0, 0);
+
+		// clean-up
+		RenderTexture.active = prevActiveTex;
+		GameObject.Destroy(rt);
+
+		// to encode the image as jpeg, use the following code
+//		byte[] btScreenShot = screenShot.EncodeToJPG();
+//		GameObject.Destroy(screenShot);
+
+		return screenShot;
+	}
+
+
+	/// <summary>
+	/// Gets the mesh indices.
+	/// </summary>
+	/// <returns>The mesh indices.</returns>
+	/// <param name="vertexCount">Vertex count.</param>
+	public static List<int> GetMeshIndices(int vertexCount)
+	{
+		List<int> meshIndices = new List<int>();
+
+		for (int i = 1; i < (vertexCount - 1); i++)
+		{
+			meshIndices.Add(0);
+			meshIndices.Add(i);
+			meshIndices.Add(i + 1);
+		}
+
+		return meshIndices;
+	}
+
+
+	/// <summary>
+	/// Gets the predefined surface layer.
+	/// </summary>
+	/// <returns>The surface layer.</returns>
+	public static int GetSurfaceLayer()
+	{
+		int surfaceLayer = LayerMask.NameToLayer("SpatialSurface");
+
+		if (surfaceLayer < 0) 
+		{
+			surfaceLayer = SPATIAL_SURFACE_LAYER;
+		}
+
+		return surfaceLayer;
+	}
 
 }

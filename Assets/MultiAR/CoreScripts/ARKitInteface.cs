@@ -43,6 +43,10 @@ public class ARKitInteface : MonoBehaviour, ARPlatformInterface
 	// plane anchors
 	private Dictionary<string, ARPlaneAnchorGameObject> planeAnchorDict = new Dictionary<string, ARPlaneAnchorGameObject>();
 
+	// the overlay surfaces
+	private GameObject surfaceRendererRoot = null;
+	private Dictionary<string, OverlaySurfaceUpdater> dictOverlaySurfaces = new Dictionary<string, OverlaySurfaceUpdater>();
+
 	// input action and screen position
 	private MultiARInterop.InputAction inputAction = MultiARInterop.InputAction.None;
 	private Vector2 inputPos = Vector2.zero;
@@ -212,25 +216,15 @@ public class ARKitInteface : MonoBehaviour, ARPlatformInterface
 			{
 				Vector3[] meshVertices = new Vector3[4];
 
-				Matrix4x4 planeMatrix = new Matrix4x4();
-				planeMatrix.SetTRS(trackedPlanes[i].position, trackedPlanes[i].rotation, Vector3.one);
-
-				Vector3 planeExtents = trackedPlanes[i].bounds * 0.5f;
-				meshVertices[0] = planeMatrix.MultiplyPoint3x4(new Vector3(-planeExtents.x, planeExtents.y, planeExtents.z));
-				meshVertices[1] = planeMatrix.MultiplyPoint3x4(new Vector3(planeExtents.x, planeExtents.y, planeExtents.z));
-				meshVertices[2] = planeMatrix.MultiplyPoint3x4(new Vector3(planeExtents.x, planeExtents.y, -planeExtents.z));
-				meshVertices[3] = planeMatrix.MultiplyPoint3x4(new Vector3(-planeExtents.x, planeExtents.y, -planeExtents.z));
+				Vector3 planeHalf = trackedPlanes[i].bounds * 0.5f;
+				meshVertices[0] = new Vector3(-planeHalf.x, planeHalf.y, planeHalf.z);
+				meshVertices[1] = new Vector3(planeHalf.x, planeHalf.y, planeHalf.z);
+				meshVertices[2] = new Vector3(planeHalf.x, planeHalf.y, -planeHalf.z);
+				meshVertices[3] = new Vector3(-planeHalf.x, planeHalf.y, -planeHalf.z);
 				trackedPlanes[i].points = meshVertices;
 
-				List<int> meshIndices = new List<int>();
-				int verticeLength = meshVertices.Length;
-
-				for (int v = 1; v < verticeLength - 1; v++)
-				{
-					meshIndices.Add(0);
-					meshIndices.Add(v);
-					meshIndices.Add(v + 1);
-				}
+				// get mesh indices
+				List<int> meshIndices = MultiARInterop.GetMeshIndices(meshVertices.Length);
 
 				trackedPlanes[i].triangles = meshIndices.ToArray();
 			}
@@ -536,6 +530,7 @@ public class ARKitInteface : MonoBehaviour, ARPlatformInterface
 		// reset camera position & rotation
 		currentCamera.transform.position = Vector3.zero;
 		currentCamera.transform.rotation = Quaternion.identity;
+		DontDestroyOnLoad(currentCamera.gameObject);
 
 		// set camera parameters
 		currentCamera.clearFlags = CameraClearFlags.Depth;
@@ -571,6 +566,7 @@ public class ARKitInteface : MonoBehaviour, ARPlatformInterface
 		// reset light position & rotation
 		currentLight.transform.position = Vector3.zero;
 		currentLight.transform.rotation = Quaternion.Euler(40f, 40f, 0f);
+		DontDestroyOnLoad(currentLight.gameObject);
 
 		// set light parameters
 		//currentLight.lightmapBakeType = LightmapBakeType.Mixed;
@@ -597,6 +593,11 @@ public class ARKitInteface : MonoBehaviour, ARPlatformInterface
 			arData.pointCloudTimestamp = 0.0;
 		}
 
+		// create surface renderer
+		surfaceRendererRoot = new GameObject();
+		surfaceRendererRoot.name = "SurfaceRenderer";
+		DontDestroyOnLoad(surfaceRendererRoot);
+
 		// check for tracked plane display
 		if(arManager.displayTrackedSurfaces && trackedPlanePrefab)
 		{
@@ -618,7 +619,7 @@ public class ARKitInteface : MonoBehaviour, ARPlatformInterface
 		isInitialized = true;
 	}
 
-	public void OnDestroy()
+	void OnDestroy()
 	{
 		// remove event handlers
 		if(isInitialized)
@@ -652,7 +653,7 @@ public class ARKitInteface : MonoBehaviour, ARPlatformInterface
 	}
 
 	// invoked by FrameUpdated-event
-	public void ARFrameUpdated(UnityARCamera camera)
+	private void ARFrameUpdated(UnityARCamera camera)
 	{
 		// current timestamp
 		lastFrameTimestamp = GetCurrentTimestamp();
@@ -674,14 +675,14 @@ public class ARKitInteface : MonoBehaviour, ARPlatformInterface
 	}
 
 	// invoked by TrackingChanged-event
-	public void ARSessionTrackingChanged(UnityARCamera camera)
+	private void ARSessionTrackingChanged(UnityARCamera camera)
 	{
 		cameraTrackingState = camera.trackingState;
 		cameraTrackingReason = camera.trackingReason;
 	}
 
 	// invoked by AnchorAdded-event
-	public void PlaneAnchorAdded(ARPlaneAnchor arPlaneAnchor)
+	private void PlaneAnchorAdded(ARPlaneAnchor arPlaneAnchor)
 	{
 		GameObject go = null;
 		if(arManager.displayTrackedSurfaces)
@@ -696,10 +697,77 @@ public class ARKitInteface : MonoBehaviour, ARPlatformInterface
 
 		planeAnchorDict.Add(arPlaneAnchor.identifier, arpag);
 		trackedPlanesTimestamp = GetLastFrameTimestamp();
+
+		// create overlay surfaces as needed
+		if(arManager.useOverlaySurface != MultiARManager.SurfaceRenderEnum.None)
+		{
+			// estimate the material
+			Material surfaceMat = arManager.GetSurfaceMaterial();
+			int surfaceLayer = MultiARInterop.GetSurfaceLayer();
+
+			string surfId = arPlaneAnchor.identifier;
+
+			if(!dictOverlaySurfaces.ContainsKey(surfId))
+			{
+				GameObject overlaySurfaceObj = new GameObject();
+				overlaySurfaceObj.name = "surface-" + surfId;
+
+				overlaySurfaceObj.layer = surfaceLayer;
+				overlaySurfaceObj.transform.SetParent(surfaceRendererRoot.transform);
+
+				GameObject overlayCubeObj = GameObject.CreatePrimitive(PrimitiveType.Cube);
+				overlayCubeObj.name = "surface-cube-" + surfId;
+				overlayCubeObj.transform.localScale = new Vector3(0.2f, 0.2f, 0.2f);
+				overlayCubeObj.transform.SetParent(overlaySurfaceObj.transform);
+
+				OverlaySurfaceUpdater overlaySurface = overlaySurfaceObj.AddComponent<OverlaySurfaceUpdater>();
+				overlaySurface.SetSurfaceMaterial(surfaceMat);
+				overlaySurface.SetSurfaceCollider(arManager.overlaySurfaceColliders);
+
+				dictOverlaySurfaces.Add(surfId, overlaySurface);
+			}
+
+			// update the surface mesh
+			UpdateOverlaySurface(dictOverlaySurfaces[surfId], arPlaneAnchor);
+		}
+
+	}
+
+	// Updates overlay surface mesh. Returns true on success, false if the surface needs to be deleted
+	private bool UpdateOverlaySurface(OverlaySurfaceUpdater overlaySurface, ARPlaneAnchor arPlaneAnchor)
+	{
+		// check for validity
+		if (overlaySurface == null)
+		{
+			return false;
+		}
+
+		// estimate mesh vertices & indices
+		overlaySurface.SetEnabled(true);
+
+		List<Vector3> meshVertices = new List<Vector3>();
+
+		// surface position & rotation
+		Vector3 surfacePos = UnityARMatrixOps.GetPosition(arPlaneAnchor.transform);  // Vector3.zero; // 
+		Quaternion surfaceRot = UnityARMatrixOps.GetRotation(arPlaneAnchor.transform); // Quaternion.identity; // 
+
+		Vector3 planeHalf = arPlaneAnchor.extent * 0.5f;
+		meshVertices.Add(new Vector3(-planeHalf.x, planeHalf.y, planeHalf.z));
+		meshVertices.Add(new Vector3(planeHalf.x, planeHalf.y, planeHalf.z));
+		meshVertices.Add(new Vector3(planeHalf.x, planeHalf.y, -planeHalf.z));
+		meshVertices.Add(new Vector3(-planeHalf.x, planeHalf.y, -planeHalf.z));
+
+		// estimate mesh indices
+		List<int> meshIndices = MultiARInterop.GetMeshIndices(meshVertices.Count);
+
+		// update the surface mesh
+		overlaySurface.UpdateSurfaceMesh(surfacePos, surfaceRot, meshVertices, meshIndices);
+
+		return true;
 	}
 
 	// invoked by AnchorUpdated-event
-	public void PlaneAnchorUpdated(ARPlaneAnchor arPlaneAnchor)
+	private void PlaneAnchorUpdated(ARPlaneAnchor arPlaneAnchor)
 	{
 		if (planeAnchorDict.ContainsKey(arPlaneAnchor.identifier)) 
 		{
@@ -717,7 +785,7 @@ public class ARKitInteface : MonoBehaviour, ARPlatformInterface
 	}
 
 	// invoked by AnchorRemoved-event
-	public void PlaneAnchorRemoved(ARPlaneAnchor arPlaneAnchor)
+	private void PlaneAnchorRemoved(ARPlaneAnchor arPlaneAnchor)
 	{
 		if (planeAnchorDict.ContainsKey(arPlaneAnchor.identifier)) 
 		{
@@ -734,13 +802,13 @@ public class ARKitInteface : MonoBehaviour, ARPlatformInterface
 	}
 
 	// invoked by UserAnchorAdded-event
-	public void UserAnchorAdded(ARUserAnchor anchor)
+	private void UserAnchorAdded(ARUserAnchor anchor)
 	{
 		Debug.Log("Anchor added: " + anchor.identifier);
 	}
 
 	// invoked by UserAnchorRemoved-event
-	public void UserAnchorRemoved(ARUserAnchor anchor)
+	private void UserAnchorRemoved(ARUserAnchor anchor)
 	{
 		if(!arManager)
 			return;

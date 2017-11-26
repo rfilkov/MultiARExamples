@@ -595,7 +595,8 @@ public class WinMRInteface : MonoBehaviour, ARPlatformInterface
 			
 			if(arManager.overlaySurfaceMaterial)
 			{
-				surfaceRenderer.visualMaterial = arManager.overlaySurfaceMaterial;
+				surfaceRenderer.visualMaterial = arManager.surfaceVisualizationMaterial;
+				surfaceRenderer.occlusionMaterial = arManager.surfaceOcclusionMaterial;
 			}
 		}
 
@@ -620,7 +621,7 @@ public class WinMRInteface : MonoBehaviour, ARPlatformInterface
 		isInitialized = true;
 	}
 
-	public void OnDestroy()
+	void OnDestroy()
 	{
 		// remove event handlers
 		if(isInitialized)

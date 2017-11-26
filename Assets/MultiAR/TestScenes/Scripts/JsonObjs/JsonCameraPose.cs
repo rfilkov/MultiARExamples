@@ -9,6 +9,8 @@ public class JsonCameraPose
 
 	public Vector3 location;
 
+	public long latm, lonm;
+
 	public Vector3 accuracy;
 
 	public Vector3 attitude;
@@ -25,7 +27,7 @@ public class JsonCameraPose
 
 	public Vector3 camRotation;
 
-	public JsonTrackedSurfaces surfacesOrig;
+	//public JsonTrackedSurfaces surfacesOrig;
 
 	public JsonTrackedSurfaces surfaces;
 

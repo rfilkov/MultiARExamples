@@ -26,8 +26,11 @@ public class MultiARManager : MonoBehaviour
 	[Tooltip("Whether to create scene surfaces to overlay the ar-detected surfaces.")]
 	public SurfaceRenderEnum useOverlaySurface = SurfaceRenderEnum.Visualization;
 
-	[Tooltip("Material used by overlay surfaces. If left empty, the default surface material will be used.")]
-	public Material overlaySurfaceMaterial;
+	[Tooltip("Material used to render the overlay surfaces. If left empty, the default surface material will be used.")]
+	public Material surfaceVisualizationMaterial;
+
+	[Tooltip("Material used to render the overlay surfaces. If left empty, the default surface material will be used.")]
+	public Material surfaceOcclusionMaterial;
 
 	[Tooltip("Whether the overlay surfaces should have colliders.")]
 	public bool overlaySurfaceColliders = true;
@@ -566,6 +569,28 @@ public class MultiARManager : MonoBehaviour
 		return string.Empty;
 	}
 
+	/// <summary>
+	/// Gets the specified surface material, or null if there is no material set.
+	/// </summary>
+	/// <returns>The surface material.</returns>
+	public Material GetSurfaceMaterial()
+	{
+		Material surfaceMat = null;
+
+		switch (useOverlaySurface) 
+		{
+			case SurfaceRenderEnum.Visualization:
+				surfaceMat = surfaceVisualizationMaterial;
+				break;
+
+			case SurfaceRenderEnum.Occlusion:
+				surfaceMat = surfaceOcclusionMaterial;
+				break;
+		}
+
+		return surfaceMat;
+	}
+
 
 	// -- // -- // -- // -- // -- // -- // -- // -- // -- // -- //
 
@@ -650,13 +675,13 @@ public class MultiARManager : MonoBehaviour
 			}
 		}
 
-		if(overlaySurfaceMaterial == null && useOverlaySurface != SurfaceRenderEnum.None)
+		if(surfaceVisualizationMaterial == null && useOverlaySurface != SurfaceRenderEnum.None)
 		{
 			// get the default material
 			if(useOverlaySurface == MultiARManager.SurfaceRenderEnum.Occlusion)
-				overlaySurfaceMaterial = (Material)Resources.Load("SpatialMappingOcclusion", typeof(Material));
+				surfaceVisualizationMaterial = (Material)Resources.Load("SpatialMappingOcclusion", typeof(Material));
 			else if(useOverlaySurface == MultiARManager.SurfaceRenderEnum.Visualization)
-				overlaySurfaceMaterial = (Material)Resources.Load("SpatialMappingWireframe", typeof(Material));
+				surfaceVisualizationMaterial = (Material)Resources.Load("SpatialMappingWireframe", typeof(Material));
 		}
 	}
 
@@ -741,7 +766,16 @@ public class MultiARManager : MonoBehaviour
 
 			if (infoText) 
 			{
-				infoText.text += "\ninputPos: " + isFromInputPos + ", hit: " + hit.point + ", obj: " + (hit.psObject != null ? hit.psObject.ToString() : "");
+				string hitObjName = string.Empty;
+				if (hit.psObject != null) 
+				{
+					if (hit.psObject is RaycastHit)
+						hitObjName = ((RaycastHit)hit.psObject).transform.gameObject.name;
+					else
+						hitObjName = hit.psObject.ToString();
+				}
+
+				infoText.text += "\ninputPos: " + isFromInputPos + ", hit: " + hit.point + ", obj: " + hitObjName;
 			}
 
 			if(showCursor == ShowCursorEnum.Always || hit.point != Vector3.zero)

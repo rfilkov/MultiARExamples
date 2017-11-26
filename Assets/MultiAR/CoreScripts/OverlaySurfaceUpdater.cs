@@ -32,10 +32,6 @@ public class OverlaySurfaceUpdater : MonoBehaviour
 			meshRenderer = gameObject.AddComponent<MeshRenderer>();
 		}
 
-		// set the surface layer
-		int surfaceLayer = LayerMask.NameToLayer("SpatialSurface");
-		if(surfaceLayer >= 0)
-			gameObject.layer = surfaceLayer;
 	}
 
 	/// <summary>
@@ -94,8 +90,13 @@ public class OverlaySurfaceUpdater : MonoBehaviour
 	/// Updates the surface mesh.
 	/// </summary>
 	/// <returns><c>true</c>, if surface was updated, <c>false</c> otherwise.</returns>
-	public bool UpdateSurfaceMesh(List<Vector3> meshVertices, List<int> meshIndices)
+	public bool UpdateSurfaceMesh(Vector3 surfacePos, Quaternion surfaceRot, List<Vector3> meshVertices, List<int> meshIndices)
 	{
+		transform.position = surfacePos;
+		transform.rotation = surfaceRot;
+		//transform.rotation = Quaternion.identity;
+
+		// update mesh
 		surfaceMesh.Clear();
 		if(meshVertices != null)
 		{
@@ -117,6 +118,13 @@ public class OverlaySurfaceUpdater : MonoBehaviour
 			}
 
 			surfaceMesh.SetIndices(indices, MeshTopology.Points, 0, false);
+		}
+
+		// update mesh collider, if any
+		if (meshCollider) 
+		{
+			meshCollider.sharedMesh = null;
+			meshCollider.sharedMesh = surfaceMesh;
 		}
 
 		return true;

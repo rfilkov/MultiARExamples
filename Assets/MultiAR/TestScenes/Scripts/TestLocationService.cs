@@ -23,17 +23,25 @@ public class TestLocationService : MonoBehaviour
 
 	public GameObject planeTransformPrefab;
 
+	public Material surfaceMaterial;
+
 
 	private bool locationEnabled = false;
 	private bool gyroEnabled = false;
 	private bool compassEnabled = false;
+
+	private float locInfoStayTime = 0f;
 
 	private LocationInfo lastLoc;
 	private Gyroscope gyro;
 	private Quaternion initialGyroRotation = Quaternion.identity;
 
 	private Transform cameraTransform;
+
 	private float startHeading = 0f;
+	private float startHeadingComp = 0f;
+	private float startHeadingCam = 0f;
+	private float startHeadingGyro = 0f;
 	private bool startHeadingSet = false;
 
 	private List<Transform> alPlaneTrans = new List<Transform>();
@@ -90,12 +98,17 @@ public class TestLocationService : MonoBehaviour
 	// Update is called once per frame
 	void Update () 
 	{
+		if (locInfoStayTime > 0f) 
+		{
+			locInfoStayTime -= Time.deltaTime;
+		}
+
 		// report location
 		if (locationEnabled && locInfoText) 
 		{
 			lastLoc = Input.location.lastData;
 
-			if (locInfoText) 
+			if (locInfoText && locInfoStayTime <= 0f) 
 			{
 				string sMessage = "LocStatus: " + Input.location.status.ToString() + ", Enabled: " + Input.location.isEnabledByUser;
 				sMessage += "\nLat: " + lastLoc.latitude + ", Long: " + lastLoc.longitude + ", Alt: " + lastLoc.altitude;
@@ -146,9 +159,10 @@ public class TestLocationService : MonoBehaviour
 				string sMessage = "CompEnabled: " + Input.compass.enabled;
 				sMessage += "\nHead: " + FormatHeading(Input.compass.magneticHeading) + 
 					"\nTrue: " + FormatHeading(Input.compass.trueHeading) + 
-					"\nStart: " + FormatHeading((startHeading));
+					"\nStart: " + FormatHeading((startHeading)) + ", Comp: " + FormatHeading((startHeadingComp)) + ", Cam: " + FormatHeading((startHeadingCam)) + 
+					", Gyro: " + FormatHeading((startHeadingGyro));
 				
-				float gyroComp = gyroTransform ? (gyroTransform.rotation.eulerAngles.y - 90f) : 0f;
+				float gyroComp = gyroTransform ? (gyroTransform.rotation.eulerAngles.y + 90f) : 0f;
 				sMessage += "\nGyro: " + gyroComp + ", Time: " + Input.compass.timestamp;
 
 				compassInfoText.text = sMessage;
@@ -183,10 +197,21 @@ public class TestLocationService : MonoBehaviour
 		}
 
 		// set start heading, when one is available
-		if (!startHeadingSet && Input.compass.trueHeading != 0f) 
+		if (!startHeadingSet && Input.compass.trueHeading != 0f && cameraTransform != null) 
 		{
 			startHeadingSet = true;
-			startHeading = Input.compass.trueHeading;
+			startHeadingComp = Input.compass.trueHeading;
+			startHeadingCam = cameraTransform.rotation.eulerAngles.y;
+
+			startHeadingGyro = gyroTransform ? (gyroTransform.rotation.eulerAngles.y + 90f) : 0f;
+			if (startHeadingGyro >= 360f)
+				startHeadingGyro -= 360f;
+
+			startHeading = startHeadingComp + startHeadingCam;
+			if (startHeading < 0f)
+				startHeading += 360f;
+			if (startHeading >= 360f)
+				startHeading -= 360f;
 		}
 
 		// show tracked plane transforms 
@@ -200,7 +225,7 @@ public class TestLocationService : MonoBehaviour
 //			camToWorld.SetTRS(Vector3.zero, camToWorldRot, Vector3.one);
 
 			// get tracked surfaces
-			MultiARInterop.TrackedSurface[] trackedSurfaces = loadedSurfaces == null ? marManager.GetTrackedSurfaces(true) : loadedSurfaces;
+			MultiARInterop.TrackedSurface[] trackedSurfaces = loadedSurfaces != null ?  loadedSurfaces : marManager.GetTrackedSurfaces(true);
 
 //			gyroEnabled = false;
 //			if (gyroInfoText) 
@@ -298,11 +323,19 @@ public class TestLocationService : MonoBehaviour
 			string sFilePath = GetPersitentDataPath("CameraPose.json");
 			bool bSaved = SaveCameraPose(sFilePath);
 
+			string sJpegPath = GetPersitentDataPath("CameraPose.jpg");
+			SaveScreenShot(sJpegPath);
+
 			// reuse compass-info to show path
 			if (bSaved && locInfoText) 
 			{
-				locInfoText.text = "Saved: " + sFilePath;
-				locInfoText = null;
+				Vector3 latLonM = GeoTools.LatLong2Meters(lastLoc.latitude, lastLoc.longitude, lastLoc.altitude);
+				long latm = (long)((double)latLonM.x * 1000.0);
+				long lonm = (long)((double)latLonM.y * 1000.0);
+
+				locInfoText.text = "Saved: " + sFilePath +
+					"\nLatm: " + latm + ", Lonm: " + lonm + ", Lat: " + lastLoc.latitude + ", Lon: " + lastLoc.longitude;
+				locInfoStayTime = 5f;
 			}
 		} 
 		catch (System.Exception ex) 
@@ -310,7 +343,7 @@ public class TestLocationService : MonoBehaviour
 			if (locInfoText) 
 			{
 				locInfoText.text = ex.Message + "\n" + ex.StackTrace;
-				locInfoText = null;
+				locInfoStayTime = 10f;
 			}
 		}
 	}
@@ -319,7 +352,13 @@ public class TestLocationService : MonoBehaviour
 	public void LoadButtonClicked()
 	{
 		string sFilePath = GetPersitentDataPath("CameraPose.json");
-		LoadCameraPose(sFilePath);
+		bool bLoaded = LoadCameraPose(sFilePath);
+
+		if (bLoaded && locInfoText) 
+		{
+			locInfoText.text = "Loaded: " + sFilePath;
+			locInfoStayTime = 5f;
+		}
 	}
 
 
@@ -354,6 +393,29 @@ public class TestLocationService : MonoBehaviour
 	}
 
 
+	// saves the current screen shot
+	public bool SaveScreenShot(string saveFilePath)
+	{
+		if (saveFilePath == string.Empty)
+			return false;
+
+		MultiARManager marManager = MultiARManager.Instance;
+		Texture2D texScreenshot = MultiARInterop.MakeScreenShot(marManager != null ? marManager.GetMainCamera() : null);
+
+		if (texScreenshot) 
+		{
+			byte[] btScreenShot = texScreenshot.EncodeToJPG();
+			GameObject.Destroy(texScreenshot);
+
+			File.WriteAllBytes(saveFilePath, btScreenShot);
+
+			return true;
+		}
+
+		return false;
+	}
+
+
 	// saves camera pose, detected surfaces and point cloud
 	public bool SaveCameraPose(string dataFilePath)
 	{
@@ -367,6 +429,10 @@ public class TestLocationService : MonoBehaviour
 		{
 			data.location = new Vector3(lastLoc.latitude, lastLoc.longitude, lastLoc.altitude);
 			data.accuracy = new Vector3(lastLoc.horizontalAccuracy, lastLoc.verticalAccuracy, 0f);
+
+			Vector3 latLonM = GeoTools.LatLong2Meters(lastLoc.latitude, lastLoc.longitude, lastLoc.altitude);
+			data.latm = (long)((double)latLonM.x * 1000.0);
+			data.lonm = (long)((double)latLonM.y * 1000.0);
 		}
 
 		if (gyroEnabled && gyro != null) 
@@ -381,18 +447,21 @@ public class TestLocationService : MonoBehaviour
 			data.trueHeading = Input.compass.trueHeading;
 		}
 
-		data.startHeading = startHeading;
+		data.startHeading = startHeadingGyro; // startHeading;
 
 		if (cameraTransform) 
 		{
 			data.camPosition = cameraTransform.position;
+
 			data.camRotation = cameraTransform.rotation.eulerAngles;
+			data.camRotation.y += data.startHeading;
+			data.camRotation = Quaternion.Euler(data.camRotation).eulerAngles;
 		}
 
-		// construct scene to world matrix
-		Vector3 sceneToWorldRot = new Vector3(0f, -startHeading, 0f);
-		Matrix4x4 matSceneToWorld = Matrix4x4.identity;
-		matSceneToWorld.SetTRS(Vector3.zero, Quaternion.Euler(sceneToWorldRot), Vector3.one);
+//		// construct scene to world matrix
+//		Vector3 sceneToWorldRot = new Vector3(0f, -startHeading, 0f);
+//		Matrix4x4 matSceneToWorld = Matrix4x4.identity;
+//		matSceneToWorld.SetTRS(Vector3.zero, Quaternion.Euler(sceneToWorldRot), Vector3.one);
 
 //		// original surfaces
 //		data.surfacesOrig = new JsonTrackedSurfaces();
@@ -406,7 +475,9 @@ public class TestLocationService : MonoBehaviour
 		data.surfaces.surfaceCount = marManager.GetTrackedSurfacesCount();
 		data.surfaces.surfaces = new JsonSurface[data.surfaces.surfaceCount];
 
+		Quaternion compStartRot = Quaternion.Euler(0f, data.startHeading, 0f);
 		MultiARInterop.TrackedSurface[] trackedSurfaces = marManager.GetTrackedSurfaces(true);
+
 		for (int i = 0; i < data.surfaces.surfaceCount; i++) 
 		{
 //			// original surfaces
@@ -421,21 +492,15 @@ public class TestLocationService : MonoBehaviour
 			// transformed surfaces
 			data.surfaces.surfaces[i] = new JsonSurface();
 
-			data.surfaces.surfaces[i].position = matSceneToWorld.MultiplyPoint3x4(trackedSurfaces[i].position);
-			data.surfaces.surfaces[i].rotation = trackedSurfaces[i].rotation.eulerAngles + sceneToWorldRot;
+			Vector3 surfacePos = trackedSurfaces[i].position;
+			data.surfaces.surfaces[i].position = compStartRot * surfacePos;
+
+			Vector3 surfaceRot = trackedSurfaces[i].rotation.eulerAngles + compStartRot.eulerAngles;
+			data.surfaces.surfaces[i].rotation = Quaternion.Euler(surfaceRot).eulerAngles;
+
 			data.surfaces.surfaces[i].bounds = trackedSurfaces[i].bounds;
 			data.surfaces.surfaces[i].points = trackedSurfaces[i].points;
 			data.surfaces.surfaces[i].triangles = trackedSurfaces[i].triangles;
-
-//			if (trackedSurfaces[i].points != null) 
-//			{
-//				data.surfaces.surfaces[i].points = new Vector3[trackedSurfaces[i].points.Length];
-//
-//				for (int p = 0; p < trackedSurfaces[i].points.Length; p++) 
-//				{
-//					data.surfaces.surfaces[i].points[p] = matSceneToWorld.MultiplyPoint3x4(trackedSurfaces[i].points[p]);
-//				}
-//			}
 		}
 
 //		// point cloud
@@ -450,7 +515,7 @@ public class TestLocationService : MonoBehaviour
 			string sJsonText = JsonUtility.ToJson(data, true);
 			File.WriteAllText(dataFilePath, sJsonText);
 
-			Debug.Log("CameraPose (comp: " + (int)sceneToWorldRot.y + ") saved to: " + dataFilePath);
+			Debug.Log("CameraPose (comp: " + (int)data.startHeading + ") saved to: " + dataFilePath);
 
 			return true;
 		} 
@@ -465,10 +530,10 @@ public class TestLocationService : MonoBehaviour
 
 
 	// loads camera pose, detected surfaces and point cloud
-	public void LoadCameraPose(string dataFilePath)
+	public bool LoadCameraPose(string dataFilePath)
 	{
 		if(!File.Exists(dataFilePath))
-			return;
+			return false;
 
 		// load json
 		string sJsonText = File.ReadAllText(dataFilePath);
@@ -476,47 +541,92 @@ public class TestLocationService : MonoBehaviour
 
 		if (data != null) 
 		{
-			MultiARManager marManager = MultiARManager.Instance;
-			Camera mainCamera = marManager ? marManager.GetMainCamera() : null;
-
-			if (mainCamera) 
-			{
-				mainCamera.transform.position = data.camPosition;
-				mainCamera.transform.rotation = Quaternion.Euler(data.camRotation);
-			}
+//			MultiARManager marManager = MultiARManager.Instance;
+//			Camera mainCamera = marManager ? marManager.GetMainCamera() : null;
+//
+//			if (mainCamera) 
+//			{
+//				mainCamera.transform.position = data.camPosition;
+//				mainCamera.transform.rotation = Quaternion.Euler(data.camRotation);
+//			}
 
 			// construct world to scene matrix
-			Vector3 worldToSceneRot = new Vector3(0f, startHeading, 0f);
-			Matrix4x4 matWorldToScene = Matrix4x4.identity;
-			matWorldToScene.SetTRS(Vector3.zero, Quaternion.Euler(worldToSceneRot), Vector3.one);
+//			Vector3 worldToSceneRot = new Vector3(0f, data.startHeading, 0f);
+//			Matrix4x4 matWorldToScene = Matrix4x4.identity;
+//			matWorldToScene.SetTRS(Vector3.zero, Quaternion.Euler(worldToSceneRot), Vector3.one);
+
+			//Quaternion compStartRot = Quaternion.Euler(0f, -startHeading, 0f);
+			Quaternion compStartRot = Quaternion.Euler(0f, -startHeadingGyro, 0f);
 
 			if (data.surfaces != null) 
 			{
-				loadedSurfaces = new MultiARInterop.TrackedSurface[data.surfaces.surfaceCount];
+//				loadedSurfaces = new MultiARInterop.TrackedSurface[data.surfaces.surfaceCount];
+//
+//				for (int i = 0; i < data.surfaces.surfaceCount; i++) 
+//				{
+//					loadedSurfaces[i] = new MultiARInterop.TrackedSurface();
+//
+//					Vector3 surfacePos = data.surfaces.surfaces[i].position;
+//					loadedSurfaces[i].position = compStartRot * surfacePos;
+//
+//					Vector3 surfaceRot = data.surfaces.surfaces[i].rotation + compStartRot.eulerAngles;
+//					loadedSurfaces[i].rotation = Quaternion.Euler(surfaceRot);
+//
+//					loadedSurfaces[i].bounds = data.surfaces.surfaces[i].bounds;
+//					loadedSurfaces[i].points = data.surfaces.surfaces[i].points;
+//					loadedSurfaces[i].triangles = data.surfaces.surfaces[i].triangles;
+//				}
+
+				// destroy current overlay surfaces
+				DestroyOverlaySurfaces();
 
 				for (int i = 0; i < data.surfaces.surfaceCount; i++) 
 				{
-					loadedSurfaces[i] = new MultiARInterop.TrackedSurface();
+					GameObject overlaySurfaceObj = new GameObject();
+					overlaySurfaceObj.name = "surface-" + i;
 
-					loadedSurfaces[i].position = matWorldToScene.MultiplyPoint3x4(data.surfaces.surfaces[i].position);
-					loadedSurfaces[i].rotation = Quaternion.Euler(data.surfaces.surfaces[i].rotation + worldToSceneRot);
-					loadedSurfaces[i].bounds = data.surfaces.surfaces[i].bounds;
-					loadedSurfaces[i].points = data.surfaces.surfaces[i].points;
-					loadedSurfaces[i].triangles = data.surfaces.surfaces[i].triangles;
+					GameObject overlayCubeObj = GameObject.CreatePrimitive(PrimitiveType.Cube);
+					overlayCubeObj.name = "surface-cube-" + i;
+					overlayCubeObj.transform.localScale = new Vector3(0.1f, 0.2f, 0.3f);
+					overlayCubeObj.transform.SetParent(overlaySurfaceObj.transform);
 
-//					if (data.surfaces.surfaces[i].points != null) 
-//					{
-//						loadedSurfaces[i].points = new Vector3[data.surfaces.surfaces[i].points.Length];
-//
-//						for (int p = 0; i < data.surfaces.surfaces[i].points.Length; p++) 
-//						{
-//							loadedSurfaces[i].points[p] = matWorldToScene.MultiplyPoint3x4(data.surfaces.surfaces[i].points[p]);
-//						}
-//					}
+					OverlaySurfaceUpdater overlaySurface = overlaySurfaceObj.AddComponent<OverlaySurfaceUpdater>();
+					overlaySurface.SetSurfaceMaterial(surfaceMaterial);
+					overlaySurface.SetSurfaceCollider(true);
+
+					Vector3 surfacePos = data.surfaces.surfaces[i].position;
+					Quaternion surfaceRot = Quaternion.Euler(data.surfaces.surfaces[i].rotation);
+
+					surfacePos = compStartRot * surfacePos;
+					surfaceRot = Quaternion.Euler(surfaceRot.eulerAngles + compStartRot.eulerAngles);
+
+					List<Vector3> meshVertices = new List<Vector3>(data.surfaces.surfaces[i].points);
+					List<int> meshIndices = new List<int>(data.surfaces.surfaces[i].triangles);
+
+					// update the surface mesh
+					overlaySurface.UpdateSurfaceMesh(surfacePos, surfaceRot, meshVertices, meshIndices);
 				}
 			}
 
-			Debug.Log("CameraPose (comp: " + (int)worldToSceneRot.y + ") loaded from: " + dataFilePath);
+			Debug.Log("CameraPose (comp: " + (int)data.startHeading + ") loaded from: " + dataFilePath);
+
+			return true;
+		}
+
+		return false;
+	}
+
+	// destroys the existing overlay surfaces
+	private void DestroyOverlaySurfaces()
+	{
+		OverlaySurfaceUpdater[] overlaySurfaces = GameObject.FindObjectsOfType<OverlaySurfaceUpdater>();
+
+		if (overlaySurfaces != null && overlaySurfaces.Length > 0) 
+		{
+			foreach (OverlaySurfaceUpdater ovlSurface in overlaySurfaces) 
+			{
+				Destroy(ovlSurface.gameObject);
+			}
 		}
 	}
 

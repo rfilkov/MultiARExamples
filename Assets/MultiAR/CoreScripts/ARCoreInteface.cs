@@ -47,6 +47,7 @@ public class ARCoreInteface : MonoBehaviour, ARPlatformInterface
 	private List<TrackedPlane> allTrackedPlanes = new List<TrackedPlane>();
 
 	// the overlay surfaces
+	private GameObject surfaceRendererRoot = null;
 	private Dictionary<int, OverlaySurfaceUpdater> dictOverlaySurfaces = new Dictionary<int, OverlaySurfaceUpdater>();
 	private List<int> alSurfacesToDelete = new List<int>();
 
@@ -194,30 +195,37 @@ public class ARCoreInteface : MonoBehaviour, ARPlatformInterface
 
 		for(int i = 0; i < allTrackedPlanes.Count; i++)
 		{
-			TrackedPlane plane = allTrackedPlanes[i];
+			TrackedPlane surface = allTrackedPlanes[i];
 			trackedPlanes[i] = new MultiARInterop.TrackedSurface();
 
-			trackedPlanes[i].position = plane.Position;
-			trackedPlanes[i].rotation = plane.Rotation;
+			trackedPlanes[i].position = surface.Position;
+			trackedPlanes[i].rotation = surface.Rotation;
 
 			if(bGetPoints)
 			{
-				trackedPlanes[i].bounds = new Vector3(plane.Bounds.x, 0f, plane.Bounds.y);
+				trackedPlanes[i].bounds = new Vector3(surface.Bounds.x, 0f, surface.Bounds.y);
 
 				List<Vector3> alPoints = new List<Vector3>();
-				plane.GetBoundaryPolygon(ref alPoints);
-				trackedPlanes[i].points = alPoints.ToArray();
+				surface.GetBoundaryPolygon(ref alPoints);
 
-				List<int> meshIndices = new List<int>();
-				int verticeLength = alPoints.Count;
+				int vertexCount = alPoints.Count;
+				Quaternion invRot = Quaternion.Inverse(surface.Rotation);
 
-				for (int v = 1; v < verticeLength - 1; v++)
+				for (int v = vertexCount - 1; v >= 0; v--) 
 				{
-					meshIndices.Add(0);
-					meshIndices.Add(v);
-					meshIndices.Add(v + 1);
+					alPoints[v] -= surface.Position;
+					alPoints[v] = invRot * alPoints[v];
+
+					if (Mathf.Abs(alPoints[v].y) > 0.1f) 
+					{
+						alPoints.RemoveAt(v);
+					}
 				}
 
+				// get mesh indices
+				List<int> meshIndices = MultiARInterop.GetMeshIndices(vertexCount);
+
+				trackedPlanes[i].points = alPoints.ToArray();
 				trackedPlanes[i].triangles = meshIndices.ToArray();
 			}
 		}
@@ -520,6 +528,7 @@ public class ARCoreInteface : MonoBehaviour, ARPlatformInterface
 		// create ARCore-Device in the scene
 		GameObject arCoreDeviceObj = Instantiate(arCoreDevicePrefab, Vector3.zero, Quaternion.identity);
 		arCoreDeviceObj.name = "ARCore Device";
+		DontDestroyOnLoad(arCoreDeviceObj);
 
 		// reference to the AR main camera
 		mainCamera = arCoreDeviceObj.GetComponentInChildren<Camera>();
@@ -553,6 +562,7 @@ public class ARCoreInteface : MonoBehaviour, ARPlatformInterface
 		// reset light position & rotation
 		currentLight.transform.position = Vector3.zero;
 		currentLight.transform.rotation = Quaternion.Euler(40f, 40f, 0f);
+		DontDestroyOnLoad(currentLight.gameObject);
 
 		// set light parameters
 		//currentLight.lightmapBakeType = LightmapBakeType.Mixed;
@@ -571,11 +581,16 @@ public class ARCoreInteface : MonoBehaviour, ARPlatformInterface
 			arData.pointCloudTimestamp = 0.0;
 		}
 
+		// create surface renderer
+		surfaceRendererRoot = new GameObject();
+		surfaceRendererRoot.name = "SurfaceRenderer";
+		DontDestroyOnLoad(surfaceRendererRoot);
+
 		// interface is initialized
 		isInitialized = true;
 	}
 
-	public void OnDestroy()
+	void OnDestroy()
 	{
 	}
 
@@ -641,11 +656,15 @@ public class ARCoreInteface : MonoBehaviour, ARPlatformInterface
 		// get all tracked planes
 		Frame.GetAllPlanes(ref allTrackedPlanes);
 
-		// create the overlay surfaces if needed
+		// create overlay surfaces as needed
 		if(arManager.useOverlaySurface != MultiARManager.SurfaceRenderEnum.None)
 		{
 			alSurfacesToDelete.Clear();
 			alSurfacesToDelete.AddRange(dictOverlaySurfaces.Keys);
+
+			// estimate the material
+			Material surfaceMat = arManager.GetSurfaceMaterial();
+			int surfaceLayer = MultiARInterop.GetSurfaceLayer();
 
 			for(int i = 0; i < allTrackedPlanes.Count; i++)
 			{
@@ -656,8 +675,16 @@ public class ARCoreInteface : MonoBehaviour, ARPlatformInterface
 					GameObject overlaySurfaceObj = new GameObject();
 					overlaySurfaceObj.name = "surface-" + surfId;
 
+					overlaySurfaceObj.layer = surfaceLayer;
+					overlaySurfaceObj.transform.SetParent(surfaceRendererRoot.transform);
+
+//					GameObject overlayCubeObj = GameObject.CreatePrimitive(PrimitiveType.Cube);
+//					overlayCubeObj.name = "surface-cube-" + surfId;
+//					overlayCubeObj.transform.localScale = new Vector3(0.2f, 0.2f, 0.2f);
+//					overlayCubeObj.transform.SetParent(overlaySurfaceObj.transform);
+
 					OverlaySurfaceUpdater overlaySurface = overlaySurfaceObj.AddComponent<OverlaySurfaceUpdater>();
-					overlaySurface.SetSurfaceMaterial(arManager.overlaySurfaceMaterial);
+					overlaySurface.SetSurfaceMaterial(surfaceMat);
 					overlaySurface.SetSurfaceCollider(arManager.overlaySurfaceColliders);
 
 					dictOverlaySurfaces.Add(surfId, overlaySurface);
@@ -682,7 +709,7 @@ public class ARCoreInteface : MonoBehaviour, ARPlatformInterface
 			}
 		}
 
-		// check the status of the anchors
+		// check status of the anchors
 		List<string> alAnchorsToRemove = new List<string>();
 
 		foreach(string anchorId in arData.allAnchorsDict.Keys)
@@ -725,7 +752,7 @@ public class ARCoreInteface : MonoBehaviour, ARPlatformInterface
 		alAnchorsToRemove.Clear();
 	}
 
-	// Update overlay surface mesh. Returns true on success, false if the surface needs to be deleted
+	// Updates overlay surface mesh. Returns true on success, false if the surface needs to be deleted
 	private bool UpdateOverlaySurface(OverlaySurfaceUpdater overlaySurface, TrackedPlane trackedSurface)
 	{
 		// check for validity
@@ -743,26 +770,38 @@ public class ARCoreInteface : MonoBehaviour, ARPlatformInterface
 			return true;
 		}
 
-		// estimate mesh vertices & indices
+		// enable the surface
 		overlaySurface.SetEnabled(true);
 
+		// estimate mesh vertices
 		List<Vector3> meshVertices = new List<Vector3>();
-		List<int> meshIndices = new List<int>();
 
 		// GetBoundaryPolygon returns points in clockwise order.
 		trackedSurface.GetBoundaryPolygon(ref meshVertices);
 		int verticeLength = meshVertices.Count;
 
-		// Generate triangle (4, 5, 6) and (4, 6, 7).
-		for (int i = 1; i < verticeLength - 1; i++)
+		// surface position & rotation
+		Vector3 surfacePos = trackedSurface.Position;  // Vector3.zero; // 
+		Quaternion surfaceRot = trackedSurface.Rotation; // Quaternion.identity; // 
+
+		// estimate vertices relative to the center
+		Quaternion invRot = Quaternion.Inverse(surfaceRot);
+		for (int v = verticeLength - 1; v >= 0; v--) 
 		{
-			meshIndices.Add(0);
-			meshIndices.Add(i);
-			meshIndices.Add(i + 1);
+			meshVertices[v] -= surfacePos;
+			meshVertices[v] = invRot * meshVertices[v];
+
+			if (Mathf.Abs(meshVertices[v].y) > 0.1f) 
+			{
+				meshVertices.RemoveAt(v);
+			}
 		}
 
+		// estimate mesh indices
+		List<int> meshIndices = MultiARInterop.GetMeshIndices(meshVertices.Count);
+
 		// update the surface mesh
-		overlaySurface.UpdateSurfaceMesh(meshVertices, meshIndices);
+		overlaySurface.UpdateSurfaceMesh(surfacePos, surfaceRot, meshVertices, meshIndices);
 
 		return true;
 	}
