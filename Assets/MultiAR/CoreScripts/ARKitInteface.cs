@@ -706,7 +706,6 @@ public class ARKitInteface : MonoBehaviour, ARPlatformInterface
 			int surfaceLayer = MultiARInterop.GetSurfaceLayer();
 
 			string surfId = arPlaneAnchor.identifier;
-
 			if(!dictOverlaySurfaces.ContainsKey(surfId))
 			{
 				GameObject overlaySurfaceObj = new GameObject();
@@ -751,6 +750,11 @@ public class ARKitInteface : MonoBehaviour, ARPlatformInterface
 		Vector3 surfacePos = UnityARMatrixOps.GetPosition(arPlaneAnchor.transform);  // Vector3.zero; // 
 		Quaternion surfaceRot = UnityARMatrixOps.GetRotation(arPlaneAnchor.transform); // Quaternion.identity; // 
 
+		// add the center offset
+		//surfacePos += arPlaneAnchor.center;
+		Vector3 centerPos = surfaceRot * arPlaneAnchor.center;
+		surfacePos += centerPos;
+
 		Vector3 planeHalf = arPlaneAnchor.extent * 0.5f;
 		meshVertices.Add(new Vector3(-planeHalf.x, planeHalf.y, planeHalf.z));
 		meshVertices.Add(new Vector3(planeHalf.x, planeHalf.y, planeHalf.z));
@@ -769,9 +773,12 @@ public class ARKitInteface : MonoBehaviour, ARPlatformInterface
 	// invoked by AnchorUpdated-event
 	private void PlaneAnchorUpdated(ARPlaneAnchor arPlaneAnchor)
 	{
-		if (planeAnchorDict.ContainsKey(arPlaneAnchor.identifier)) 
+		string surfId = arPlaneAnchor.identifier;
+
+		// update plane anchor
+		if (planeAnchorDict.ContainsKey(surfId)) 
 		{
-			ARPlaneAnchorGameObject arpag = planeAnchorDict[arPlaneAnchor.identifier];
+			ARPlaneAnchorGameObject arpag = planeAnchorDict[surfId];
 			arpag.planeAnchor = arPlaneAnchor;
 
 			if(arpag.gameObject)
@@ -779,25 +786,43 @@ public class ARKitInteface : MonoBehaviour, ARPlatformInterface
 				UnityARUtility.UpdatePlaneWithAnchorTransform(arpag.gameObject, arPlaneAnchor);
 			}
 			
-			planeAnchorDict[arPlaneAnchor.identifier] = arpag;
+			planeAnchorDict[surfId] = arpag;
 			trackedPlanesTimestamp = GetLastFrameTimestamp();
+		}
+
+		// update overlay surface
+		if (dictOverlaySurfaces.ContainsKey(surfId)) 
+		{
+			UpdateOverlaySurface(dictOverlaySurfaces[surfId], arPlaneAnchor);
 		}
 	}
 
 	// invoked by AnchorRemoved-event
 	private void PlaneAnchorRemoved(ARPlaneAnchor arPlaneAnchor)
 	{
-		if (planeAnchorDict.ContainsKey(arPlaneAnchor.identifier)) 
-		{
-			ARPlaneAnchorGameObject arpag = planeAnchorDict[arPlaneAnchor.identifier];
+		string surfId = arPlaneAnchor.identifier;
 
-			if(arpag.gameObject)
+		// remove plane anchor
+		if (planeAnchorDict.ContainsKey(surfId)) 
+		{
+			ARPlaneAnchorGameObject arpag = planeAnchorDict[surfId];
+
+			if(arpag != null && arpag.gameObject)
 			{
 				GameObject.Destroy(arpag.gameObject);
 			}
 
-			planeAnchorDict.Remove(arPlaneAnchor.identifier);
+			planeAnchorDict.Remove(surfId);
 			trackedPlanesTimestamp = GetLastFrameTimestamp();
+		}
+
+		// remove overlay surface
+		if (dictOverlaySurfaces.ContainsKey(surfId)) 
+		{
+			OverlaySurfaceUpdater overlaySurface = dictOverlaySurfaces[surfId];
+			dictOverlaySurfaces.Remove(surfId);
+
+			Destroy(overlaySurface.gameObject);
 		}
 	}
 

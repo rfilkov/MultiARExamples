@@ -22,7 +22,7 @@ Shader "Custom/SurfaceTriangles" {
 		Pass
 	{
 		CGPROGRAM
-		#pragma target 5.0
+		//#pragma target 5.0
 		#pragma vertex vert
 		#pragma fragment frag
 		#include "UnityCG.cginc"
