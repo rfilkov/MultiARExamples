@@ -230,4 +230,27 @@ public class MultiARInterop
 		return surfaceLayer;
 	}
 
+
+	/// <summary>
+	/// Raycasts to UI using the given graphic raycaster and input position.
+	/// </summary>
+	/// <returns>The U.</returns>
+	/// <param name="gr">Gr.</param>
+	/// <param name="inputPos">Input position.</param>
+	public static GameObject RaycastUI(UnityEngine.UI.GraphicRaycaster gr, Vector2 inputPos)
+	{
+		UnityEngine.EventSystems.PointerEventData ped = new UnityEngine.EventSystems.PointerEventData(null);
+		ped.position = inputPos;  // Input.mousePosition;
+
+		List<UnityEngine.EventSystems.RaycastResult> results = new List<UnityEngine.EventSystems.RaycastResult>();
+		gr.Raycast(ped, results);
+
+		if (results.Count > 0) 
+		{
+			return results[0].gameObject;
+		}
+
+		return null;
+	}
+
 }
