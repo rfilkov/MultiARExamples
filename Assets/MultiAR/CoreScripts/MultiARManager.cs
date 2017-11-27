@@ -69,6 +69,9 @@ public class MultiARManager : MonoBehaviour
 	protected double lastFrameTimestamp = 0.0;
 	protected MultiARInterop.CameraTrackingState cameraTrackingState = MultiARInterop.CameraTrackingState.Unknown;
 
+	// available graphic raycasters
+	protected UnityEngine.UI.GraphicRaycaster[] uiRaycasters = null;
+
 
 	/// <summary>
 	/// Gets the instance of MultiARManager.
@@ -258,12 +261,37 @@ public class MultiARManager : MonoBehaviour
 			if(inputAction != MultiARInterop.InputAction.None)
 			{
 				arInterface.ClearInputAction();
+
+				if(CheckForCanvasInputAction())
+				{
+					inputAction = MultiARInterop.InputAction.None;
+				}
 			}
 
 			return inputAction;
 		}
 
 		return MultiARInterop.InputAction.None;
+	}
+
+	// checks if the input action ray-casts UI element or not
+	private bool CheckForCanvasInputAction()
+	{
+		if(uiRaycasters != null && arInterface != null)
+		{
+			Vector2 inputPos =  arInterface.GetInputPos(false);
+
+			foreach(UnityEngine.UI.GraphicRaycaster gr in uiRaycasters)
+			{
+				GameObject rayHit = MultiARInterop.RaycastUI(gr, inputPos);
+				if(rayHit != null)
+				{
+					return true;
+				}
+			}
+		}
+
+		return false;
 	}
 
 	/// <summary>
@@ -592,6 +620,15 @@ public class MultiARManager : MonoBehaviour
 	}
 
 
+	/// <summary>
+	/// Refreshs the object references after next scene load.
+	/// </summary>
+	public void RefreshSceneReferences()
+	{
+		uiRaycasters = FindObjectsOfType<UnityEngine.UI.GraphicRaycaster>();
+	}
+
+
 	// -- // -- // -- // -- // -- // -- // -- // -- // -- // -- //
 
 	void Awake()
@@ -675,14 +712,17 @@ public class MultiARManager : MonoBehaviour
 			}
 		}
 
-		if(surfaceVisualizationMaterial == null && useOverlaySurface != SurfaceRenderEnum.None)
-		{
-			// get the default material
-			if(useOverlaySurface == MultiARManager.SurfaceRenderEnum.Occlusion)
-				surfaceVisualizationMaterial = (Material)Resources.Load("SpatialMappingOcclusion", typeof(Material));
-			else if(useOverlaySurface == MultiARManager.SurfaceRenderEnum.Visualization)
-				surfaceVisualizationMaterial = (Material)Resources.Load("SpatialMappingWireframe", typeof(Material));
-		}
+//		if(surfaceVisualizationMaterial == null && useOverlaySurface != SurfaceRenderEnum.None)
+//		{
+//			// get the default material
+//			if(useOverlaySurface == MultiARManager.SurfaceRenderEnum.Occlusion)
+//				surfaceVisualizationMaterial = (Material)Resources.Load("SpatialMappingOcclusion", typeof(Material));
+//			else if(useOverlaySurface == MultiARManager.SurfaceRenderEnum.Visualization)
+//				surfaceVisualizationMaterial = (Material)Resources.Load("SpatialMappingWireframe", typeof(Material));
+//		}
+
+		// refreshes object references for the current scene
+		RefreshSceneReferences();
 	}
 
 	void OnDestroy()

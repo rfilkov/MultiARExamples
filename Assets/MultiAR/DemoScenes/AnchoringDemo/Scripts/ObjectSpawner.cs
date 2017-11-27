@@ -19,9 +19,9 @@ public class ObjectSpawner : MonoBehaviour
 	
 	void Update () 
 	{
-		// don't consider taps over the UI
-		if(UnityEngine.EventSystems.EventSystem.current.IsPointerOverGameObject())
-			return;
+//		// don't consider taps over the UI
+//		if(UnityEngine.EventSystems.EventSystem.current.IsPointerOverGameObject())
+//			return;
 
 		// check for tap
 		if (objectPrefab && arManager && arManager.IsInitialized() && arManager.IsInputAvailable(true))

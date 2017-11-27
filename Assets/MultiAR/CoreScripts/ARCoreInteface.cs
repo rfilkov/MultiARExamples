@@ -58,7 +58,7 @@ public class ARCoreInteface : MonoBehaviour, ARPlatformInterface
 
 	// input action and screen position
 	private MultiARInterop.InputAction inputAction = MultiARInterop.InputAction.None;
-	private Vector2 inputPos = Vector2.zero;
+	private Vector2 inputPos = Vector2.zero, startInputPos = Vector2.zero;
 	private double inputTimestamp = 0.0;
 
 
@@ -254,6 +254,16 @@ public class ARCoreInteface : MonoBehaviour, ARPlatformInterface
 	public MultiARInterop.InputAction GetInputAction()
 	{
 		return inputAction;
+	}
+
+	/// <summary>
+	/// Gets the current or default input position.
+	/// </summary>
+	/// <returns>The input position.</returns>
+	/// <param name="defaultPos">If set to <c>true</c> returns the by-default position.</param>
+	public Vector2 GetInputPos(bool defaultPos)
+	{
+		return !defaultPos ? inputPos : new Vector2(Screen.width / 2f, Screen.height / 2f);
 	}
 
 	/// <summary>
@@ -818,6 +828,7 @@ public class ARCoreInteface : MonoBehaviour, ARPlatformInterface
 			{
 			case TouchPhase.Began:
 				inputAction = MultiARInterop.InputAction.Click;
+				startInputPos = touch.position;
 				break;
 
 			case TouchPhase.Moved:

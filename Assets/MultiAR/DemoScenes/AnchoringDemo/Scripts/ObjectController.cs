@@ -52,9 +52,9 @@ public class ObjectController : MonoBehaviour
 	
 	void Update () 
 	{
-		// don't consider taps over the UI
-		if(UnityEngine.EventSystems.EventSystem.current.IsPointerOverGameObject())
-			return;
+//		// don't consider taps over the UI
+//		if(UnityEngine.EventSystems.EventSystem.current.IsPointerOverGameObject())
+//			return;
 
 		// check for tap
 		if (arManager && arManager.IsInitialized() && arManager.IsInputAvailable(true))

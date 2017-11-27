@@ -242,6 +242,16 @@ public class WinMRInteface : MonoBehaviour, ARPlatformInterface
 	}
 
 	/// <summary>
+	/// Gets the current or default input position.
+	/// </summary>
+	/// <returns>The input position.</returns>
+	/// <param name="defaultPos">If set to <c>true</c> returns the by-default position.</param>
+	public Vector2 GetInputPos(bool defaultPos)
+	{
+		return new Vector2(Screen.width / 2f, Screen.height / 2f);
+	}
+
+	/// <summary>
 	/// Gets the input-action timestamp.
 	/// </summary>
 	/// <returns>The input-action timestamp.</returns>
@@ -349,7 +359,10 @@ public class WinMRInteface : MonoBehaviour, ARPlatformInterface
 		hit.rayPos = camRay.origin;
 		hit.rayDir = camRay.direction;
 
-		int layerMask = 1 << LayerMask.NameToLayer("SpatialSurface");
+		int surfaceLayer = MultiARInterop.GetSurfaceLayer();  // LayerMask.NameToLayer("SpatialSurface");
+		//Debug.Log("SpatialSurfaceLayer: " + surfaceLayer);
+		int layerMask = 1 << surfaceLayer;
+
 		RaycastHit[] rayHits = Physics.RaycastAll(camRay, MultiARInterop.MAX_RAYCAST_DIST, layerMask);
 
 		for(int i = 0; i < rayHits.Length; i++)
@@ -570,6 +583,9 @@ public class WinMRInteface : MonoBehaviour, ARPlatformInterface
 		Debug.Log("TrackingSpaceType: " + XRDevice.GetTrackingSpaceType());
 		Debug.Log("Screen size: " + Screen.width + " x " + Screen.height);
 
+//		int surfaceLayer = MultiARInterop.GetSurfaceLayer();  // LayerMask.NameToLayer("SpatialSurface");
+//		Debug.Log("SpatialSurfaceLayer: " + surfaceLayer);
+
 		// create gesture input
 		gestureRecognizer = new GestureRecognizer();
 		gestureRecognizer.SetRecognizableGestures(GestureSettings.Tap | GestureSettings.Hold);
@@ -593,7 +609,7 @@ public class WinMRInteface : MonoBehaviour, ARPlatformInterface
 		{
 			surfaceRenderer.renderState = (SpatialMappingRenderer.RenderState)arManager.useOverlaySurface;
 			
-			if(arManager.overlaySurfaceMaterial)
+			if(arManager.useOverlaySurface != MultiARManager.SurfaceRenderEnum.None)
 			{
 				surfaceRenderer.visualMaterial = arManager.surfaceVisualizationMaterial;
 				surfaceRenderer.occlusionMaterial = arManager.surfaceOcclusionMaterial;
@@ -611,7 +627,7 @@ public class WinMRInteface : MonoBehaviour, ARPlatformInterface
 			surfaceCollider.surfaceParent = objCollider;
 
 			surfaceCollider.lodType = SpatialMappingBase.LODType.Low;
-			//surfaceCollider.layer = surfaceColliderLayer;
+			surfaceCollider.layer = MultiARInterop.GetSurfaceLayer();
 		}
 
 		// starts co-routine to check rendered surfaces

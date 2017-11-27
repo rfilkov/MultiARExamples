@@ -239,6 +239,9 @@ public class MultiARInterop
 	/// <param name="inputPos">Input position.</param>
 	public static GameObject RaycastUI(UnityEngine.UI.GraphicRaycaster gr, Vector2 inputPos)
 	{
+		if(gr == null)
+			return null;
+		
 		UnityEngine.EventSystems.PointerEventData ped = new UnityEngine.EventSystems.PointerEventData(null);
 		ped.position = inputPos;  // Input.mousePosition;
 

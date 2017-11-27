@@ -95,6 +95,13 @@ public interface ARPlatformInterface
 	MultiARInterop.InputAction GetInputAction();
 
 	/// <summary>
+	/// Gets the current or default input position.
+	/// </summary>
+	/// <returns>The input position.</returns>
+	/// <param name="defaultPos">If set to <c>true</c> returns the by-default position.</param>
+	Vector2 GetInputPos(bool defaultPos);
+
+	/// <summary>
 	/// Gets the input-action timestamp.
 	/// </summary>
 	/// <returns>The input-action timestamp.</returns>
