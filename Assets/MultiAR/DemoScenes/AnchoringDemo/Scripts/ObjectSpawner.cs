@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class ObjectSpawner : MonoBehaviour 
 {
-	[Tooltip("Prefab to be spawn there, where the user taps on screen.")]
+	[Tooltip("Prefab to be spawn there, where the user clicks on screen.")]
 	public GameObject objectPrefab;
 
 	// reference to the MultiARManager
@@ -23,7 +23,7 @@ public class ObjectSpawner : MonoBehaviour
 //		if(UnityEngine.EventSystems.EventSystem.current.IsPointerOverGameObject())
 //			return;
 
-		// check for tap
+		// check for click
 		if (objectPrefab && arManager && arManager.IsInitialized() && arManager.IsInputAvailable(true))
 		{
 			MultiARInterop.InputAction action = arManager.GetInputAction();

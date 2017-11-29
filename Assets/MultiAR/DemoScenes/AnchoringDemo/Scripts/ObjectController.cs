@@ -104,12 +104,28 @@ public class ObjectController : MonoBehaviour
 	// returns the model hit by the input ray, or current model if no other was hit
 	private Transform GetModelHit()
 	{
-		MultiARInterop.TrackableHit hit;
-
-		if(arManager.RaycastToScene(true, out hit))
+		MultiARInterop.TrackableHit[] hits;
+		if(arManager.RaycastAllToScene(true, out hits))
 		{
+			MultiARInterop.TrackableHit hit = hits[0];
 			RaycastHit rayHit = (RaycastHit)hit.psObject;
 
+			// check for hitting the same model
+			if (currentModel != null) 
+			{
+				for (int i = hits.Length - 1; i >= 0; i--) 
+				{
+					hit = hits[i];
+					rayHit = (RaycastHit)hit.psObject;
+
+					if (rayHit.transform == currentModel) 
+					{
+						return currentModel;
+					}
+				}
+			}
+
+			// check for any of the models
 			if(rayHit.transform == model1)
 			{
 				return model1;
