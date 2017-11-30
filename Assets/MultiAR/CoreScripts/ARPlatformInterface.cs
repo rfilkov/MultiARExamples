@@ -95,11 +95,17 @@ public interface ARPlatformInterface
 	MultiARInterop.InputAction GetInputAction();
 
 	/// <summary>
+	/// Gets the input normalized navigation coordinates.
+	/// </summary>
+	/// <returns>The input nav coordinates.</returns>
+	Vector3 GetInputNavCoordinates();
+
+	/// <summary>
 	/// Gets the current or default input position.
 	/// </summary>
 	/// <returns>The input position.</returns>
 	/// <param name="defaultPos">If set to <c>true</c> returns the by-default position.</param>
-	Vector2 GetInputPos(bool defaultPos);
+	Vector2 GetInputScreenPos(bool defaultPos);
 
 	/// <summary>
 	/// Gets the input-action timestamp.

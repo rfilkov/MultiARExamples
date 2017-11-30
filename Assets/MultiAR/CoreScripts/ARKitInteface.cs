@@ -50,6 +50,7 @@ public class ARKitInteface : MonoBehaviour, ARPlatformInterface
 	// input action and screen position
 	private MultiARInterop.InputAction inputAction = MultiARInterop.InputAction.None;
 	private Vector2 inputPos = Vector2.zero, startInputPos = Vector2.zero;
+	private Vector3 inputNavCoordinates = Vector3.zero;
 	private double inputTimestamp = 0.0;
 
 
@@ -262,11 +263,20 @@ public class ARKitInteface : MonoBehaviour, ARPlatformInterface
 	}
 
 	/// <summary>
+	/// Gets the input normalized navigation coordinates.
+	/// </summary>
+	/// <returns>The input nav coordinates.</returns>
+	public Vector3 GetInputNavCoordinates()
+	{
+		return inputNavCoordinates;
+	}
+
+	/// <summary>
 	/// Gets the current or default input position.
 	/// </summary>
 	/// <returns>The input position.</returns>
 	/// <param name="defaultPos">If set to <c>true</c> returns the by-default position.</param>
-	public Vector2 GetInputPos(bool defaultPos)
+	public Vector2 GetInputScreenPos(bool defaultPos)
 	{
 		return !defaultPos ? inputPos : new Vector2(Screen.width / 2f, Screen.height / 2f);
 	}
@@ -448,7 +458,7 @@ public class ARKitInteface : MonoBehaviour, ARPlatformInterface
 		//GameObject anchorObj = GameObject.CreatePrimitive(PrimitiveType.Cube);
 		anchorObj.transform.position = worldPosition;
 		anchorObj.transform.rotation = worldRotation;
-		anchorObj.transform.localScale = new Vector3(0.1f, 0.2f, 0.1f);  // for debug only
+		//anchorObj.transform.localScale = new Vector3(0.1f, 0.2f, 0.1f);  // for debug only
 
 		UnityARUserAnchorData anchorData = UnityARSessionNativeInterface.GetARSessionNativeInterface().AddUserAnchorFromGameObject(anchorObj); 
 		sAnchorId = anchorData.identifierStr;

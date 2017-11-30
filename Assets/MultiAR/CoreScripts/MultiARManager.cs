@@ -289,12 +289,26 @@ public class MultiARManager : MonoBehaviour
 		return MultiARInterop.InputAction.None;
 	}
 
+	/// <summary>
+	/// Gets the input normalized navigation coordinates.
+	/// </summary>
+	/// <returns>The input nav coordinates.</returns>
+	public Vector3 GetInputNavCoordinates()
+	{
+		if(arInterface != null)
+		{
+			return arInterface.GetInputNavCoordinates();
+		}
+
+		return Vector3.zero;
+	}
+
 	// checks if the input action ray-casts UI element or not
 	private bool CheckForCanvasInputAction()
 	{
 		if(uiRaycasters != null && arInterface != null)
 		{
-			Vector2 inputPos =  arInterface.GetInputPos(false);
+			Vector2 inputPos =  arInterface.GetInputScreenPos(false);
 
 			foreach(UnityEngine.UI.GraphicRaycaster gr in uiRaycasters)
 			{

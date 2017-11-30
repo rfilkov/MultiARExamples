@@ -11,10 +11,11 @@ public class CameraShooter : MonoBehaviour
 	[Tooltip("Factor used to determine the force, according to target point distance.")]
 	public float forceFactor = 100f;
 
+	[Tooltip("List of available ball materials.")]
+	public Material[] ballMaterials;
 
 	// reference to the MultiARManager
 	private MultiARManager arManager;
-
 
 
 	// Use this for initialization
@@ -44,10 +45,13 @@ public class CameraShooter : MonoBehaviour
 					if (!arCamera)
 						return;
 
-					// instantiate the cannonball. schedule it for destroy in 5 seconds
+					// instantiate the cannonball. schedule it for destroy in 3 seconds
 					GameObject cannonBall = Instantiate(ballPrefab, arCamera.transform.position, arCamera.transform.rotation);
 					cannonBall.name = "cannonBall";
-					Destroy (cannonBall, 3f); 
+					Destroy(cannonBall, 3f);
+
+					// set random ball material
+					SetBallMaterial(cannonBall);
 
 					// fire the cannonball
 					FireCannonball(cannonBall, arCamera.transform.position, hit.point);
@@ -56,6 +60,24 @@ public class CameraShooter : MonoBehaviour
 		}
 
 	}
+
+
+	// sets random ball material from the list of available materials
+	private void SetBallMaterial(GameObject cannonBall)
+	{
+		if(ballMaterials == null || ballMaterials.Length == 0)
+			return;
+
+		// get the mesh renderer
+		MeshRenderer meshRenderer = cannonBall ? cannonBall.GetComponent<MeshRenderer>() : null;
+		if (meshRenderer == null)
+			return;
+
+		// set random material
+		int matIndex = Mathf.RoundToInt(Random.Range(0, ballMaterials.Length - 1));
+		meshRenderer.material = ballMaterials[matIndex];
+	}
+
 
 	/// Fires the cannonball to the given point.
 	private void FireCannonball(GameObject cannonBall, Vector3 startPoint, Vector3 targetPoint)

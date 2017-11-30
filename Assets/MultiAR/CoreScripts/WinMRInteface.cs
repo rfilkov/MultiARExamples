@@ -8,6 +8,9 @@ using UnityEngine.XR.WSA.Input;
 
 public class WinMRInteface : MonoBehaviour, ARPlatformInterface 
 {
+	[Tooltip("Graphics quality level.")]
+	public QualityLevel qualityLevel;
+
 	//[Tooltip("The layer used by the surface collider. 1 means default.")]
 	//private int surfaceColliderLayer = 31;
 
@@ -54,7 +57,8 @@ public class WinMRInteface : MonoBehaviour, ARPlatformInterface
 
 	// input action and screen position
 	private MultiARInterop.InputAction inputAction = MultiARInterop.InputAction.None;
-	//private Vector2 inputPos = Vector2.zero;
+	private Vector3 startMousePos = Vector3.zero;
+	private Vector3 inputNavCoordinates = Vector3.zero;
 	private double inputTimestamp = 0.0;
 	// gesture recognizer for HoloLens
 	private GestureRecognizer gestureRecognizer = null;
@@ -245,11 +249,20 @@ public class WinMRInteface : MonoBehaviour, ARPlatformInterface
 	}
 
 	/// <summary>
+	/// Gets the input normalized navigation coordinates.
+	/// </summary>
+	/// <returns>The input nav coordinates.</returns>
+	public Vector3 GetInputNavCoordinates()
+	{
+		return inputNavCoordinates;
+	}
+
+	/// <summary>
 	/// Gets the current or default input position.
 	/// </summary>
 	/// <returns>The input position.</returns>
 	/// <param name="defaultPos">If set to <c>true</c> returns the by-default position.</param>
-	public Vector2 GetInputPos(bool defaultPos)
+	public Vector2 GetInputScreenPos(bool defaultPos)
 	{
 		return new Vector2(Screen.width / 2f, Screen.height / 2f);
 	}
@@ -381,7 +394,7 @@ public class WinMRInteface : MonoBehaviour, ARPlatformInterface
 				hit.distance = rayHit.distance;
 
 				hit.psObject = rayHit;
-				Debug.Log(string.Format("Hit {0} at position {1}.", rayHit.collider.gameObject, rayHit.point));
+				//Debug.Log(string.Format("Hit {0} at position {1}.", rayHit.collider.gameObject, rayHit.point));
 
 				return true;
 			}
@@ -422,7 +435,7 @@ public class WinMRInteface : MonoBehaviour, ARPlatformInterface
 
 		anchorObj.transform.position = worldPosition;
 		anchorObj.transform.rotation = worldRotation;
-		anchorObj.transform.localScale = new Vector3(0.1f, 0.2f, 0.1f);  // for debug only
+		//anchorObj.transform.localScale = new Vector3(0.1f, 0.2f, 0.1f);  // for debug only
 
 		WorldAnchor anchor = anchorObj.AddComponent<WorldAnchor>();
 		anchor.OnTrackingChanged += Anchor_OnTrackingChanged;
@@ -508,7 +521,7 @@ public class WinMRInteface : MonoBehaviour, ARPlatformInterface
 
 		// determine if display is opaque or transparent
 		isDisplayOpaque = HolographicSettings.IsDisplayOpaque;
-		Debug.Log("OpaqueDisplay: " + isDisplayOpaque);
+		Debug.Log("Display: " + (isDisplayOpaque ? "Opaque" : "Transparent"));
 
 		// modify the main camera in the scene
 		Camera currentCamera = MultiARInterop.GetMainCamera();
@@ -536,8 +549,8 @@ public class WinMRInteface : MonoBehaviour, ARPlatformInterface
 		}
 
 		// set the fastest quality setting
-		QualitySettings.SetQualityLevel(0);
-		Debug.Log("QualitySetting: " + QualitySettings.names[0]);
+		QualitySettings.SetQualityLevel((int)qualityLevel);
+		Debug.Log("QualityLevel: " + QualitySettings.names[(int)qualityLevel]);
 
 		// reference to the AR main camera
 		mainCamera = currentCamera;
@@ -604,16 +617,33 @@ public class WinMRInteface : MonoBehaviour, ARPlatformInterface
 //		}
 
 		// create gesture input
-		gestureRecognizer = new GestureRecognizer();
-		gestureRecognizer.SetRecognizableGestures(GestureSettings.Tap | GestureSettings.Hold);
+		if(!isDisplayOpaque)
+		{
+			gestureRecognizer = new GestureRecognizer();
+			gestureRecognizer.SetRecognizableGestures(GestureSettings.Tap | GestureSettings.Hold | 
+				GestureSettings.NavigationX | GestureSettings.NavigationY | GestureSettings.NavigationZ);
 
-		gestureRecognizer.Tapped += GestureRecognizer_Tapped;
+			gestureRecognizer.Tapped += GestureRecognizer_Tapped;
 
-		gestureRecognizer.HoldStarted += GestureRecognizer_HoldStarted;
-		gestureRecognizer.HoldCompleted += GestureRecognizer_HoldCompleted;
-		gestureRecognizer.HoldCanceled += GestureRecognizer_HoldCanceled;
+//			gestureRecognizer.HoldStarted += GestureRecognizer_HoldStarted;
+//			gestureRecognizer.HoldCompleted += GestureRecognizer_HoldCompleted;
+//			gestureRecognizer.HoldCanceled += GestureRecognizer_HoldCanceled;
 
-		gestureRecognizer.StartCapturingGestures();
+			gestureRecognizer.NavigationStarted += GestureRecognizer_NavigationStarted;
+			gestureRecognizer.NavigationUpdated += GestureRecognizer_NavigationUpdated;
+			gestureRecognizer.NavigationCompleted += GestureRecognizer_NavigationCompleted;
+			gestureRecognizer.NavigationCanceled += GestureRecognizer_NavigationCanceled;
+
+			gestureRecognizer.StartCapturingGestures();
+			Debug.Log("Gesture recognizer inited and started.");
+		}
+		else
+		{
+			InteractionManager.InteractionSourcePressed += InteractionManager_InteractionSourcePressed;
+			InteractionManager.InteractionSourceUpdated += InteractionManager_InteractionSourceUpdated;
+			InteractionManager.InteractionSourceReleased += InteractionManager_InteractionSourceReleased;
+			Debug.Log("Interaction manager inited.");
+		}
 
 		// create surface renderer
 		if(arManager.useOverlaySurface != MultiARManager.SurfaceRenderEnum.None)
@@ -744,9 +774,21 @@ public class WinMRInteface : MonoBehaviour, ARPlatformInterface
 				gestureRecognizer.StopCapturingGestures();
 
 				gestureRecognizer.Tapped -= GestureRecognizer_Tapped;
-				gestureRecognizer.HoldStarted -= GestureRecognizer_HoldStarted;
-				gestureRecognizer.HoldCompleted -= GestureRecognizer_HoldCompleted;
-				gestureRecognizer.HoldCanceled -= GestureRecognizer_HoldCanceled;
+//				gestureRecognizer.HoldStarted -= GestureRecognizer_HoldStarted;
+//				gestureRecognizer.HoldCompleted -= GestureRecognizer_HoldCompleted;
+//				gestureRecognizer.HoldCanceled -= GestureRecognizer_HoldCanceled;
+
+				gestureRecognizer.NavigationStarted -= GestureRecognizer_NavigationStarted;
+				gestureRecognizer.NavigationUpdated -= GestureRecognizer_NavigationUpdated;
+				gestureRecognizer.NavigationCompleted -= GestureRecognizer_NavigationCompleted;
+				gestureRecognizer.NavigationCanceled -= GestureRecognizer_NavigationCanceled;
+			}
+
+			if(isDisplayOpaque)
+			{
+				InteractionManager.InteractionSourcePressed -= InteractionManager_InteractionSourcePressed;
+				InteractionManager.InteractionSourceUpdated -= InteractionManager_InteractionSourceUpdated;
+				InteractionManager.InteractionSourceReleased -= InteractionManager_InteractionSourceReleased;
 			}
 
 			if(arManager)
@@ -816,27 +858,92 @@ public class WinMRInteface : MonoBehaviour, ARPlatformInterface
 		//Debug.Log("GestureRecognizer_Tapped");
 	}
 
-	// invoked when the hold-gesture is started by the user
-	void GestureRecognizer_HoldStarted(HoldStartedEventArgs obj)
+//	// invoked when the hold-gesture is started by the user
+//	void GestureRecognizer_HoldStarted(HoldStartedEventArgs obj)
+//	{
+//		inputAction = MultiARInterop.InputAction.Grip;
+//		inputTimestamp = lastFrameTimestamp;
+//		Debug.Log("GestureRecognizer_HoldStarted");
+//	}
+//
+//	// invoked when the hold-gesture is completed by the user
+//	void GestureRecognizer_HoldCompleted(HoldCompletedEventArgs obj)
+//	{
+//		inputAction = MultiARInterop.InputAction.Release;
+//		inputTimestamp = lastFrameTimestamp;
+//		Debug.Log("GestureRecognizer_HoldCompleted");
+//	}
+//
+//	// invoked when the hold-gesture is canceled by the user
+//	void GestureRecognizer_HoldCanceled(HoldCanceledEventArgs obj)
+//	{
+//		inputAction = MultiARInterop.InputAction.Release;
+//		inputTimestamp = lastFrameTimestamp;
+//		Debug.Log("GestureRecognizer_HoldCanceled");
+//	}
+
+	void GestureRecognizer_NavigationStarted (NavigationStartedEventArgs obj)
 	{
 		inputAction = MultiARInterop.InputAction.Grip;
+		inputNavCoordinates = Vector3.zero;
 		inputTimestamp = lastFrameTimestamp;
-		Debug.Log("GestureRecognizer_HoldStarted");
+		//Debug.Log("GestureRecognizer_NavigationStarted");
 	}
 
-	// invoked when the hold-gesture is completed by the user
-	void GestureRecognizer_HoldCompleted(HoldCompletedEventArgs obj)
+	void GestureRecognizer_NavigationUpdated (NavigationUpdatedEventArgs obj)
+	{
+		inputAction = MultiARInterop.InputAction.Grip;
+		inputNavCoordinates = obj.normalizedOffset;
+		inputTimestamp = lastFrameTimestamp;
+		//Debug.Log("GestureRecognizer_NavigationUpdated: " + obj.normalizedOffset);
+	}
+
+	void GestureRecognizer_NavigationCompleted (NavigationCompletedEventArgs obj)
 	{
 		inputAction = MultiARInterop.InputAction.Release;
 		inputTimestamp = lastFrameTimestamp;
-		Debug.Log("GestureRecognizer_HoldCompleted");
+		//Debug.Log("GestureRecognizer_NavigationCompleted: " + obj.normalizedOffset);
 	}
 
-	// invoked when the hold-gesture is canceled by the user
-	void GestureRecognizer_HoldCanceled(HoldCanceledEventArgs obj)
+	void GestureRecognizer_NavigationCanceled (NavigationCanceledEventArgs obj)
 	{
-		inputAction = MultiARInterop.InputAction.None;
-		Debug.Log("GestureRecognizer_HoldCanceled");
+		inputAction = MultiARInterop.InputAction.Release;
+		inputTimestamp = lastFrameTimestamp;
+		//Debug.Log("GestureRecognizer_NavigationCanceled");
+	}
+
+	void InteractionManager_InteractionSourcePressed (InteractionSourcePressedEventArgs obj)
+	{
+		if(obj.pressType == InteractionSourcePressType.Select)
+		{
+			inputAction = MultiARInterop.InputAction.Click;
+			inputTimestamp = lastFrameTimestamp;
+		}
+		else if(obj.pressType == InteractionSourcePressType.Thumbstick)
+		{
+			inputAction = MultiARInterop.InputAction.Grip;
+			inputNavCoordinates = Vector3.zero;
+			inputTimestamp = lastFrameTimestamp;
+		}
+	}
+
+	void InteractionManager_InteractionSourceUpdated (InteractionSourceUpdatedEventArgs obj)
+	{
+		if(obj.state.thumbstickPressed)
+		{
+			inputAction = MultiARInterop.InputAction.Grip;
+			inputNavCoordinates = obj.state.thumbstickPosition;
+			inputTimestamp = lastFrameTimestamp;
+		}
+	}
+
+	void InteractionManager_InteractionSourceReleased (InteractionSourceReleasedEventArgs obj)
+	{
+		if(obj.pressType == InteractionSourcePressType.Thumbstick)
+		{
+			inputAction = MultiARInterop.InputAction.Release;
+			inputTimestamp = lastFrameTimestamp;
+		}
 	}
 
 
@@ -852,38 +959,43 @@ public class WinMRInteface : MonoBehaviour, ARPlatformInterface
 			lastFrameTimestamp = GetCurrentTimestamp();
 		}
 
-		// check for input (mouse)
+		// check for mouse input
 		CheckForInputAction();
 	}
 
 
-	// check for input action (mouse)
+	// check for mouse input action (as fallback input)
 	private void CheckForInputAction()
 	{
-//		bool bInputAction = true;
-//
-//		if(Input.GetMouseButtonDown(0))
-//		{
-//			inputAction = MultiARInterop.InputAction.Click;
-//		}
-//		else if(Input.GetMouseButton(0))
-//		{
-//			inputAction = MultiARInterop.InputAction.Grip;
-//		}
-//		else if(Input.GetMouseButtonUp(0))
-//		{
-//			inputAction = MultiARInterop.InputAction.Release;
-//		}
-//		else
-//		{
-//			bInputAction = false;
-//		}
-//
-//		if(bInputAction)
-//		{
-//			//inputPos = Input.mousePosition;
-//			inputTimestamp = lastFrameTimestamp;
-//		}
+		bool bInputAction = true;
+
+		if(Input.GetMouseButtonDown(0))
+		{
+			inputAction = MultiARInterop.InputAction.Click;
+			startMousePos = Input.mousePosition;
+		}
+		else if(Input.GetMouseButton(0))
+		{
+			inputAction = MultiARInterop.InputAction.Grip;
+
+			Vector3 screenSize = new Vector3(Screen.width, Screen.height, 0f);
+			Vector3 mouseRelPos = Input.mousePosition - startMousePos;
+			inputNavCoordinates = new Vector3(mouseRelPos.x / screenSize.x, mouseRelPos.y / screenSize.y, 0f);
+		}
+		else if(Input.GetMouseButtonUp(0))
+		{
+			inputAction = MultiARInterop.InputAction.Release;
+		}
+		else
+		{
+			bInputAction = false;
+		}
+
+		if(bInputAction)
+		{
+			//inputPos = Input.mousePosition;
+			inputTimestamp = lastFrameTimestamp;
+		}
 	}
 
 	// checks for changes in rendered surfaces
