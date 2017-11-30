@@ -11,10 +11,6 @@ public class WinMRInteface : MonoBehaviour, ARPlatformInterface
 	//[Tooltip("The layer used by the surface collider. 1 means default.")]
 	//private int surfaceColliderLayer = 31;
 
-	public enum WinMRDeviceType : int { Transparent, Occluded };
-	[Tooltip("Device type used by Windows Mixed Reality.")]
-	public WinMRDeviceType deviceType = WinMRDeviceType.Transparent;
-
 	// Whether the interface is enabled by MultiARManager
 	private bool isInterfaceEnabled = false;
 
@@ -23,6 +19,9 @@ public class WinMRInteface : MonoBehaviour, ARPlatformInterface
 
 	// whether the interface was initialized
 	private bool isInitialized = false;
+
+	// whether display is opaque (mr headsets) or transparent (hololens)
+	private bool isDisplayOpaque = false;
 
 	// reference to the AR camera in the scene
 	private Camera mainCamera;
@@ -48,6 +47,10 @@ public class WinMRInteface : MonoBehaviour, ARPlatformInterface
 
 	// surface collider
 	private SpatialMappingCollider surfaceCollider;
+
+	// boundary plane for mr headsets
+	private GameObject boundaryPlane;
+	private HoloToolkit.Unity.Boundary.BoundaryManager boundaryMgr;
 
 	// input action and screen position
 	private MultiARInterop.InputAction inputAction = MultiARInterop.InputAction.None;
@@ -503,6 +506,10 @@ public class WinMRInteface : MonoBehaviour, ARPlatformInterface
 		if(!isInterfaceEnabled)
 			return;
 
+		// determine if display is opaque or transparent
+		isDisplayOpaque = HolographicSettings.IsDisplayOpaque;
+		Debug.Log("OpaqueDisplay: " + isDisplayOpaque);
+
 		// modify the main camera in the scene
 		Camera currentCamera = MultiARInterop.GetMainCamera();
 		if(!currentCamera)
@@ -522,6 +529,15 @@ public class WinMRInteface : MonoBehaviour, ARPlatformInterface
 		currentCamera.backgroundColor = new Color(0f, 0f, 0f, 0f);
 		currentCamera.nearClipPlane = 0.5f;  // HoloLens recommended
 		currentCamera.farClipPlane = 100f;
+
+		if(isDisplayOpaque)
+		{
+			currentCamera.clearFlags = CameraClearFlags.Skybox;
+		}
+
+		// set the fastest quality setting
+		QualitySettings.SetQualityLevel(0);
+		Debug.Log("QualitySetting: " + QualitySettings.names[0]);
 
 		// reference to the AR main camera
 		mainCamera = currentCamera;
@@ -587,12 +603,6 @@ public class WinMRInteface : MonoBehaviour, ARPlatformInterface
 //			}
 //		}
 
-		Debug.Log("TrackingSpaceType: " + XRDevice.GetTrackingSpaceType());
-		Debug.Log("Screen size: " + Screen.width + " x " + Screen.height);
-
-		int surfaceLayer = MultiARInterop.GetSurfaceLayer();  // LayerMask.NameToLayer("SpatialSurface");
-		Debug.Log("SpatialSurfaceLayer: " + surfaceLayer);
-
 		// create gesture input
 		gestureRecognizer = new GestureRecognizer();
 		gestureRecognizer.SetRecognizableGestures(GestureSettings.Tap | GestureSettings.Hold);
@@ -610,17 +620,31 @@ public class WinMRInteface : MonoBehaviour, ARPlatformInterface
 		{
 			GameObject objRenderer = new GameObject();
 			objRenderer.name = "SurfaceRenderer";
+			objRenderer.layer = MultiARInterop.GetSurfaceLayer();
 			DontDestroyOnLoad(objRenderer);
 
-			surfaceRenderer = objRenderer.AddComponent<SpatialMappingRenderer>();
-			surfaceRenderer.surfaceParent = objRenderer;
-
-			surfaceRenderer.renderState = (SpatialMappingRenderer.RenderState)arManager.useOverlaySurface;
-			
-			if(arManager.useOverlaySurface != MultiARManager.SurfaceRenderEnum.None)
+			if(!isDisplayOpaque)
 			{
-				surfaceRenderer.visualMaterial = arManager.surfaceVisualizationMaterial;
-				surfaceRenderer.occlusionMaterial = arManager.surfaceOcclusionMaterial;
+				// hololens
+				surfaceRenderer = objRenderer.AddComponent<SpatialMappingRenderer>();
+				surfaceRenderer.surfaceParent = objRenderer;
+
+				surfaceRenderer.renderState = (SpatialMappingRenderer.RenderState)arManager.useOverlaySurface;
+
+				if(arManager.useOverlaySurface != MultiARManager.SurfaceRenderEnum.None)
+				{
+					surfaceRenderer.visualMaterial = arManager.surfaceVisualizationMaterial;
+					surfaceRenderer.occlusionMaterial = arManager.surfaceOcclusionMaterial;
+				}
+			}
+			else
+			{
+				// mr headsets
+				CreateBoundaryPlane(objRenderer.transform, arManager.GetSurfaceMaterial(), arManager.overlaySurfaceColliders);
+
+				boundaryMgr = objRenderer.AddComponent<HoloToolkit.Unity.Boundary.BoundaryManager>();
+				boundaryMgr.FloorQuad = boundaryPlane;
+				boundaryMgr.AwakeBoundaryManager();
 			}
 		}
 
@@ -629,20 +653,69 @@ public class WinMRInteface : MonoBehaviour, ARPlatformInterface
 		{
 			GameObject objCollider = new GameObject();
 			objCollider.name = "SurfaceCollider";
+			objCollider.layer = MultiARInterop.GetSurfaceLayer();
 			DontDestroyOnLoad(objCollider);
 
-			surfaceCollider = objCollider.AddComponent<SpatialMappingCollider>();
-			surfaceCollider.surfaceParent = objCollider;
+			if(!isDisplayOpaque)
+			{
+				// hololens
+				surfaceCollider = objCollider.AddComponent<SpatialMappingCollider>();
+				surfaceCollider.surfaceParent = objCollider;
 
-			surfaceCollider.lodType = SpatialMappingBase.LODType.Low;
-			surfaceCollider.layer = MultiARInterop.GetSurfaceLayer();
+				surfaceCollider.lodType = SpatialMappingBase.LODType.Low;
+				surfaceCollider.layer = MultiARInterop.GetSurfaceLayer();
+			}
+			else
+			{
+				// mr headsets
+				if(boundaryPlane == null)
+				{
+					// there was no boundary rendering
+					CreateBoundaryPlane(objCollider.transform, null, true);
+
+					boundaryMgr = objCollider.AddComponent<HoloToolkit.Unity.Boundary.BoundaryManager>();
+					boundaryMgr.FloorQuad = boundaryPlane;
+					boundaryMgr.AwakeBoundaryManager();
+				}
+			}
 		}
 
 		// starts co-routine to check rendered surfaces
 		StartCoroutine(CheckSurfacesRoutine());
 
+		Debug.Log("TrackingSpaceType: " + XRDevice.GetTrackingSpaceType());
+		Debug.Log("Screen size: " + Screen.width + " x " + Screen.height);
+
+		int surfaceLayer = MultiARInterop.GetSurfaceLayer();  // LayerMask.NameToLayer("SpatialSurface");
+		Debug.Log("SpatialSurfaceLayer: " + surfaceLayer);
+
 		// interface is initialized
 		isInitialized = true;
+	}
+
+	// creates boundary plane for mr headsets
+	private void CreateBoundaryPlane(Transform planeParent, Material planeMat, bool isCollider)
+	{
+		//if(boundaryPlane == null)
+		{
+			boundaryPlane = GameObject.CreatePrimitive(PrimitiveType.Plane);
+			boundaryPlane.name = "Boundary";
+			boundaryPlane.layer = MultiARInterop.GetSurfaceLayer();
+			boundaryPlane.transform.SetParent(planeParent);
+		}
+
+		MeshRenderer meshRenderer = boundaryPlane.GetComponent<MeshRenderer>();
+		if(meshRenderer)
+		{
+			meshRenderer.enabled = planeMat != null;
+			meshRenderer.material = planeMat;
+		}
+
+		MeshCollider meshCollider = boundaryPlane.GetComponent<MeshCollider>();
+		if(meshCollider)
+		{
+			meshCollider.enabled = isCollider;
+		}
 	}
 
 	void OnDestroy()

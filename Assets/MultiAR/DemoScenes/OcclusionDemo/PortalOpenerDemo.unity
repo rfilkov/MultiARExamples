@@ -159,7 +159,7 @@ Prefab:
     - target: {fileID: 114962951517112342, guid: cb4d91dd0146cac4395f7dadfdec7aac,
         type: 2}
       propertyPath: useOverlaySurface
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_ParentPrefab: {fileID: 100100000, guid: cb4d91dd0146cac4395f7dadfdec7aac, type: 2}

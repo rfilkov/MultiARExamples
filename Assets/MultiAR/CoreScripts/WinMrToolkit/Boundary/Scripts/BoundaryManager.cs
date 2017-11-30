@@ -84,7 +84,8 @@ namespace HoloToolkit.Unity.Boundary
 #endif
         }
 
-        protected override void Awake()
+		//protected override void Awake()
+		public void AwakeBoundaryManager()
         {
             base.Awake();
             newFloorHeight = Vector3.zero;
