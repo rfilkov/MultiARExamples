@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.44657826, g: 0.49641263, b: 0.57481676, a: 1}
+  m_IndirectSpecularColor: {r: 0.44657868, g: 0.49641263, b: 0.57481706, a: 1}
 --- !u!157 &3
 LightmapSettings:
   m_ObjectHideFlags: 0
@@ -137,7 +137,7 @@ RectTransform:
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 174152563}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 2.3943481, y: -246.39153, z: 0}
+  m_LocalPosition: {x: 2.3943481, y: -248.37318, z: 0}
   m_LocalScale: {x: 0.47886, y: 0.47886, z: 0.47886}
   m_Children: []
   m_Father: {fileID: 176708034}
@@ -145,7 +145,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 0}
-  m_AnchoredPosition: {x: 2.3943481, y: 4.7886505}
+  m_AnchoredPosition: {x: 2.3943481, y: 4.7886353}
   m_SizeDelta: {x: 1024.9475, y: 120}
   m_Pivot: {x: 0.5, y: 0}
 --- !u!114 &174152565
@@ -194,7 +194,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: Click to shoot ball to detected surface.
+  m_Text: Click to shoot a ball at the detected surface.
 --- !u!222 &174152567
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -283,8 +283,8 @@ RectTransform:
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 176708030}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 475.5, y: 250, z: 0}
-  m_LocalScale: {x: 0.9953015, y: 0.9953015, z: 0.9953015}
+  m_LocalPosition: {x: 352, y: 188, z: 0}
+  m_LocalScale: {x: 0.742608, y: 0.742608, z: 0.742608}
   m_Children:
   - {fileID: 1319910162}
   - {fileID: 174152564}
@@ -324,7 +324,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   ballPrefab: {fileID: 1287671179973138, guid: 72db308b669587b488008fe9edf6308b, type: 2}
-  fireAngle: 10
+  forceFactor: 100
 --- !u!4 &190995495
 Transform:
   m_ObjectHideFlags: 0
@@ -440,7 +440,7 @@ Camera:
   m_GameObject: {fileID: 861707357}
   m_Enabled: 1
   serializedVersion: 2
-  m_ClearFlags: 1
+  m_ClearFlags: 2
   m_BackGroundColor: {r: 0.19215687, g: 0.3019608, b: 0.4745098, a: 0}
   m_NormalizedViewPortRect:
     serializedVersion: 2
@@ -474,7 +474,7 @@ Transform:
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 861707357}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 1, z: -10}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
@@ -524,6 +524,11 @@ Prefab:
       propertyPath: infoText
       value: 
       objectReference: {fileID: 1319910159}
+    - target: {fileID: 114962951517112342, guid: cb4d91dd0146cac4395f7dadfdec7aac,
+        type: 2}
+      propertyPath: useOverlaySurface
+      value: 1
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_ParentPrefab: {fileID: 100100000, guid: cb4d91dd0146cac4395f7dadfdec7aac, type: 2}
   m_IsPrefabParent: 0
@@ -605,7 +610,7 @@ RectTransform:
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 1319910158}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 246.39154, z: 0}
+  m_LocalPosition: {x: 0, y: 248.37318, z: 0}
   m_LocalScale: {x: 0.47886, y: 0.47886, z: 0.47886}
   m_Children: []
   m_Father: {fileID: 176708034}

@@ -485,7 +485,8 @@ public class WinMRInteface : MonoBehaviour, ARPlatformInterface
 				if(anchor)
 				{
 					anchor.OnTrackingChanged -= Anchor_OnTrackingChanged;
-					Destroy(anchor);
+					//Destroy(anchor);
+					Destroy(anchor.gameObject);
 				}
 			}
 
@@ -519,11 +520,14 @@ public class WinMRInteface : MonoBehaviour, ARPlatformInterface
 		// set camera parameters
 		currentCamera.clearFlags = CameraClearFlags.SolidColor;
 		currentCamera.backgroundColor = new Color(0f, 0f, 0f, 0f);
-		//currentCamera.nearClipPlane = 0.85f;  // HoloLens recommended
-		//currentCamera.farClipPlane = 100f;
+		currentCamera.nearClipPlane = 0.5f;  // HoloLens recommended
+		currentCamera.farClipPlane = 100f;
 
 		// reference to the AR main camera
 		mainCamera = currentCamera;
+
+		// don't destroy the light between scenes
+		DontDestroyOnLoad(currentCamera.gameObject);
 
 //		// add camera parent
 //		if(currentCamera.transform.parent == null)
@@ -555,6 +559,9 @@ public class WinMRInteface : MonoBehaviour, ARPlatformInterface
 		// reference to the AR directional light
 		//directionalLight = currentLight;
 
+		// don't destroy the light between scenes
+		DontDestroyOnLoad(currentLight.gameObject);
+
 		// check for point cloud getter
 		if(arManager.getPointCloud)
 		{
@@ -570,7 +577,7 @@ public class WinMRInteface : MonoBehaviour, ARPlatformInterface
 		cameraTrackingState = WorldManager.state;
 		WorldManager.OnPositionalLocatorStateChanged += WorldManager_OnPositionalLocatorStateChanged;
 
-		// set tracking space type
+//		// set tracking space type
 //		Debug.Log("Before: " + XRDevice.GetTrackingSpaceType());
 //		if(XRDevice.GetTrackingSpaceType() != TrackingSpaceType.Stationary)
 //		{
@@ -583,14 +590,15 @@ public class WinMRInteface : MonoBehaviour, ARPlatformInterface
 		Debug.Log("TrackingSpaceType: " + XRDevice.GetTrackingSpaceType());
 		Debug.Log("Screen size: " + Screen.width + " x " + Screen.height);
 
-//		int surfaceLayer = MultiARInterop.GetSurfaceLayer();  // LayerMask.NameToLayer("SpatialSurface");
-//		Debug.Log("SpatialSurfaceLayer: " + surfaceLayer);
+		int surfaceLayer = MultiARInterop.GetSurfaceLayer();  // LayerMask.NameToLayer("SpatialSurface");
+		Debug.Log("SpatialSurfaceLayer: " + surfaceLayer);
 
 		// create gesture input
 		gestureRecognizer = new GestureRecognizer();
 		gestureRecognizer.SetRecognizableGestures(GestureSettings.Tap | GestureSettings.Hold);
 
 		gestureRecognizer.Tapped += GestureRecognizer_Tapped;
+
 		gestureRecognizer.HoldStarted += GestureRecognizer_HoldStarted;
 		gestureRecognizer.HoldCompleted += GestureRecognizer_HoldCompleted;
 		gestureRecognizer.HoldCanceled += GestureRecognizer_HoldCanceled;
@@ -598,15 +606,15 @@ public class WinMRInteface : MonoBehaviour, ARPlatformInterface
 		gestureRecognizer.StartCapturingGestures();
 
 		// create surface renderer
-		GameObject objRenderer = new GameObject();
-		objRenderer.name = "SurfaceRenderer";
-		DontDestroyOnLoad(objRenderer);
-
-		surfaceRenderer = objRenderer.AddComponent<SpatialMappingRenderer>();
-		surfaceRenderer.surfaceParent = objRenderer;
-
-		if(arManager.displayTrackedSurfaces || arManager.useOverlaySurface != MultiARManager.SurfaceRenderEnum.None)
+		if(arManager.useOverlaySurface != MultiARManager.SurfaceRenderEnum.None)
 		{
+			GameObject objRenderer = new GameObject();
+			objRenderer.name = "SurfaceRenderer";
+			DontDestroyOnLoad(objRenderer);
+
+			surfaceRenderer = objRenderer.AddComponent<SpatialMappingRenderer>();
+			surfaceRenderer.surfaceParent = objRenderer;
+
 			surfaceRenderer.renderState = (SpatialMappingRenderer.RenderState)arManager.useOverlaySurface;
 			
 			if(arManager.useOverlaySurface != MultiARManager.SurfaceRenderEnum.None)

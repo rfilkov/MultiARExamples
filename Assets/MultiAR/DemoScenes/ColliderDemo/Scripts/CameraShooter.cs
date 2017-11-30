@@ -5,11 +5,11 @@ using UnityEngine;
 public class CameraShooter : MonoBehaviour 
 {
 
-	[Tooltip("Prefab to be used as cannonball, when the user clicks on screen.")]
+	[Tooltip("Prefab to be used as cannonball.")]
 	public GameObject ballPrefab;
 
-	[Range(10f, 50f)]
-	public float fireAngle = 10f;
+	[Tooltip("Factor used to determine the force, according to target point distance.")]
+	public float forceFactor = 100f;
 
 
 	// reference to the MultiARManager
@@ -34,8 +34,7 @@ public class CameraShooter : MonoBehaviour
 
 			if (action == MultiARInterop.InputAction.Click)
 			{
-				// raycast world
-				//Vector2 screenPos = Input.GetTouch(0).position;
+				// raycast scene objects (including overlay surfaces)
 				MultiARInterop.TrackableHit hit;
 
 				if(arManager.RaycastToScene(true, out hit))
@@ -48,10 +47,10 @@ public class CameraShooter : MonoBehaviour
 					// instantiate the cannonball. schedule it for destroy in 5 seconds
 					GameObject cannonBall = Instantiate(ballPrefab, arCamera.transform.position, arCamera.transform.rotation);
 					cannonBall.name = "cannonBall";
-					Destroy (cannonBall, 5f); 
+					Destroy (cannonBall, 3f); 
 
-					// fire the cannonball to the hit point
-					FireCannonballToPoint(cannonBall, hit.point, fireAngle);
+					// fire the cannonball
+					FireCannonball(cannonBall, arCamera.transform.position, hit.point);
 				}
 			}
 		}
@@ -59,35 +58,20 @@ public class CameraShooter : MonoBehaviour
 	}
 
 	/// Fires the cannonball to the given point.
-	private void FireCannonballToPoint(GameObject cannonBall, Vector3 point, float fireAngle)
+	private void FireCannonball(GameObject cannonBall, Vector3 startPoint, Vector3 targetPoint)
 	{
-		// get
+		// get the rigid body
 		Rigidbody cannonBallRB = cannonBall ? cannonBall.GetComponent<Rigidbody>() : null;
 		if (cannonBallRB == null)
 			return;
 
-		// estimate the needed velocity
-		Vector3 velocity = GetBallisticVelocity(point, fireAngle);
+		// estimate direction and distance
+		Vector3 fireDir = (targetPoint - startPoint).normalized;
+		float fireDist = (targetPoint - startPoint).magnitude;
 
-		cannonBallRB.transform.position = transform.position;
-		cannonBallRB.velocity = velocity;
-	}
-
-	// calculate the ballistic velocity to reach the destination point
-	private Vector3 GetBallisticVelocity(Vector3 destination, float angle)
-	{
-		Vector3 dir = destination - transform.position; // target Direction
-		float height = dir.y; // height difference
-		dir.y = 0f; // retain only the horizontal difference
-		float dist = dir.magnitude; // horizontal direction
-		float a = angle * Mathf.Deg2Rad; // angle to radians
-		dir.y = dist * Mathf.Tan(a); // set dir to the elevation angle.
-		dist += height / Mathf.Tan(a); // correction for small height differences
-
-		// Calculate the velocity magnitude
-		float velocity = Mathf.Sqrt(dist * Physics.gravity.magnitude / Mathf.Sin(2f * a));
-
-		return velocity * dir.normalized;
+		// apply the force
+		Vector3 forceToApply = fireDir * fireDist * forceFactor;
+		cannonBallRB.AddForce(forceToApply);
 	}
 
 }

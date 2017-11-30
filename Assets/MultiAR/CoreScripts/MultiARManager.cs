@@ -234,6 +234,21 @@ public class MultiARManager : MonoBehaviour
 	}
 
 	/// <summary>
+	/// Gets the current cursor position or Vector3.zero
+	/// </summary>
+	/// <returns>The cursor position.</returns>
+	public Vector3 GetCursorPosition()
+	{
+		if(cursorObject)
+		{
+			return cursorObject.position;
+		}
+
+		return Vector3.zero;
+	}
+
+
+	/// <summary>
 	/// Determines whether input action is available.for processing
 	/// </summary>
 	/// <returns><c>true</c> input action is available; otherwise, <c>false</c>.</returns>
