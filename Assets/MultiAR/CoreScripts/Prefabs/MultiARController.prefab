@@ -267,6 +267,8 @@ MonoBehaviour:
   surfaceOcclusionMaterial: {fileID: 2100000, guid: 859f17bceb12dab4caae4ba154d5cc87,
     type: 2}
   overlaySurfaceColliders: 1
+  colliderPhysicMaterial: {fileID: 13400000, guid: ad6352a37e3a54830ab406d3cef90535,
+    type: 2}
   showCursor: 3
   cursorObject: {fileID: 4194544903986052}
   infoText: {fileID: 0}

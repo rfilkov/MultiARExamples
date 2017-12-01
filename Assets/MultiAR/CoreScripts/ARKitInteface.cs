@@ -209,24 +209,35 @@ public class ARKitInteface : MonoBehaviour, ARPlatformInterface
 			ARPlaneAnchor planeAnchor = arpag.planeAnchor;
 			trackedPlanes[i] = new MultiARInterop.TrackedSurface();
 
-			trackedPlanes[i].position = UnityARMatrixOps.GetPosition(planeAnchor.transform);
-			trackedPlanes[i].rotation = UnityARMatrixOps.GetRotation(planeAnchor.transform);
+			// surface position & rotation
+			Vector3 surfacePos = UnityARMatrixOps.GetPosition(planeAnchor.transform);  // Vector3.zero; // 
+			Quaternion surfaceRot = UnityARMatrixOps.GetRotation(planeAnchor.transform); // Quaternion.identity; // 
+
+			// add the center offset
+			Vector3 centerPos = planeAnchor.center;
+			centerPos.z = -centerPos.z;
+
+			centerPos = surfaceRot * centerPos;
+			surfacePos += centerPos;
+
+			trackedPlanes[i].position = surfacePos;
+			trackedPlanes[i].rotation = surfaceRot;
 			trackedPlanes[i].bounds = planeAnchor.extent;
 
 			if(bGetPoints)
 			{
-				Vector3[] meshVertices = new Vector3[4];
+				List<Vector3> meshVertices = new List<Vector3>();
 
-				Vector3 planeHalf = trackedPlanes[i].bounds * 0.5f;
-				meshVertices[0] = new Vector3(-planeHalf.x, planeHalf.y, planeHalf.z);
-				meshVertices[1] = new Vector3(planeHalf.x, planeHalf.y, planeHalf.z);
-				meshVertices[2] = new Vector3(planeHalf.x, planeHalf.y, -planeHalf.z);
-				meshVertices[3] = new Vector3(-planeHalf.x, planeHalf.y, -planeHalf.z);
-				trackedPlanes[i].points = meshVertices;
+				Vector3 planeHalf = planeAnchor.extent * 0.5f;
+				meshVertices.Add(new Vector3(-planeHalf.x, planeHalf.y, planeHalf.z));
+				meshVertices.Add(new Vector3(planeHalf.x, planeHalf.y, planeHalf.z));
+				meshVertices.Add(new Vector3(planeHalf.x, planeHalf.y, -planeHalf.z));
+				meshVertices.Add(new Vector3(-planeHalf.x, planeHalf.y, -planeHalf.z));
+
+				trackedPlanes[i].points = meshVertices.ToArray();
 
 				// get mesh indices
-				List<int> meshIndices = MultiARInterop.GetMeshIndices(meshVertices.Length);
-
+				List<int> meshIndices = MultiARInterop.GetMeshIndices(meshVertices.Count);
 				trackedPlanes[i].triangles = meshIndices.ToArray();
 			}
 
@@ -704,6 +715,8 @@ public class ARKitInteface : MonoBehaviour, ARPlatformInterface
 	// invoked by AnchorAdded-event
 	private void PlaneAnchorAdded(ARPlaneAnchor arPlaneAnchor)
 	{
+		Debug.Log("Plane added: " + arPlaneAnchor.identifier);
+
 		GameObject go = null;
 		if(arManager.displayTrackedSurfaces)
 		{
@@ -771,7 +784,6 @@ public class ARKitInteface : MonoBehaviour, ARPlatformInterface
 		Quaternion surfaceRot = UnityARMatrixOps.GetRotation(arPlaneAnchor.transform); // Quaternion.identity; // 
 
 		// add the center offset
-		//surfacePos += arPlaneAnchor.center;
 		Vector3 centerPos = arPlaneAnchor.center;
 		centerPos.z = -centerPos.z;
 
@@ -824,6 +836,7 @@ public class ARKitInteface : MonoBehaviour, ARPlatformInterface
 	private void PlaneAnchorRemoved(ARPlaneAnchor arPlaneAnchor)
 	{
 		string surfId = arPlaneAnchor.identifier;
+		Debug.Log("Plane removed: " + surfId);
 
 		// remove plane anchor
 		if (planeAnchorDict.ContainsKey(surfId)) 

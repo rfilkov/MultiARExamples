@@ -26,14 +26,17 @@ public class MultiARManager : MonoBehaviour
 	[Tooltip("Whether to create scene surfaces to overlay the ar-detected surfaces.")]
 	public SurfaceRenderEnum useOverlaySurface = SurfaceRenderEnum.Visualization;
 
-	[Tooltip("Material used to render the overlay surfaces. If left empty, the default surface material will be used.")]
+	[Tooltip("Material used to render the overlay surfaces.")]
 	public Material surfaceVisualizationMaterial;
 
-	[Tooltip("Material used to render the overlay surfaces. If left empty, the default surface material will be used.")]
+	[Tooltip("Material used to render the overlay surfaces.")]
 	public Material surfaceOcclusionMaterial;
 
 	[Tooltip("Whether the overlay surfaces should have colliders.")]
 	public bool overlaySurfaceColliders = true;
+
+	[Tooltip("Physic material to be used by surface colliders.")]
+	public PhysicMaterial colliderPhysicMaterial;
 
 	public enum ShowCursorEnum : int { Never, OnSurfacesOnly, OnSceneObjects, Always };
 	[Tooltip("How the cursor should be visualized.")]
