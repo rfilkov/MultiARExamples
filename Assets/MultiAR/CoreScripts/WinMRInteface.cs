@@ -978,9 +978,10 @@ public class WinMRInteface : MonoBehaviour, ARPlatformInterface
 		{
 			inputAction = MultiARInterop.InputAction.Grip;
 
-			Vector3 screenSize = new Vector3(Screen.width, Screen.height, 0f);
+			//Vector3 screenSize = new Vector3(Screen.width, Screen.height, 0f);
+			float screenMinDim = Screen.width < Screen.height ? Screen.width : Screen.height;
 			Vector3 mouseRelPos = Input.mousePosition - startMousePos;
-			inputNavCoordinates = new Vector3(mouseRelPos.x / screenSize.x, mouseRelPos.y / screenSize.y, 0f);
+			inputNavCoordinates = mouseRelPos / screenMinDim;  // new Vector3(mouseRelPos.x / screenSize.x, mouseRelPos.y / screenSize.y, 0f);
 		}
 		else if(Input.GetMouseButtonUp(0))
 		{

@@ -844,6 +844,10 @@ public class ARCoreInteface : MonoBehaviour, ARPlatformInterface
 			case TouchPhase.Moved:
 			case TouchPhase.Stationary:
 				inputAction = MultiARInterop.InputAction.Grip;
+
+				float screenMinDim = Screen.width < Screen.height ? Screen.width : Screen.height;
+				Vector3 mouseRelPos = touch.position - startInputPos;
+				inputNavCoordinates = mouseRelPos / screenMinDim;
 				break;
 
 			case TouchPhase.Ended:

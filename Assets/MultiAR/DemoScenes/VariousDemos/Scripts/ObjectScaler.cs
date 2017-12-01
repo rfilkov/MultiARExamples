@@ -18,6 +18,7 @@ public class ObjectScaler : MonoBehaviour
 
 	// instantiated object
 	private GameObject objectInstance;
+	private float lastInstanceTime = 0f;
 
 	// start object scale and target scale
 	private Vector3 objectScale = Vector3.one;
@@ -37,8 +38,11 @@ public class ObjectScaler : MonoBehaviour
 		{
 			MultiARInterop.InputAction action = arManager.GetInputAction();
 
-			if (action == MultiARInterop.InputAction.Click)
+			if (action == MultiARInterop.InputAction.Click && (Time.time - lastInstanceTime) >= 1.5f)
 			{
+				// dont allow too often instance creation
+				lastInstanceTime = Time.time;
+
 				// remove current object, if any
 				if(objectInstance)
 				{
