@@ -772,7 +772,10 @@ public class ARKitInteface : MonoBehaviour, ARPlatformInterface
 
 		// add the center offset
 		//surfacePos += arPlaneAnchor.center;
-		Vector3 centerPos = surfaceRot * arPlaneAnchor.center;
+		Vector3 centerPos = arPlaneAnchor.center;
+		centerPos.z = -centerPos.z;
+
+		centerPos = surfaceRot * centerPos;
 		surfacePos += centerPos;
 
 		Vector3 planeHalf = arPlaneAnchor.extent * 0.5f;
