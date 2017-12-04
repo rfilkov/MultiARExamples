@@ -159,7 +159,7 @@ public class TestSceneLoad : MonoBehaviour
 
 				OverlaySurfaceUpdater overlaySurface = overlaySurfaceObj.AddComponent<OverlaySurfaceUpdater>();
 				overlaySurface.SetSurfaceMaterial(surfaceMaterial);
-				overlaySurface.SetSurfaceCollider(true);
+				overlaySurface.SetSurfaceCollider(true, null);
 
 				Vector3 surfacePos = poseData.surfaces.surfaces[i].position;
 				Quaternion surfaceRot = Quaternion.Euler(poseData.surfaces.surfaces[i].rotation);
@@ -239,7 +239,7 @@ public class TestSceneLoad : MonoBehaviour
 
 		OverlaySurfaceUpdater overlaySurface = overlaySurfaceObj.AddComponent<OverlaySurfaceUpdater>();
 		overlaySurface.SetSurfaceMaterial(surfaceMaterial);
-		overlaySurface.SetSurfaceCollider(true);
+		overlaySurface.SetSurfaceCollider(true, null);
 
 		// update the surface mesh
 		overlaySurface.UpdateSurfaceMesh(surfacePos, surfaceRot, meshVertices, meshIndices);

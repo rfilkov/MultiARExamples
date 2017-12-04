@@ -32,11 +32,11 @@ public class MultiARManager : MonoBehaviour
 	[Tooltip("Material used to render the overlay surfaces.")]
 	public Material surfaceOcclusionMaterial;
 
-	[Tooltip("Whether the overlay surfaces should have colliders.")]
-	public bool overlaySurfaceColliders = true;
+	[Tooltip("Whether the overlay surfaces should have colliders, or not.")]
+	public bool surfaceCollider = true;
 
-	[Tooltip("Physic material to be used by surface colliders.")]
-	public PhysicMaterial colliderPhysicMaterial;
+	[Tooltip("Physic material to be used by overlay surface colliders.")]
+	public PhysicMaterial colliderMaterial;
 
 	public enum ShowCursorEnum : int { Never, OnSurfacesOnly, OnSceneObjects, Always };
 	[Tooltip("How the cursor should be visualized.")]

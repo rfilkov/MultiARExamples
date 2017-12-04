@@ -21,8 +21,21 @@ namespace HoloToolkit.Unity.Boundary
         [Tooltip("Quad prefab to display as the floor.")]
         public GameObject FloorQuad;
         private GameObject floorQuadInstance;
-        public float CurrentFloorHeightOffset { get { return newFloorHeight.y; } }
         private Vector3 newFloorHeight;
+
+		public float CurrentFloorHeightOffset 
+		{ 
+			get 
+			{ 
+				return newFloorHeight.y; 
+			} 
+
+			set 
+			{  
+				newFloorHeight.y = value;
+				floorQuadInstance.transform.localPosition = newFloorHeight;
+			} 
+		}
 
 #if UNITY_WSA && UNITY_2017_2_OR_NEWER
         [SerializeField]
@@ -121,7 +134,8 @@ namespace HoloToolkit.Unity.Boundary
 
             if (FloorQuad != null && HolographicSettings.IsDisplayOpaque)
             {
-                floorQuadInstance = Instantiate(FloorQuad);
+                //floorQuadInstance = Instantiate(FloorQuad);
+				floorQuadInstance = FloorQuad;
 
                 if (!XRDevice.isPresent)
                 {

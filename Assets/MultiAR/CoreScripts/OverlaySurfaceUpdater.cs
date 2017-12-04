@@ -50,7 +50,7 @@ public class OverlaySurfaceUpdater : MonoBehaviour
 	/// Sets the surface collider.
 	/// </summary>
 	/// <param name="isCollider">If set to <c>true</c> adds mesh collider to the object.</param>
-	public void SetSurfaceCollider(bool isCollider)
+	public void SetSurfaceCollider(bool isCollider, PhysicMaterial matCollider)
 	{
 		// get or create mesh collider
 		meshCollider = GetComponent<MeshCollider>();
@@ -60,6 +60,11 @@ public class OverlaySurfaceUpdater : MonoBehaviour
 			if(meshCollider == null)
 			{
 				meshCollider = gameObject.AddComponent<MeshCollider>();
+			}
+
+			if(matCollider)
+			{
+				meshCollider.material = matCollider;
 			}
 		}
 		else if(meshCollider)

@@ -705,7 +705,7 @@ public class ARCoreInteface : MonoBehaviour, ARPlatformInterface
 
 					OverlaySurfaceUpdater overlaySurface = overlaySurfaceObj.AddComponent<OverlaySurfaceUpdater>();
 					overlaySurface.SetSurfaceMaterial(surfaceMat);
-					overlaySurface.SetSurfaceCollider(arManager.overlaySurfaceColliders);
+					overlaySurface.SetSurfaceCollider(arManager.surfaceCollider, arManager.colliderMaterial);
 
 					dictOverlaySurfaces.Add(surfId, overlaySurface);
 				}

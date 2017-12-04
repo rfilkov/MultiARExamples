@@ -592,7 +592,7 @@ public class TestLocationService : MonoBehaviour
 
 					OverlaySurfaceUpdater overlaySurface = overlaySurfaceObj.AddComponent<OverlaySurfaceUpdater>();
 					overlaySurface.SetSurfaceMaterial(surfaceMaterial);
-					overlaySurface.SetSurfaceCollider(true);
+					overlaySurface.SetSurfaceCollider(true, null);
 
 					Vector3 surfacePos = data.surfaces.surfaces[i].position;
 					Quaternion surfaceRot = Quaternion.Euler(data.surfaces.surfaces[i].rotation);

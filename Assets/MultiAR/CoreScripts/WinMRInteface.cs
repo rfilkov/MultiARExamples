@@ -46,6 +46,7 @@ public class WinMRInteface : MonoBehaviour, ARPlatformInterface
 
 	// surface renderer
 	private SpatialMappingRenderer surfaceRenderer;
+	private Transform surfaceRootTransform;
 	private int surfacesCheckSum = 0;
 
 	// surface collider
@@ -186,7 +187,7 @@ public class WinMRInteface : MonoBehaviour, ARPlatformInterface
 	/// <returns>The tracked surfaces count.</returns>
 	public int GetTrackedSurfacesCount()
 	{
-		return surfaceRenderer ? surfaceRenderer.transform.childCount : 0;
+		return surfaceRootTransform ? surfaceRootTransform.childCount : 0;
 	}
 
 	/// <summary>
@@ -197,14 +198,14 @@ public class WinMRInteface : MonoBehaviour, ARPlatformInterface
 	{
 		MultiARInterop.TrackedSurface[] trackedPlanes = new MultiARInterop.TrackedSurface[0];
 
-		if(surfaceRenderer)
+		if(surfaceRootTransform)
 		{
-			int numSurfaces = surfaceRenderer.transform.childCount;
+			int numSurfaces = surfaceRootTransform.childCount;
 			trackedPlanes = new MultiARInterop.TrackedSurface[numSurfaces];
 
 			for(int i = 0; i < numSurfaces; i++)
 			{
-				Transform surfaceTransform = surfaceRenderer.transform.GetChild(i);
+				Transform surfaceTransform = surfaceRootTransform.GetChild(i);
 				trackedPlanes[i] = new MultiARInterop.TrackedSurface();
 
 				trackedPlanes[i].position = surfaceTransform.position;
@@ -651,6 +652,8 @@ public class WinMRInteface : MonoBehaviour, ARPlatformInterface
 			GameObject objRenderer = new GameObject();
 			objRenderer.name = "SurfaceRenderer";
 			objRenderer.layer = MultiARInterop.GetSurfaceLayer();
+
+			surfaceRootTransform = objRenderer.transform;
 			DontDestroyOnLoad(objRenderer);
 
 			if(!isDisplayOpaque)
@@ -670,7 +673,8 @@ public class WinMRInteface : MonoBehaviour, ARPlatformInterface
 			else
 			{
 				// mr headsets
-				CreateBoundaryPlane(objRenderer.transform, arManager.GetSurfaceMaterial(), arManager.overlaySurfaceColliders);
+				CreateBoundaryPlane(objRenderer.transform, arManager.GetSurfaceMaterial(), 
+					arManager.surfaceCollider, arManager.colliderMaterial);
 
 				boundaryMgr = objRenderer.AddComponent<HoloToolkit.Unity.Boundary.BoundaryManager>();
 				boundaryMgr.FloorQuad = boundaryPlane;
@@ -679,7 +683,7 @@ public class WinMRInteface : MonoBehaviour, ARPlatformInterface
 		}
 
 		// create surface collider
-		if(arManager.overlaySurfaceColliders)
+		if(arManager.surfaceCollider)
 		{
 			GameObject objCollider = new GameObject();
 			objCollider.name = "SurfaceCollider";
@@ -694,6 +698,11 @@ public class WinMRInteface : MonoBehaviour, ARPlatformInterface
 
 				surfaceCollider.lodType = SpatialMappingBase.LODType.Low;
 				surfaceCollider.layer = MultiARInterop.GetSurfaceLayer();
+
+				if(arManager.colliderMaterial)
+				{
+					surfaceCollider.material = arManager.colliderMaterial;
+				}
 			}
 			else
 			{
@@ -701,7 +710,7 @@ public class WinMRInteface : MonoBehaviour, ARPlatformInterface
 				if(boundaryPlane == null)
 				{
 					// there was no boundary rendering
-					CreateBoundaryPlane(objCollider.transform, null, true);
+					CreateBoundaryPlane(objCollider.transform, null, true, arManager.colliderMaterial);
 
 					boundaryMgr = objCollider.AddComponent<HoloToolkit.Unity.Boundary.BoundaryManager>();
 					boundaryMgr.FloorQuad = boundaryPlane;
@@ -709,6 +718,16 @@ public class WinMRInteface : MonoBehaviour, ARPlatformInterface
 				}
 			}
 		}
+
+//		// if camera is too near to the floor, lower the floor 1.5 meter below the camera
+//		if(currentCamera && boundaryMgr)
+//		{
+//			if(currentCamera.transform.position.y < 0.1f)
+//			{
+//				boundaryMgr.CurrentFloorHeightOffset = currentCamera.transform.position.y - 1.5f;
+//				Debug.Log(string.Format("FloorHeightOffset set below the camera at {0:F2}m.", boundaryMgr.CurrentFloorHeightOffset));
+//			}
+//		}
 
 		// starts co-routine to check rendered surfaces
 		StartCoroutine(CheckSurfacesRoutine());
@@ -724,7 +743,7 @@ public class WinMRInteface : MonoBehaviour, ARPlatformInterface
 	}
 
 	// creates boundary plane for mr headsets
-	private void CreateBoundaryPlane(Transform planeParent, Material planeMat, bool isCollider)
+	private void CreateBoundaryPlane(Transform planeParent, Material planeMat, bool isCollider, PhysicMaterial colliderMat)
 	{
 		//if(boundaryPlane == null)
 		{
@@ -745,6 +764,11 @@ public class WinMRInteface : MonoBehaviour, ARPlatformInterface
 		if(meshCollider)
 		{
 			meshCollider.enabled = isCollider;
+
+			if(isCollider && colliderMat)
+			{
+				meshCollider.material = colliderMat;
+			}
 		}
 	}
 
@@ -757,9 +781,10 @@ public class WinMRInteface : MonoBehaviour, ARPlatformInterface
 
 			WorldManager.OnPositionalLocatorStateChanged -= WorldManager_OnPositionalLocatorStateChanged;
 
-			if(surfaceRenderer)
+			if(surfaceRootTransform)
 			{
-				Destroy(surfaceRenderer.gameObject);
+				Destroy(surfaceRootTransform.gameObject);
+				surfaceRootTransform = null;
 				surfaceRenderer = null;
 			}
 
@@ -1003,9 +1028,9 @@ public class WinMRInteface : MonoBehaviour, ARPlatformInterface
 	private IEnumerator CheckSurfacesRoutine()
 	{
 		// changes trackedPlanesTimestamp if surfaces differ
-		while(surfaceRenderer)
+		while(surfaceRootTransform)
 		{
-			MeshFilter[] meshFilters = surfaceRenderer.GetComponentsInChildren<MeshFilter>();
+			MeshFilter[] meshFilters = surfaceRootTransform.GetComponentsInChildren<MeshFilter>();
 
 			int checkSum = 0;
 			for(int i = 0; i < meshFilters.Length; i++)
@@ -1026,7 +1051,7 @@ public class WinMRInteface : MonoBehaviour, ARPlatformInterface
 				//Debug.Log("surfacesCheckSum: " + surfacesCheckSum + ", trackedPlanesTimestamp: " + trackedPlanesTimestamp);
 			}
 
-			yield return new WaitForSeconds(surfaceRenderer.secondsBetweenUpdates);
+			yield return new WaitForSeconds(5f);  // 5 seconds between updatess
 		}
 	}
 

@@ -213,6 +213,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0f49820bf643da549a177ffe70e82ce0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  qualityLevel: 0
 --- !u!114 &114504722886925034
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -266,9 +267,8 @@ MonoBehaviour:
     type: 2}
   surfaceOcclusionMaterial: {fileID: 2100000, guid: 859f17bceb12dab4caae4ba154d5cc87,
     type: 2}
-  overlaySurfaceColliders: 1
-  colliderPhysicMaterial: {fileID: 13400000, guid: ad6352a37e3a54830ab406d3cef90535,
-    type: 2}
+  surfaceCollider: 1
+  colliderMaterial: {fileID: 13400000, guid: ad6352a37e3a54830ab406d3cef90535, type: 2}
   showCursor: 3
   cursorObject: {fileID: 4194544903986052}
   infoText: {fileID: 0}
