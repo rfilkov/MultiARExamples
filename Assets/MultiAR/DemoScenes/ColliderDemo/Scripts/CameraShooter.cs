@@ -8,15 +8,23 @@ public class CameraShooter : MonoBehaviour
 	[Tooltip("Prefab to be used as cannonball.")]
 	public GameObject ballPrefab;
 
+	[Tooltip("Aim given distance (in meters) above the hit-point.")]
+	[Range(0f, 0.5f)]
+	public float aimAboveDistance = 0.1f;
+
 	[Tooltip("Factor used to determine the force, according to target point distance.")]
 	public float forceFactor = 100f;
+
+	[Tooltip("Whether to destroy the object automatically, some time after its creation.")]
+	public float destroyInSeconds = 3f;
 
 	[Tooltip("List of available ball materials.")]
 	public Material[] ballMaterials;
 
 	// reference to the MultiARManager
 	private MultiARManager arManager;
-
+	// object instance counter
+	private int objectCounter = 0;
 
 	// Use this for initialization
 	void Start () 
@@ -47,14 +55,22 @@ public class CameraShooter : MonoBehaviour
 
 					// instantiate the cannonball. schedule it for destroy in 3 seconds
 					GameObject cannonBall = Instantiate(ballPrefab, arCamera.transform.position, arCamera.transform.rotation);
-					cannonBall.name = "cannonBall";
-					Destroy(cannonBall, 3f);
+					cannonBall.name = ballPrefab.name + "-" + objectCounter;
+					objectCounter++;
+
+					if(destroyInSeconds > 0f)
+					{
+						Destroy(cannonBall, destroyInSeconds);
+					}
 
 					// set random ball material
 					SetBallMaterial(cannonBall);
 
 					// fire the cannonball
-					FireCannonball(cannonBall, arCamera.transform.position, hit.point);
+					Vector3 targetPoint = hit.point;
+					targetPoint.y -= aimAboveDistance;
+
+					FireCannonball(cannonBall, arCamera.transform.position, targetPoint);
 				}
 			}
 		}

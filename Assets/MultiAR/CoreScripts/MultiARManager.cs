@@ -17,9 +17,11 @@ public class MultiARManager : MonoBehaviour
 	public GameObject pointCloudPrefab;
 
 	[Tooltip("Whether to display the tracked surfaces.")]
+	[HideInInspector]
 	public bool displayTrackedSurfaces = false;
 
 	[Tooltip("Whether the world raycasts may hit tracked surfaces only, or points from the cloud in general.")]
+	[HideInInspector]
 	public bool hitTrackedSurfacesOnly = true;
 
 	public enum SurfaceRenderEnum : int { None, Occlusion, Visualization };
