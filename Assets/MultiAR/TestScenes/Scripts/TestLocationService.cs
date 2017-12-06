@@ -329,7 +329,7 @@ public class TestLocationService : MonoBehaviour
 			// reuse compass-info to show path
 			if (bSaved && locInfoText) 
 			{
-				Vector3 latLonM = GeoTools.LatLong2Meters(lastLoc.latitude, lastLoc.longitude, lastLoc.altitude);
+				Vector3 latLonM = GeoUtils.LatLong2Meters(lastLoc.latitude, lastLoc.longitude, lastLoc.altitude);
 				long latm = (long)((double)latLonM.x * 1000.0);
 				long lonm = (long)((double)latLonM.y * 1000.0);
 
@@ -430,7 +430,7 @@ public class TestLocationService : MonoBehaviour
 			data.location = new Vector3(lastLoc.latitude, lastLoc.longitude, lastLoc.altitude);
 			data.accuracy = new Vector3(lastLoc.horizontalAccuracy, lastLoc.verticalAccuracy, 0f);
 
-			Vector3 latLonM = GeoTools.LatLong2Meters(lastLoc.latitude, lastLoc.longitude, lastLoc.altitude);
+			Vector3 latLonM = GeoUtils.LatLong2Meters(lastLoc.latitude, lastLoc.longitude, lastLoc.altitude);
 			data.latm = (long)((double)latLonM.x * 1000.0);
 			data.lonm = (long)((double)latLonM.y * 1000.0);
 		}
@@ -500,7 +500,7 @@ public class TestLocationService : MonoBehaviour
 
 			data.surfaces.surfaces[i].bounds = trackedSurfaces[i].bounds;
 			data.surfaces.surfaces[i].points = trackedSurfaces[i].points;
-			data.surfaces.surfaces[i].triangles = trackedSurfaces[i].triangles;
+			data.surfaces.surfaces[i].indices = trackedSurfaces[i].triangles;
 		}
 
 //		// point cloud
@@ -601,7 +601,7 @@ public class TestLocationService : MonoBehaviour
 					surfaceRot = Quaternion.Euler(surfaceRot.eulerAngles + compStartRot.eulerAngles);
 
 					List<Vector3> meshVertices = new List<Vector3>(data.surfaces.surfaces[i].points);
-					List<int> meshIndices = new List<int>(data.surfaces.surfaces[i].triangles);
+					List<int> meshIndices = new List<int>(data.surfaces.surfaces[i].indices);
 
 					// update the surface mesh
 					overlaySurface.UpdateSurfaceMesh(surfacePos, surfaceRot, meshVertices, meshIndices);

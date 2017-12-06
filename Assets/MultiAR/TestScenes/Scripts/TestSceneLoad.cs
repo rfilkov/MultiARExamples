@@ -174,7 +174,7 @@ public class TestSceneLoad : MonoBehaviour
 				surfaceRot = Quaternion.Euler(surfaceRot.eulerAngles + compStartRot.eulerAngles);
 
 				List<Vector3> meshVertices = new List<Vector3>(poseData.surfaces.surfaces[i].points);
-				List<int> meshIndices = new List<int>(poseData.surfaces.surfaces[i].triangles);
+				List<int> meshIndices = new List<int>(poseData.surfaces.surfaces[i].indices);
 
 //				Quaternion invRot = Quaternion.Inverse(surfaceRot);
 //				for (int v = 0; v < meshVertices.Count; v++) 

@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class GeoTools : MonoBehaviour 
+public class GeoUtils : MonoBehaviour 
 {
 
 	// converts geo-coordinates to meters

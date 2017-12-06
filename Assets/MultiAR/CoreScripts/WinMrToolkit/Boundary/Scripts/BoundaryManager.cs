@@ -140,7 +140,7 @@ namespace HoloToolkit.Unity.Boundary
                 if (!XRDevice.isPresent)
                 {
                     // So the floor quad does not occlude in editor testing, draw it lower.
-                    floorQuadInstance.transform.localPosition = new Vector3(0, -3, 0);
+                    floorQuadInstance.transform.localPosition = new Vector3(0, -2, 0);
                 }
                 else
                 {
