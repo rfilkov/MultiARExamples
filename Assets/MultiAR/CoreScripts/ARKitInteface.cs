@@ -43,10 +43,6 @@ public class ARKitInteface : MonoBehaviour, ARPlatformInterface
 	// plane anchors
 	private Dictionary<string, ARPlaneAnchorGameObject> planeAnchorDict = new Dictionary<string, ARPlaneAnchorGameObject>();
 
-	// the overlay surfaces
-	private GameObject surfaceRendererRoot = null;
-	private Dictionary<string, OverlaySurfaceUpdater> dictOverlaySurfaces = new Dictionary<string, OverlaySurfaceUpdater>();
-
 	// input action and screen position
 	private MultiARInterop.InputAction inputAction = MultiARInterop.InputAction.None;
 	private Vector2 inputPos = Vector2.zero, startInputPos = Vector2.zero;
@@ -614,20 +610,24 @@ public class ARKitInteface : MonoBehaviour, ARPlatformInterface
 		UnityARCameraManager camManager = camManagerObj.AddComponent<UnityARCameraManager>();
 		camManager.m_camera = currentCamera;
 
-		// check for point cloud getter
-		if(arManager.getPointCloud)
-		{
-			MultiARInterop.MultiARData arData = arManager.GetARData();
+		// get ar-data
+		MultiARInterop.MultiARData arData = arManager ? arManager.GetARData() : null;
 
+		// check for point cloud getter
+		if(arManager && arManager.getPointCloud)
+		{
 			arData.pointCloudData = new Vector3[0];
 			arData.pointCloudLength = 0;
 			arData.pointCloudTimestamp = 0.0;
 		}
 
 		// create surface renderer
-		surfaceRendererRoot = new GameObject();
-		surfaceRendererRoot.name = "SurfaceRenderer";
-		DontDestroyOnLoad(surfaceRendererRoot);
+		if (arManager && arData != null) 
+		{
+			arData.surfaceRendererRoot = new GameObject();
+			arData.surfaceRendererRoot.name = "SurfaceRenderer";
+			DontDestroyOnLoad(arData.surfaceRendererRoot);
+		}
 
 		// check for tracked plane display
 		if(arManager.displayTrackedSurfaces && trackedPlanePrefab)
@@ -738,29 +738,31 @@ public class ARKitInteface : MonoBehaviour, ARPlatformInterface
 			Material surfaceMat = arManager.GetSurfaceMaterial();
 			int surfaceLayer = MultiARInterop.GetSurfaceLayer();
 
+			MultiARInterop.MultiARData arData = arManager.GetARData();
+
 			string surfId = arPlaneAnchor.identifier;
-			if(!dictOverlaySurfaces.ContainsKey(surfId))
+			if(!arData.dictOverlaySurfaces.ContainsKey(surfId))
 			{
 				GameObject overlaySurfaceObj = new GameObject();
 				overlaySurfaceObj.name = "surface-" + surfId;
 
 				overlaySurfaceObj.layer = surfaceLayer;
-				overlaySurfaceObj.transform.SetParent(surfaceRendererRoot.transform);
+				overlaySurfaceObj.transform.SetParent(arData.surfaceRendererRoot ? arData.surfaceRendererRoot.transform : null);
 
-				GameObject overlayCubeObj = GameObject.CreatePrimitive(PrimitiveType.Cube);
-				overlayCubeObj.name = "surface-cube-" + surfId;
-				overlayCubeObj.transform.localScale = new Vector3(0.2f, 0.2f, 0.2f);
-				overlayCubeObj.transform.SetParent(overlaySurfaceObj.transform);
+//				GameObject overlayCubeObj = GameObject.CreatePrimitive(PrimitiveType.Cube);
+//				overlayCubeObj.name = "surface-cube-" + surfId;
+//				overlayCubeObj.transform.localScale = new Vector3(0.2f, 0.2f, 0.2f);
+//				overlayCubeObj.transform.SetParent(overlaySurfaceObj.transform);
 
 				OverlaySurfaceUpdater overlaySurface = overlaySurfaceObj.AddComponent<OverlaySurfaceUpdater>();
 				overlaySurface.SetSurfaceMaterial(surfaceMat);
 				overlaySurface.SetSurfaceCollider(arManager.surfaceCollider, arManager.colliderMaterial);
 
-				dictOverlaySurfaces.Add(surfId, overlaySurface);
+				arData.dictOverlaySurfaces.Add(surfId, overlaySurface);
 			}
 
 			// update the surface mesh
-			UpdateOverlaySurface(dictOverlaySurfaces[surfId], arPlaneAnchor);
+			UpdateOverlaySurface(arData.dictOverlaySurfaces[surfId], arPlaneAnchor);
 		}
 
 	}
@@ -826,9 +828,10 @@ public class ARKitInteface : MonoBehaviour, ARPlatformInterface
 		}
 
 		// update overlay surface
-		if (dictOverlaySurfaces.ContainsKey(surfId)) 
+		MultiARInterop.MultiARData arData = arManager.GetARData();
+		if (arData.dictOverlaySurfaces.ContainsKey(surfId)) 
 		{
-			UpdateOverlaySurface(dictOverlaySurfaces[surfId], arPlaneAnchor);
+			UpdateOverlaySurface(arData.dictOverlaySurfaces[surfId], arPlaneAnchor);
 		}
 	}
 
@@ -853,10 +856,11 @@ public class ARKitInteface : MonoBehaviour, ARPlatformInterface
 		}
 
 		// remove overlay surface
-		if (dictOverlaySurfaces.ContainsKey(surfId)) 
+		MultiARInterop.MultiARData arData = arManager.GetARData();
+		if (arData.dictOverlaySurfaces.ContainsKey(surfId)) 
 		{
-			OverlaySurfaceUpdater overlaySurface = dictOverlaySurfaces[surfId];
-			dictOverlaySurfaces.Remove(surfId);
+			OverlaySurfaceUpdater overlaySurface = arData.dictOverlaySurfaces[surfId];
+			arData.dictOverlaySurfaces.Remove(surfId);
 
 			Destroy(overlaySurface.gameObject);
 		}
@@ -929,6 +933,7 @@ public class ARKitInteface : MonoBehaviour, ARPlatformInterface
 			{
 			case TouchPhase.Began:
 				inputAction = MultiARInterop.InputAction.Click;
+				inputNavCoordinates = Vector3.zero;
 				startInputPos = touch.position;
 				break;
 

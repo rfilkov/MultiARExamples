@@ -655,6 +655,22 @@ public class MultiARManager : MonoBehaviour
 
 
 	/// <summary>
+	/// Destroys all anchors and their respective anchored objects.
+	/// </summary>
+	public void DestroyAllAnchors()
+	{
+		if (arData.allAnchorsDict != null && arData.allAnchorsDict.Count > 0) 
+		{
+			List<string> alAnchorIds = new List<string>(arData.allAnchorsDict.Keys);
+
+			foreach (string anchorId in alAnchorIds) 
+			{
+				RemoveGameObjectAnchor(anchorId, false);
+			}
+		}
+	}
+
+	/// <summary>
 	/// Refreshs the object references after next scene load.
 	/// </summary>
 	public void RefreshSceneReferences()
@@ -737,8 +753,10 @@ public class MultiARManager : MonoBehaviour
 		if (pointCloudPrefab) 
 		{
 			GameObject pointCloudObj = Instantiate(pointCloudPrefab);
-			MeshFilter pointCloudMF = pointCloudObj.GetComponent<MeshFilter>();
+			pointCloudObj.transform.SetParent(transform);
+			DontDestroyOnLoad(pointCloudObj);
 
+			MeshFilter pointCloudMF = pointCloudObj.GetComponent<MeshFilter>();
 			if (pointCloudMF) 
 			{
 				pointCloudMesh = pointCloudMF.mesh;

@@ -29,7 +29,7 @@ public class JsonCameraPose
 
 	//public JsonTrackedSurfaces surfacesOrig;
 
-	public JsonTrackedSurfaces surfaces;
+	public JsonSurfaceSet surfaceSet;
 
 	public JsonPointCloud pointCloud;
 

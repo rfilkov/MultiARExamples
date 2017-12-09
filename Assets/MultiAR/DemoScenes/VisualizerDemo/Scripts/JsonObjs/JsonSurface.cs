@@ -11,7 +11,7 @@ public class JsonSurface
 
 	public Vector3 bounds;
 
-	public Vector3[] points;
+	public Vector3[] vertices;
 
 	public int[] indices;
 

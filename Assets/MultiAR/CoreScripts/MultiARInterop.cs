@@ -80,6 +80,10 @@ public class MultiARInterop
 
 		// anchored objects
 		public Dictionary<string, List<GameObject>> allAnchorsDict = new Dictionary<string, List<GameObject>>();
+
+		// the overlay surfaces
+		public GameObject surfaceRendererRoot = null;
+		public Dictionary<string, OverlaySurfaceUpdater> dictOverlaySurfaces = new Dictionary<string, OverlaySurfaceUpdater>();
 	}
 
 	/// <summary>

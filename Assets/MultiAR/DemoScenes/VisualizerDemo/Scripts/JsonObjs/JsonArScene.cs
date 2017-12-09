@@ -5,11 +5,19 @@
 public class JsonArScene 
 {
 
+	public int saverVer;
+
+	public string sceneDesc;
+
 	public double timestamp;
+
+	public bool locEnabled;
 
 	public Vector3 location;
 
 	public long latm, lonm, altm;
+
+	public bool gyroEnabled;
 
 	public Vector3 gyroAttitude;
 
@@ -21,6 +29,6 @@ public class JsonArScene
 
 	public Vector3 camRotation;
 
-	public JsonTrackedSurfaces surfaces;
+	public JsonSurfaceSet surfaceSet;
 
 }

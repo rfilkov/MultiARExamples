@@ -46,10 +46,8 @@ public class ARCoreInteface : MonoBehaviour, ARPlatformInterface
 	// all detected planes
 	private List<TrackedPlane> allTrackedPlanes = new List<TrackedPlane>();
 
-	// the overlay surfaces
-	private GameObject surfaceRendererRoot = null;
-	private Dictionary<int, OverlaySurfaceUpdater> dictOverlaySurfaces = new Dictionary<int, OverlaySurfaceUpdater>();
-	private List<int> alSurfacesToDelete = new List<int>();
+	// regarding overlay surfaces
+	private List<string> alSurfacesToDelete = new List<string>();
 
 	// colors to use for plane display
 	private Color[] planeColors = new Color[] { 
@@ -591,20 +589,23 @@ public class ARCoreInteface : MonoBehaviour, ARPlatformInterface
 		// add the ar-light component
 		currentLight.gameObject.AddComponent<MultiARDirectionalLight>();
 
+		// get ar-data
+		MultiARInterop.MultiARData arData = arManager ? arManager.GetARData() : null;
 
 		if(arManager && arManager.getPointCloud)
 		{
-			MultiARInterop.MultiARData arData = arManager.GetARData();
-
 			arData.pointCloudData = new Vector3[MultiARInterop.MAX_POINT_COUNT];
 			arData.pointCloudLength = 0;
 			arData.pointCloudTimestamp = 0.0;
 		}
 
 		// create surface renderer
-		surfaceRendererRoot = new GameObject();
-		surfaceRendererRoot.name = "SurfaceRenderer";
-		DontDestroyOnLoad(surfaceRendererRoot);
+		if (arManager && arData != null) 
+		{
+			arData.surfaceRendererRoot = new GameObject();
+			arData.surfaceRendererRoot.name = "SurfaceRenderer";
+			DontDestroyOnLoad(arData.surfaceRendererRoot);
+		}
 
 		// interface is initialized
 		isInitialized = true;
@@ -680,7 +681,7 @@ public class ARCoreInteface : MonoBehaviour, ARPlatformInterface
 		if(arManager.useOverlaySurface != MultiARManager.SurfaceRenderEnum.None)
 		{
 			alSurfacesToDelete.Clear();
-			alSurfacesToDelete.AddRange(dictOverlaySurfaces.Keys);
+			alSurfacesToDelete.AddRange(arData.dictOverlaySurfaces.Keys);
 
 			// estimate the material
 			Material surfaceMat = arManager.GetSurfaceMaterial();
@@ -688,15 +689,15 @@ public class ARCoreInteface : MonoBehaviour, ARPlatformInterface
 
 			for(int i = 0; i < allTrackedPlanes.Count; i++)
 			{
-				int surfId = allTrackedPlanes[i].m_apiPlaneData.id;
+				string surfId = allTrackedPlanes[i].m_apiPlaneData.id.ToString();
 
-				if(!dictOverlaySurfaces.ContainsKey(surfId))
+				if(!arData.dictOverlaySurfaces.ContainsKey(surfId))
 				{
 					GameObject overlaySurfaceObj = new GameObject();
 					overlaySurfaceObj.name = "surface-" + surfId;
 
 					overlaySurfaceObj.layer = surfaceLayer;
-					overlaySurfaceObj.transform.SetParent(surfaceRendererRoot.transform);
+					overlaySurfaceObj.transform.SetParent(arData.surfaceRendererRoot ? arData.surfaceRendererRoot.transform : null);
 
 //					GameObject overlayCubeObj = GameObject.CreatePrimitive(PrimitiveType.Cube);
 //					overlayCubeObj.name = "surface-cube-" + surfId;
@@ -707,11 +708,11 @@ public class ARCoreInteface : MonoBehaviour, ARPlatformInterface
 					overlaySurface.SetSurfaceMaterial(surfaceMat);
 					overlaySurface.SetSurfaceCollider(arManager.surfaceCollider, arManager.colliderMaterial);
 
-					dictOverlaySurfaces.Add(surfId, overlaySurface);
+					arData.dictOverlaySurfaces.Add(surfId, overlaySurface);
 				}
 
 				// update the surface mesh
-				bool bValidSurface = UpdateOverlaySurface(dictOverlaySurfaces[surfId], allTrackedPlanes[i]);
+				bool bValidSurface = UpdateOverlaySurface(arData.dictOverlaySurfaces[surfId], allTrackedPlanes[i]);
 
 				if(bValidSurface && alSurfacesToDelete.Contains(surfId))
 				{
@@ -720,10 +721,10 @@ public class ARCoreInteface : MonoBehaviour, ARPlatformInterface
 			}
 
 			// delete not tracked surfaces
-			foreach(int surfId in alSurfacesToDelete)
+			foreach(string surfId in alSurfacesToDelete)
 			{
-				OverlaySurfaceUpdater overlaySurface = dictOverlaySurfaces[surfId];
-				dictOverlaySurfaces.Remove(surfId);
+				OverlaySurfaceUpdater overlaySurface = arData.dictOverlaySurfaces[surfId];
+				arData.dictOverlaySurfaces.Remove(surfId);
 
 				Destroy(overlaySurface.gameObject);
 			}
@@ -838,6 +839,7 @@ public class ARCoreInteface : MonoBehaviour, ARPlatformInterface
 			{
 			case TouchPhase.Began:
 				inputAction = MultiARInterop.InputAction.Click;
+				inputNavCoordinates = Vector3.zero;
 				startInputPos = touch.position;
 				break;
 

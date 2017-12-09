@@ -470,15 +470,15 @@ public class TestLocationService : MonoBehaviour
 //		data.surfacesOrig.surfaces = new JsonSurface[data.surfacesOrig.surfaceCount];
 
 		// surfaces
-		data.surfaces = new JsonTrackedSurfaces();
-		data.surfaces.timestamp = marManager.GetTrackedSurfacesTimestamp();
-		data.surfaces.surfaceCount = marManager.GetTrackedSurfacesCount();
-		data.surfaces.surfaces = new JsonSurface[data.surfaces.surfaceCount];
+		data.surfaceSet = new JsonSurfaceSet();
+		data.surfaceSet.timestamp = marManager.GetTrackedSurfacesTimestamp();
+		data.surfaceSet.surfaceCount = marManager.GetTrackedSurfacesCount();
+		data.surfaceSet.surfaces = new JsonSurface[data.surfaceSet.surfaceCount];
 
 		Quaternion compStartRot = Quaternion.Euler(0f, data.startHeading, 0f);
 		MultiARInterop.TrackedSurface[] trackedSurfaces = marManager.GetTrackedSurfaces(true);
 
-		for (int i = 0; i < data.surfaces.surfaceCount; i++) 
+		for (int i = 0; i < data.surfaceSet.surfaceCount; i++) 
 		{
 //			// original surfaces
 //			data.surfacesOrig.surfaces[i] = new JsonSurface();
@@ -490,17 +490,17 @@ public class TestLocationService : MonoBehaviour
 //			data.surfacesOrig.surfaces[i].triangles = trackedSurfaces[i].triangles;
 
 			// transformed surfaces
-			data.surfaces.surfaces[i] = new JsonSurface();
+			data.surfaceSet.surfaces[i] = new JsonSurface();
 
 			Vector3 surfacePos = trackedSurfaces[i].position;
-			data.surfaces.surfaces[i].position = compStartRot * surfacePos;
+			data.surfaceSet.surfaces[i].position = compStartRot * surfacePos;
 
 			Vector3 surfaceRot = trackedSurfaces[i].rotation.eulerAngles + compStartRot.eulerAngles;
-			data.surfaces.surfaces[i].rotation = Quaternion.Euler(surfaceRot).eulerAngles;
+			data.surfaceSet.surfaces[i].rotation = Quaternion.Euler(surfaceRot).eulerAngles;
 
-			data.surfaces.surfaces[i].bounds = trackedSurfaces[i].bounds;
-			data.surfaces.surfaces[i].points = trackedSurfaces[i].points;
-			data.surfaces.surfaces[i].indices = trackedSurfaces[i].triangles;
+			data.surfaceSet.surfaces[i].bounds = trackedSurfaces[i].bounds;
+			data.surfaceSet.surfaces[i].vertices = trackedSurfaces[i].points;
+			data.surfaceSet.surfaces[i].indices = trackedSurfaces[i].triangles;
 		}
 
 //		// point cloud
@@ -558,7 +558,7 @@ public class TestLocationService : MonoBehaviour
 			//Quaternion compStartRot = Quaternion.Euler(0f, -startHeading, 0f);
 			Quaternion compStartRot = Quaternion.Euler(0f, -startHeadingGyro, 0f);
 
-			if (data.surfaces != null) 
+			if (data.surfaceSet != null) 
 			{
 //				loadedSurfaces = new MultiARInterop.TrackedSurface[data.surfaces.surfaceCount];
 //
@@ -580,7 +580,7 @@ public class TestLocationService : MonoBehaviour
 				// destroy current overlay surfaces
 				DestroyOverlaySurfaces();
 
-				for (int i = 0; i < data.surfaces.surfaceCount; i++) 
+				for (int i = 0; i < data.surfaceSet.surfaceCount; i++) 
 				{
 					GameObject overlaySurfaceObj = new GameObject();
 					overlaySurfaceObj.name = "surface-" + i;
@@ -594,14 +594,14 @@ public class TestLocationService : MonoBehaviour
 					overlaySurface.SetSurfaceMaterial(surfaceMaterial);
 					overlaySurface.SetSurfaceCollider(true, null);
 
-					Vector3 surfacePos = data.surfaces.surfaces[i].position;
-					Quaternion surfaceRot = Quaternion.Euler(data.surfaces.surfaces[i].rotation);
+					Vector3 surfacePos = data.surfaceSet.surfaces[i].position;
+					Quaternion surfaceRot = Quaternion.Euler(data.surfaceSet.surfaces[i].rotation);
 
 					surfacePos = compStartRot * surfacePos;
 					surfaceRot = Quaternion.Euler(surfaceRot.eulerAngles + compStartRot.eulerAngles);
 
-					List<Vector3> meshVertices = new List<Vector3>(data.surfaces.surfaces[i].points);
-					List<int> meshIndices = new List<int>(data.surfaces.surfaces[i].indices);
+					List<Vector3> meshVertices = new List<Vector3>(data.surfaceSet.surfaces[i].vertices);
+					List<int> meshIndices = new List<int>(data.surfaceSet.surfaces[i].indices);
 
 					// update the surface mesh
 					overlaySurface.UpdateSurfaceMesh(surfacePos, surfaceRot, meshVertices, meshIndices);

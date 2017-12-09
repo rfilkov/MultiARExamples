@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class MultiSceneRefresher : MonoBehaviour 
+public class NewSceneCleaner : MonoBehaviour 
 {
 
 	void Start () 
@@ -12,7 +12,10 @@ public class MultiSceneRefresher : MonoBehaviour
 
 		if(arManager)
 		{
-			// refresh scene references
+			// destroys all anchors and anchored objects
+			arManager.DestroyAllAnchors();
+
+			// refresh scene references (graphic raycasters, etc.)
 			arManager.RefreshSceneReferences();
 
 			// destroy second main camera, if any

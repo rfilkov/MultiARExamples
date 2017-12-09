@@ -592,12 +592,12 @@ public class WinMRInteface : MonoBehaviour, ARPlatformInterface
 		// don't destroy the light between scenes
 		DontDestroyOnLoad(currentLight.gameObject);
 
+		// there is no point cloud in WinMR
+		MultiARInterop.MultiARData arData = arManager.GetARData();
+
 		// check for point cloud getter
 		if(arManager.getPointCloud)
 		{
-			// there is no point cloud in WinMR
-			MultiARInterop.MultiARData arData = arManager.GetARData();
-
 			arData.pointCloudData = new Vector3[0];
 			arData.pointCloudLength = 0;
 			arData.pointCloudTimestamp = 0.0;
@@ -652,6 +652,7 @@ public class WinMRInteface : MonoBehaviour, ARPlatformInterface
 			GameObject objRenderer = new GameObject();
 			objRenderer.name = "SurfaceRenderer";
 			objRenderer.layer = MultiARInterop.GetSurfaceLayer();
+			arData.surfaceRendererRoot = objRenderer;
 
 			surfaceRootTransform = objRenderer.transform;
 			DontDestroyOnLoad(objRenderer);
@@ -879,6 +880,7 @@ public class WinMRInteface : MonoBehaviour, ARPlatformInterface
 	void GestureRecognizer_Tapped(TappedEventArgs obj)
 	{
 		inputAction = MultiARInterop.InputAction.Click;
+		inputNavCoordinates = Vector3.zero;
 		inputTimestamp = lastFrameTimestamp;
 		//Debug.Log("GestureRecognizer_Tapped");
 	}

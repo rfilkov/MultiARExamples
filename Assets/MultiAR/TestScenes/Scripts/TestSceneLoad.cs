@@ -145,9 +145,9 @@ public class TestSceneLoad : MonoBehaviour
 
 		Quaternion compStartRot = Quaternion.Euler(0f, -startCompAngle, 0f);
 
-		if (poseData.surfaces != null) 
+		if (poseData.surfaceSet != null) 
 		{
-			for (int i = 0; i < poseData.surfaces.surfaceCount; i++) 
+			for (int i = 0; i < poseData.surfaceSet.surfaceCount; i++) 
 			{
 				GameObject overlaySurfaceObj = new GameObject();
 				overlaySurfaceObj.name = "surface-" + i;
@@ -161,8 +161,8 @@ public class TestSceneLoad : MonoBehaviour
 				overlaySurface.SetSurfaceMaterial(surfaceMaterial);
 				overlaySurface.SetSurfaceCollider(true, null);
 
-				Vector3 surfacePos = poseData.surfaces.surfaces[i].position;
-				Quaternion surfaceRot = Quaternion.Euler(poseData.surfaces.surfaces[i].rotation);
+				Vector3 surfacePos = poseData.surfaceSet.surfaces[i].position;
+				Quaternion surfaceRot = Quaternion.Euler(poseData.surfaceSet.surfaces[i].rotation);
 
 				if (rotateSurfacePosRot) 
 				{
@@ -173,8 +173,8 @@ public class TestSceneLoad : MonoBehaviour
 				surfacePos = compStartRot * surfacePos;
 				surfaceRot = Quaternion.Euler(surfaceRot.eulerAngles + compStartRot.eulerAngles);
 
-				List<Vector3> meshVertices = new List<Vector3>(poseData.surfaces.surfaces[i].points);
-				List<int> meshIndices = new List<int>(poseData.surfaces.surfaces[i].indices);
+				List<Vector3> meshVertices = new List<Vector3>(poseData.surfaceSet.surfaces[i].vertices);
+				List<int> meshIndices = new List<int>(poseData.surfaceSet.surfaces[i].indices);
 
 //				Quaternion invRot = Quaternion.Inverse(surfaceRot);
 //				for (int v = 0; v < meshVertices.Count; v++) 

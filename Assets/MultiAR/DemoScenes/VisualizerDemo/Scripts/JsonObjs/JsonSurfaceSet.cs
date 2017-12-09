@@ -2,7 +2,7 @@
 
 
 [System.Serializable]
-public class JsonTrackedSurfaces 
+public class JsonSurfaceSet 
 {
 
 	public double timestamp;
