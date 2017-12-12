@@ -940,7 +940,7 @@ public class ARKitInteface : MonoBehaviour, ARPlatformInterface
 
 			case TouchPhase.Moved:
 			case TouchPhase.Stationary:
-				if ((lastFrameTimestamp - startTimestamp) >= 0.5) 
+				if ((lastFrameTimestamp - startTimestamp) >= 0.25) 
 				{
 					inputAction = MultiARInterop.InputAction.Grip;
 

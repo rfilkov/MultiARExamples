@@ -38,6 +38,6 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/MultiAR/DemoScenes/VisualizerDemo/Scene2-SceneLoaderDemo.unity
     guid: fd471efd17b32844abcc333c06c014dd
-  - enabled: 0
+  - enabled: 1
     path: Assets/MultiAR/DemoScenes/AnchoringDemo/ObjectScalerDemo.unity
     guid: d061ae136d41def42a7de5280fb26131

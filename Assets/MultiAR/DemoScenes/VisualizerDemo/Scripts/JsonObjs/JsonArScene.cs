@@ -11,23 +11,13 @@ public class JsonArScene
 
 	public double timestamp;
 
-	public bool locEnabled;
+	public JsonScenePos scenePos;
 
-	public Vector3 location;
-
-	public long latm, lonm, altm;
-
-	public bool gyroEnabled;
-
-	public Vector3 gyroAttitude;
-
-	public Vector3 gyroRotation;
+	public JsonSceneRot sceneRot;
 
 	public float startHeading;
 
-	public Vector3 camPosition;
-
-	public Vector3 camRotation;
+	public JsonSceneCam sceneCam;
 
 	public JsonSurfaceSet surfaceSet;
 

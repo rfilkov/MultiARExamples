@@ -57,12 +57,12 @@ public class StandaloneSceneLoader : MonoBehaviour
 
 	void Update () 
 	{
-		if (Input.GetKey(KeyCode.R)) 
+		if (Input.GetKeyDown(KeyCode.R)) 
 		{
 			// reset camera position
 			ResetCamPos();
 		}
-		else if(Input.GetKey(KeyCode.L)) 
+		else if(Input.GetKeyDown(KeyCode.L)) 
 		{
 			// select the next surface and look at it
 			LookAtSurface();	
@@ -142,44 +142,57 @@ public class StandaloneSceneLoader : MonoBehaviour
 				}
 			}
 
-			if (cameraTransform) 
+			if (cameraTransform && data.sceneCam != null) 
 			{
-				cameraTransform.position = data.camPosition;
-				cameraTransform.rotation = Quaternion.Euler(data.camRotation);
+				Vector3 camPos = data.sceneCam.camPos;
+				camPos = compStartRot * camPos;
+
+				Quaternion camRot = Quaternion.Euler(data.sceneCam.camRot);
+				camRot = Quaternion.Euler(camRot.eulerAngles + compStartRot.eulerAngles);
+
+				cameraTransform.position = camPos;
+				cameraTransform.rotation = camRot;
 			}
 
 			if (displaySavedInfos) 
 			{
 				if (locationInfoText) 
 				{
-					if (data.locEnabled) 
+					if (data.scenePos != null) 
 					{
-						string sMessage = "Lat: " + data.location.x + ", Lon: " + data.location.y + ", Alt: " + data.location.z;
+						string sMessage = "Lat: " + data.scenePos.lat + ", Lon: " + data.scenePos.lon + ", Alt: " + data.scenePos.alt;
 						locationInfoText.text = sMessage;
 					} 
 					else 
 					{
-						locationInfoText.text = "Location service is not supported.";
+						locationInfoText.text = "Location service not supported.";
 					}
 				}
 
 				if (gyroInfoText) 
 				{
-					if (data.gyroEnabled) 
+					if (data.sceneRot != null) 
 					{
-						string sMessage = "Att: " + data.gyroAttitude + ", Rot: " + data.gyroRotation + ", Head: " + FormatHeading(data.startHeading);
+						string sMessage = "Att: " + data.sceneRot.gyroAtt + ", Rot: " + data.sceneRot.gyroRot + ", Head: " + FormatHeading(data.startHeading);
 						gyroInfoText.text = sMessage;
 					} 
 					else 
 					{
-						gyroInfoText.text = "Gyroscope is not supported.";
+						gyroInfoText.text = "Gyroscope not supported.";
 					}
 				}
 
 				if (cameraInfoText) 
 				{
-					string sMessage = string.Format("Camera - Pos: {0}, Rot: {1}\n", data.camPosition, data.camRotation);
-					cameraInfoText.text = sMessage;
+					if (data.sceneCam != null) 
+					{
+						string sMessage = string.Format("Camera - Pos: {0}, Rot: {1}", data.sceneCam.camPos, data.sceneCam.camRot);
+						cameraInfoText.text = sMessage;
+					} 
+					else 
+					{
+						cameraInfoText.text = "Camera info not found.";
+					}
 				}
 			}
 
@@ -224,8 +237,11 @@ public class StandaloneSceneLoader : MonoBehaviour
 				mouseLook.ResetRotation ();
 
 			// reset camera transform
-			cameraTransform.position = arScene.camPosition;
-			cameraTransform.rotation = Quaternion.Euler(arScene.camRotation);
+			if (arScene.sceneCam != null) 
+			{
+				cameraTransform.position = arScene.sceneCam.camPos;
+				cameraTransform.rotation = Quaternion.Euler(arScene.sceneCam.camRot);
+			}
 
 			if (sceneInfoText) 
 			{
@@ -267,6 +283,8 @@ public class StandaloneSceneLoader : MonoBehaviour
 			// look at the surface and select it
 			if (selectedSurface != null) 
 			{
+				Debug.Log("Selected surface: " + selectedSurface.gameObject.name);
+
 				// reset mouse-look rotation
 				MouseLook mouseLook = cameraTransform.GetComponent<MouseLook>();
 				if (mouseLook)

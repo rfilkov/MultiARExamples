@@ -149,9 +149,9 @@ public class SceneVisualizerLoader : MonoBehaviour
 		if (arManager && arManager.IsInitialized() && arManager.IsInputAvailable(true))
 		{
 			MultiARInterop.InputAction action = arManager.GetInputAction();
-			float navMagnitude = action == MultiARInterop.InputAction.Grip ? arManager.GetInputNavCoordinates().magnitude : 0f;
+			//float navMagnitude = action == MultiARInterop.InputAction.Grip ? arManager.GetInputNavCoordinates().magnitude : 0f;
 
-			if (navMagnitude >= 0.1f && !routineRunning)
+			if (action == MultiARInterop.InputAction.Grip && !routineRunning)
 			{
 				routineRunning = true;
 				StartCoroutine(LoadButtonClicked());
@@ -230,9 +230,9 @@ public class SceneVisualizerLoader : MonoBehaviour
 			Quaternion compStartRot = Quaternion.Euler(0f, -startHeadingGyro, 0f);
 
 			Vector3 camOffset = Vector3.zero;
-			if (applyLocationDistance && locationEnabled && data.locEnabled) 
+			if (applyLocationDistance && locationEnabled && data.scenePos != null) 
 			{
-				Vector3 locSaved = GeoUtils.LatLong2Meters(data.location.x, data.location.y, data.location.z);
+				Vector3 locSaved = GeoUtils.LatLong2Meters(data.scenePos.lat, data.scenePos.lon, data.scenePos.alt);
 				Vector3 locCamera = GeoUtils.LatLong2Meters(lastLoc.latitude, lastLoc.longitude, lastLoc.altitude);
 
 				camOffset = locSaved - locCamera;

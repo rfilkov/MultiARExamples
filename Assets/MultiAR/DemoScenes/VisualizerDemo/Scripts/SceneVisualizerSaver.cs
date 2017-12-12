@@ -142,9 +142,9 @@ public class SceneVisualizerSaver : MonoBehaviour
 		if (arManager && arManager.IsInitialized() && arManager.IsInputAvailable(true))
 		{
 			MultiARInterop.InputAction action = arManager.GetInputAction();
-			float navMagnitude = action == MultiARInterop.InputAction.Grip ? arManager.GetInputNavCoordinates().magnitude : 0f;
+			//float navMagnitude = action == MultiARInterop.InputAction.Grip ? arManager.GetInputNavCoordinates().magnitude : 0f;
 
-			if (navMagnitude >= 0.1f && !routineRunning)
+			if (action == MultiARInterop.InputAction.Grip && !routineRunning)
 			{
 				routineRunning = true;
 				StartCoroutine(SaveButtonClicked());
@@ -249,25 +249,37 @@ public class SceneVisualizerSaver : MonoBehaviour
 		data.sceneDesc = string.Empty;
 		data.timestamp = marManager.GetTrackedSurfacesTimestamp();
 
-		data.locEnabled = locationEnabled;
-		data.location = new Vector3(lastLoc.latitude, lastLoc.longitude, lastLoc.altitude);
+		if (locationEnabled) 
+		{
+			data.scenePos = new JsonScenePos();
 
-		Vector3 latLonM = GeoUtils.LatLong2Meters(lastLoc.latitude, lastLoc.longitude, lastLoc.altitude);
-		data.latm = (long)((double)latLonM.x * 1000.0);
-		data.lonm = (long)((double)latLonM.y * 1000.0);
-		data.altm = (long)latLonM.z;
+			data.scenePos.lat = lastLoc.latitude;
+			data.scenePos.lon = lastLoc.longitude;
+			data.scenePos.alt = lastLoc.altitude;
 
-		data.gyroEnabled = gyroEnabled;
-		data.gyroAttitude = gyroAttitude.eulerAngles;
-		data.gyroRotation = gyroRotation.eulerAngles;
+			Vector3 latLonM = GeoUtils.LatLong2Meters(lastLoc.latitude, lastLoc.longitude, lastLoc.altitude);
+			data.scenePos.latm = (long)((double)latLonM.x * 1000.0);
+			data.scenePos.lonm = (long)((double)latLonM.y * 1000.0);
+			data.scenePos.altm = (long)latLonM.z;
+		}
+
+
+		if (gyroEnabled) 
+		{
+			data.sceneRot = new JsonSceneRot();
+
+			data.sceneRot.gyroAtt = gyroAttitude.eulerAngles;
+			data.sceneRot.gyroRot = gyroRotation.eulerAngles;
+		}
 
 		data.startHeading = startHeadingGyro;
+		Quaternion compStartRot = Quaternion.Euler(0f, data.startHeading, 0f);
 
-		data.camPosition = camPosition;
+		data.sceneCam = new JsonSceneCam();
+		data.sceneCam.camPos = compStartRot * camPosition;
 
-		data.camRotation = camRotation.eulerAngles;
-		data.camRotation.y += data.startHeading;
-		data.camRotation = Quaternion.Euler(data.camRotation).eulerAngles;
+		data.sceneCam.camRot = camRotation.eulerAngles + compStartRot.eulerAngles;
+		data.sceneCam.camRot = Quaternion.Euler(data.sceneCam.camRot).eulerAngles;
 
 		// surfaces
 		data.surfaceSet = new JsonSurfaceSet();
@@ -275,9 +287,7 @@ public class SceneVisualizerSaver : MonoBehaviour
 		data.surfaceSet.surfaceCount = marManager.GetTrackedSurfacesCount();
 		data.surfaceSet.surfaces = new JsonSurface[data.surfaceSet.surfaceCount];
 
-		Quaternion compStartRot = Quaternion.Euler(0f, data.startHeading, 0f);
 		MultiARInterop.TrackedSurface[] trackedSurfaces = marManager.GetTrackedSurfaces(true);
-
 		for (int i = 0; i < data.surfaceSet.surfaceCount; i++) 
 		{
 			// transformed surfaces
