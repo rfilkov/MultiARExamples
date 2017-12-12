@@ -47,7 +47,7 @@ public class ARKitInteface : MonoBehaviour, ARPlatformInterface
 	private MultiARInterop.InputAction inputAction = MultiARInterop.InputAction.None;
 	private Vector2 inputPos = Vector2.zero, startInputPos = Vector2.zero;
 	private Vector3 inputNavCoordinates = Vector3.zero;
-	private double inputTimestamp = 0.0;
+	private double inputTimestamp = 0.0, startTimestamp = 0.0;
 
 
 	/// <summary>
@@ -935,15 +935,19 @@ public class ARKitInteface : MonoBehaviour, ARPlatformInterface
 				inputAction = MultiARInterop.InputAction.Click;
 				inputNavCoordinates = Vector3.zero;
 				startInputPos = touch.position;
+				startTimestamp = lastFrameTimestamp;
 				break;
 
 			case TouchPhase.Moved:
 			case TouchPhase.Stationary:
-				inputAction = MultiARInterop.InputAction.Grip;
+				if ((lastFrameTimestamp - startTimestamp) >= 0.5) 
+				{
+					inputAction = MultiARInterop.InputAction.Grip;
 
-				float screenMinDim = Screen.width < Screen.height ? Screen.width : Screen.height;
-				Vector3 mouseRelPos = touch.position - startInputPos;
-				inputNavCoordinates = mouseRelPos / screenMinDim;
+					float screenMinDim = Screen.width < Screen.height ? Screen.width : Screen.height;
+					Vector3 mouseRelPos = touch.position - startInputPos;
+					inputNavCoordinates = mouseRelPos / screenMinDim;
+				}
 				break;
 
 			case TouchPhase.Ended:

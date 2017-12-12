@@ -17,7 +17,7 @@ public class SceneVisualizerLoader : MonoBehaviour
 
 	public Material surfaceMaterial;
 
-	public bool applyLocationDistance;
+	public bool applyLocationDistance = false;
 
 
 	private bool locationEnabled = false;
@@ -151,7 +151,7 @@ public class SceneVisualizerLoader : MonoBehaviour
 			MultiARInterop.InputAction action = arManager.GetInputAction();
 			float navMagnitude = action == MultiARInterop.InputAction.Grip ? arManager.GetInputNavCoordinates().magnitude : 0f;
 
-			if (navMagnitude >= 0.5f && !routineRunning)
+			if (navMagnitude >= 0.1f && !routineRunning)
 			{
 				routineRunning = true;
 				StartCoroutine(LoadButtonClicked());
@@ -268,7 +268,7 @@ public class SceneVisualizerLoader : MonoBehaviour
 					}
 
 					Quaternion surfaceRot = Quaternion.Euler(data.surfaceSet.surfaces[i].rotation);
-//					surfaceRot = Quaternion.Euler(surfaceRot.eulerAngles + compStartRot.eulerAngles);
+					surfaceRot = Quaternion.Euler(surfaceRot.eulerAngles + compStartRot.eulerAngles); //
 
 					List<Vector3> meshVertices = new List<Vector3>(data.surfaceSet.surfaces[i].vertices);
 					List<int> meshIndices = new List<int>(data.surfaceSet.surfaces[i].indices);

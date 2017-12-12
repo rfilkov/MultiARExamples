@@ -144,7 +144,7 @@ public class SceneVisualizerSaver : MonoBehaviour
 			MultiARInterop.InputAction action = arManager.GetInputAction();
 			float navMagnitude = action == MultiARInterop.InputAction.Grip ? arManager.GetInputNavCoordinates().magnitude : 0f;
 
-			if (navMagnitude >= 0.5f && !routineRunning)
+			if (navMagnitude >= 0.1f && !routineRunning)
 			{
 				routineRunning = true;
 				StartCoroutine(SaveButtonClicked());
@@ -286,9 +286,9 @@ public class SceneVisualizerSaver : MonoBehaviour
 			Vector3 surfacePos = trackedSurfaces[i].position;
 			data.surfaceSet.surfaces[i].position = compStartRot * surfacePos;
 
-//			Vector3 surfaceRot = trackedSurfaces[i].rotation.eulerAngles + compStartRot.eulerAngles;
-//			data.surfaceSet.surfaces[i].rotation = Quaternion.Euler(surfaceRot).eulerAngles;
-			data.surfaceSet.surfaces[i].rotation = trackedSurfaces[i].rotation.eulerAngles;
+//			data.surfaceSet.surfaces[i].rotation = trackedSurfaces[i].rotation.eulerAngles;
+			Vector3 surfaceRot = trackedSurfaces[i].rotation.eulerAngles + compStartRot.eulerAngles;
+			data.surfaceSet.surfaces[i].rotation = Quaternion.Euler(surfaceRot).eulerAngles;
 
 			data.surfaceSet.surfaces[i].bounds = trackedSurfaces[i].bounds;
 			data.surfaceSet.surfaces[i].vertices = trackedSurfaces[i].points;

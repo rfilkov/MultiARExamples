@@ -259,7 +259,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: 
+  m_Text: Run the scene to load saved scene.
 --- !u!114 &400457527
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -400,8 +400,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3d7263e7df4272a4a865b0f07fe2d88c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  sceneFilePath: C:\Users\rumen\Desktop\SavedSceneSurfaces.json
-  surfaceMaterial: {fileID: 2100000, guid: cce55cd016151ac4e8e6bf0ac4cb7a00, type: 2}
+  sceneFilePath: SavedSceneSurfaces.json
+  surfaceMaterial: {fileID: 2100000, guid: 56bb06e31a624e1498803d30bbd04b7d, type: 2}
+  selectedMaterial: {fileID: 2100000, guid: 454c87486c556f24490b666032b31f5a, type: 2}
   cameraTransform: {fileID: 2015728112}
   useSavedHeading: 1
   startHeadingGyro: 0
@@ -754,6 +755,7 @@ GameObject:
   - component: {fileID: 2015728110}
   - component: {fileID: 2015728109}
   - component: {fileID: 2015728113}
+  - component: {fileID: 2015728114}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -835,9 +837,21 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   axes: 0
-  sensitivityX: 15
-  sensitivityY: 15
+  sensitivityX: 5
+  sensitivityY: 5
   minimumX: -360
   maximumX: 360
   minimumY: -60
   maximumY: 60
+--- !u!114 &2015728114
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 2015728108}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 16f53cbaaeea75a409d422c6f09972c3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  keyStep: 0.05

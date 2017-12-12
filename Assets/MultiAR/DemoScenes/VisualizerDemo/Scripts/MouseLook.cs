@@ -38,6 +38,18 @@ public class MouseLook : MonoBehaviour
 	private Quaternion originalRotation;
 
 
+	/// <summary>
+	/// Resets the local rotation and mouse-look parameters.
+	/// </summary>
+	public void ResetRotation()
+	{
+		rotationX = 0f;
+		rotationY = 0f;
+
+		transform.localRotation = originalRotation;
+	}
+
+
 	void Start()
 	{
 //		// Make the rigid body not change rotation

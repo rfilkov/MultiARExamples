@@ -856,19 +856,19 @@ public class MultiARManager : MonoBehaviour
 				}
 			}
 
-			if (infoText) 
-			{
-				string hitObjName = string.Empty;
-				if (hit.psObject != null) 
-				{
-					if (hit.psObject is RaycastHit)
-						hitObjName = ((RaycastHit)hit.psObject).transform.gameObject.name;
-					else
-						hitObjName = hit.psObject.ToString();
-				}
-
-				infoText.text += "\ninputPos: " + isFromInputPos + ", hit: " + hit.point + ", obj: " + hitObjName;
-			}
+//			if (infoText) 
+//			{
+//				string hitObjName = string.Empty;
+//				if (hit.psObject != null) 
+//				{
+//					if (hit.psObject is RaycastHit)
+//						hitObjName = ((RaycastHit)hit.psObject).transform.gameObject.name;
+//					else
+//						hitObjName = hit.psObject.ToString();
+//				}
+//
+//				infoText.text += "\ninputPos: " + isFromInputPos + ", hit: " + hit.point + ", obj: " + hitObjName;
+//			}
 
 			if(showCursor == ShowCursorEnum.Always || hit.point != Vector3.zero)
 			{

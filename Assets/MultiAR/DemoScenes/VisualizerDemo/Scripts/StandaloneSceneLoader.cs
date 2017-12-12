@@ -12,6 +12,8 @@ public class StandaloneSceneLoader : MonoBehaviour
 
 	public Material surfaceMaterial;
 
+	public Material selectedMaterial;
+
 	public Transform cameraTransform;
 
 	public bool useSavedHeading = true;
@@ -28,12 +30,17 @@ public class StandaloneSceneLoader : MonoBehaviour
 
 	public Text sceneInfoText;
 
+	// currently loaded ar-scene or null
+	private JsonArScene arScene = null;
+
 	// list of loaded surfaces
 	private List<OverlaySurfaceUpdater> alLoadedSurfaces = new List<OverlaySurfaceUpdater>();
 
-	// whether the coroutine is currently running
-	private bool routineRunning = false;
+	// currently selected surface
+	private OverlaySurfaceUpdater selectedSurface = null;
 
+	// whether the coroutine is currently running
+	//private bool routineRunning = false;
 
 	void Start () 
 	{
@@ -43,14 +50,23 @@ public class StandaloneSceneLoader : MonoBehaviour
 		}
 
 		// load the predefined scene
-		routineRunning = true;
+		//routineRunning = true;
 		StartCoroutine(LoadButtonClicked());
 	}
 
 
 	void Update () 
 	{
-		
+		if (Input.GetKey(KeyCode.R)) 
+		{
+			// reset camera position
+			ResetCamPos();
+		}
+		else if(Input.GetKey(KeyCode.L)) 
+		{
+			// select the next surface and look at it
+			LookAtSurface();	
+		}
 	}
 
 
@@ -59,23 +75,20 @@ public class StandaloneSceneLoader : MonoBehaviour
 	{
 		// load scene
 		string sFilePath = sceneFilePath; // FileUtils.GetPersitentDataPath("SavedSceneSurfaces.json");
-		JsonArScene arScene = LoadArScene(sFilePath);
+		arScene = LoadArScene(sFilePath);
 
 		yield return null;
 
 		// show result
-		if (arScene != null && sceneInfoText) 
+		if (sceneInfoText) 
 		{
-			sceneInfoText.text = "Loaded " + alLoadedSurfaces.Count + " surfaces (head:" + (int)arScene.startHeading + ") from file: " + sFilePath;
-
-			// wait for some time
-			yield return new WaitForSeconds(5f);
-
-			// clear the info
-			sceneInfoText.text = string.Empty;
+			if (arScene != null)
+				sceneInfoText.text = "Loaded " + alLoadedSurfaces.Count + " surfaces from file: " + sFilePath;
+			else
+				sceneInfoText.text = "Scene file not found: " + sFilePath;
 		}
 
-		routineRunning = false;
+		//routineRunning = false;
 	}
 
 
@@ -117,6 +130,7 @@ public class StandaloneSceneLoader : MonoBehaviour
 					surfacePos = compStartRot * surfacePos;
 
 					Quaternion surfaceRot = Quaternion.Euler(data.surfaceSet.surfaces[i].rotation);
+					surfaceRot = Quaternion.Euler(surfaceRot.eulerAngles + compStartRot.eulerAngles); //
 
 					List<Vector3> meshVertices = new List<Vector3>(data.surfaceSet.surfaces[i].vertices);
 					List<int> meshIndices = new List<int>(data.surfaceSet.surfaces[i].indices);
@@ -181,7 +195,6 @@ public class StandaloneSceneLoader : MonoBehaviour
 		return string.Format("{0:F0}", head);
 	}
 
-
 	/// <summary>
 	/// Destroys the existing loaded surfaces.
 	/// </summary>
@@ -195,6 +208,82 @@ public class StandaloneSceneLoader : MonoBehaviour
 				alLoadedSurfaces.RemoveAt(i);
 
 				Destroy(loadedSurface.gameObject);
+			}
+		}
+	}
+
+
+	// resets camera position
+	private void ResetCamPos()
+	{
+		if (arScene != null && cameraTransform) 
+		{
+			// reset mouse-look rotation
+			MouseLook mouseLook = cameraTransform.GetComponent<MouseLook>();
+			if (mouseLook)
+				mouseLook.ResetRotation ();
+
+			// reset camera transform
+			cameraTransform.position = arScene.camPosition;
+			cameraTransform.rotation = Quaternion.Euler(arScene.camRotation);
+
+			if (sceneInfoText) 
+			{
+				sceneInfoText.text = "Camera transform reset.";
+			}
+		}
+	}
+
+	// looks at the next surface
+	private void LookAtSurface()
+	{
+		if (cameraTransform && alLoadedSurfaces != null && alLoadedSurfaces.Count > 0) 
+		{
+			// unselect current surface
+			if (selectedSurface) 
+			{
+				MeshRenderer meshRenderer = selectedSurface.gameObject.GetComponent<MeshRenderer>();
+				if (meshRenderer)
+					meshRenderer.material = surfaceMaterial;
+			}
+
+			for (int i = 0; i < alLoadedSurfaces.Count; i++) 
+			{
+				OverlaySurfaceUpdater surface = alLoadedSurfaces[i];
+
+				if (selectedSurface == null) 
+				{
+					selectedSurface = surface;
+					break;
+				}
+				else if(selectedSurface == surface)
+				{
+					int nextI = (i + 1) % alLoadedSurfaces.Count;
+					selectedSurface = alLoadedSurfaces[nextI];
+					break;
+				}
+			}
+
+			// look at the surface and select it
+			if (selectedSurface != null) 
+			{
+				// reset mouse-look rotation
+				MouseLook mouseLook = cameraTransform.GetComponent<MouseLook>();
+				if (mouseLook)
+					mouseLook.ResetRotation ();
+
+				// look at the surface
+				cameraTransform.LookAt(selectedSurface.transform);
+
+				// set selection material
+				MeshRenderer meshRenderer = selectedSurface.gameObject.GetComponent<MeshRenderer>();
+				if (meshRenderer)
+					meshRenderer.material = selectedMaterial;
+
+				if (sceneInfoText) 
+				{
+					sceneInfoText.text = "Look at: " + selectedSurface.gameObject.name;
+				}
 			}
 		}
 	}
