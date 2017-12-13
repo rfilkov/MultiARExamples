@@ -320,7 +320,9 @@ public class MultiARManager : MonoBehaviour
 				GameObject rayHit = MultiARInterop.RaycastUI(gr, inputPos);
 				if(rayHit != null)
 				{
-					return true;
+					// check for UI text
+					UnityEngine.UI.Text uiText = rayHit.gameObject.GetComponent<UnityEngine.UI.Text>();
+					return (uiText == null);
 				}
 			}
 		}

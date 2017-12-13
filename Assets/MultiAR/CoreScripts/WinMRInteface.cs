@@ -60,7 +60,7 @@ public class WinMRInteface : MonoBehaviour, ARPlatformInterface
 	private MultiARInterop.InputAction inputAction = MultiARInterop.InputAction.None;
 	private Vector3 startMousePos = Vector3.zero;
 	private Vector3 inputNavCoordinates = Vector3.zero;
-	private double inputTimestamp = 0.0;
+	private double inputTimestamp = 0.0, startTimestamp = 0.0;
 	// gesture recognizer for HoloLens
 	private GestureRecognizer gestureRecognizer = null;
 
@@ -366,7 +366,7 @@ public class WinMRInteface : MonoBehaviour, ARPlatformInterface
 	public bool RaycastToWorld(bool fromInputPos, out MultiARInterop.TrackableHit hit)
 	{
 		hit = new MultiARInterop.TrackableHit();
-		if(!isInitialized || !surfaceCollider || !mainCamera)
+		if(!isInitialized || !mainCamera)
 			return false;
 
 		// ray-cast
@@ -1000,15 +1000,19 @@ public class WinMRInteface : MonoBehaviour, ARPlatformInterface
 		{
 			inputAction = MultiARInterop.InputAction.Click;
 			startMousePos = Input.mousePosition;
+			startTimestamp = lastFrameTimestamp;
 		}
 		else if(Input.GetMouseButton(0))
 		{
-			inputAction = MultiARInterop.InputAction.Grip;
+			if ((lastFrameTimestamp - startTimestamp) >= 0.25) 
+			{
+				inputAction = MultiARInterop.InputAction.Grip;
 
-			//Vector3 screenSize = new Vector3(Screen.width, Screen.height, 0f);
-			float screenMinDim = Screen.width < Screen.height ? Screen.width : Screen.height;
-			Vector3 mouseRelPos = Input.mousePosition - startMousePos;
-			inputNavCoordinates = mouseRelPos / screenMinDim;  // new Vector3(mouseRelPos.x / screenSize.x, mouseRelPos.y / screenSize.y, 0f);
+				//Vector3 screenSize = new Vector3(Screen.width, Screen.height, 0f);
+				float screenMinDim = Screen.width < Screen.height ? Screen.width : Screen.height;
+				Vector3 mouseRelPos = Input.mousePosition - startMousePos;
+				inputNavCoordinates = mouseRelPos / screenMinDim;  // new Vector3(mouseRelPos.x / screenSize.x, mouseRelPos.y / screenSize.y, 0f);
+			}
 		}
 		else if(Input.GetMouseButtonUp(0))
 		{
