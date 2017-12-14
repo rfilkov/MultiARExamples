@@ -19,6 +19,8 @@ public class SceneVisualizerLoader : MonoBehaviour
 
 	public bool applyLocationDistance = false;
 
+	public bool useLocationAltitude = false;
+
 
 	private bool locationEnabled = false;
 	private bool gyroEnabled = false;
@@ -35,7 +37,8 @@ public class SceneVisualizerLoader : MonoBehaviour
 	private Vector3 camPosition = Vector3.zero;
 	private Quaternion camRotation = Quaternion.identity;
 
-	private float startHeadingGyro = 0f;
+	private float compHeading = 0f;
+	private float startHeading = 0f;
 	private bool startHeadingSet = false;
 
 	// reference to ar-manager
@@ -54,16 +57,17 @@ public class SceneVisualizerLoader : MonoBehaviour
 		arManager = MultiARManager.Instance;
 
 		// start location services
-		if (SystemInfo.supportsLocationService) 
+		if (SystemInfo.supportsLocationService && Input.location.isEnabledByUser) 
 		{
 			locationEnabled = true;
 			Input.location.Start(1f, 0.1f);
+			Input.compass.enabled = true;
 		}
 		else
 		{
 			if (locationInfoText) 
 			{
-				locationInfoText.text = "Location service is not supported.";
+				locationInfoText.text = "Location service not supported or enabled.";
 			}
 		}
 
@@ -82,7 +86,7 @@ public class SceneVisualizerLoader : MonoBehaviour
 		{
 			if (gyroInfoText) 
 			{
-				gyroInfoText.text = "Gyroscope is not supported.";
+				gyroInfoText.text = "Gyroscope not supported.";
 			}
 		}
 	}
@@ -91,9 +95,11 @@ public class SceneVisualizerLoader : MonoBehaviour
 	void Update () 
 	{
 		// report location position
-		if (locationEnabled && locationInfoText) 
+		if (locationEnabled && Input.location.status == LocationServiceStatus.Running) 
 		{
 			lastLoc = Input.location.lastData;
+
+			compHeading = Input.compass.enabled ? Input.compass.trueHeading : 0f;
 
 			if (locationInfoText) 
 			{
@@ -102,6 +108,11 @@ public class SceneVisualizerLoader : MonoBehaviour
 
 				locationInfoText.text = sMessage;
 			}
+		}
+		else
+		{
+			string sMessage = "LocStatus: " + Input.location.status.ToString() + ", Enabled: " + Input.location.isEnabledByUser;
+			locationInfoText.text = sMessage;
 		}
 
 		// report gyro rotation
@@ -113,7 +124,8 @@ public class SceneVisualizerLoader : MonoBehaviour
 			if (gyroInfoText) 
 			{
 				string sMessage = "GyroEnabled: " + gyro.enabled + 
-					"\nAtt: " + FormatQuat(gyroAttitude) + ", Rot: " + FormatQuat(gyroRotation) + ", Head: " + startHeadingGyro;
+					"\nAtt: " + FormatQuat(gyroAttitude) + ", Rot: " + FormatQuat(gyroRotation) + 
+					"\nComp: " + compHeading + ", Head: " + startHeading;
 
 				gyroInfoText.text = sMessage;
 			}
@@ -136,11 +148,16 @@ public class SceneVisualizerLoader : MonoBehaviour
 		}
 
 		// set start heading, when one is available
-		if (!startHeadingSet && mainCamera && gyroEnabled && gyroRotation.eulerAngles.y != 0f) 
+		//if (!startHeadingSet && mainCamera && gyroEnabled && gyroAttitude != Quaternion.identity)
+		if (!startHeadingSet && mainCamera && locationEnabled && compHeading != 0f)
 		{
-			startHeadingGyro = (gyroRotation.eulerAngles.y + 90f);
-			if (startHeadingGyro >= 360f)
-				startHeadingGyro -= 360f;
+			Debug.Log("Set heading with gyroRot: " + gyroRotation.eulerAngles + ", and gyroAtt: " + gyroAttitude.eulerAngles);
+
+			//startHeading = (gyroRotation.eulerAngles.y + 90f);
+			startHeading = compHeading;
+
+			if (startHeading >= 360f)
+				startHeading -= 360f;
 
 			startHeadingSet = true;
 		}
@@ -205,7 +222,7 @@ public class SceneVisualizerLoader : MonoBehaviour
 			sceneInfoText.text = "Loaded " + alLoadedSurfaces.Count + " surfaces (head:" + (int)arScene.startHeading + ") from file: " + sFilePath;
 
 			// wait for some time
-			yield return new WaitForSeconds(5f);
+			yield return new WaitForSeconds(10f);
 
 			// clear the info
 			sceneInfoText.text = string.Empty;
@@ -227,13 +244,14 @@ public class SceneVisualizerLoader : MonoBehaviour
 
 		if (data != null) 
 		{
-			Quaternion compStartRot = Quaternion.Euler(0f, -startHeadingGyro, 0f);
+			Quaternion compStartRot = Quaternion.Euler(0f, -startHeading, 0f);
 
 			Vector3 camOffset = Vector3.zero;
-			if (applyLocationDistance && locationEnabled && data.scenePos != null) 
+			if (applyLocationDistance && locationEnabled && 
+				Input.location.status == LocationServiceStatus.Running && data.scenePos != null) 
 			{
-				Vector3 locSaved = GeoUtils.LatLong2Meters(data.scenePos.lat, data.scenePos.lon, data.scenePos.alt);
-				Vector3 locCamera = GeoUtils.LatLong2Meters(lastLoc.latitude, lastLoc.longitude, lastLoc.altitude);
+				Vector3 locSaved = GeoUtils.LatLong2Meters(data.scenePos.lat, data.scenePos.lon, useLocationAltitude ? data.scenePos.alt : 0f);
+				Vector3 locCamera = GeoUtils.LatLong2Meters(lastLoc.latitude, lastLoc.longitude, useLocationAltitude ? lastLoc.altitude : 0f);
 
 				camOffset = locSaved - locCamera;
 				camOffset = new Vector3(camOffset.y, camOffset.z, camOffset.x);  // x=lon; y=alt; z=lat

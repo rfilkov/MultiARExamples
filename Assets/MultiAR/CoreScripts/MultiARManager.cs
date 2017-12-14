@@ -756,7 +756,7 @@ public class MultiARManager : MonoBehaviour
 		{
 			GameObject pointCloudObj = Instantiate(pointCloudPrefab);
 			pointCloudObj.transform.SetParent(transform);
-			DontDestroyOnLoad(pointCloudObj);
+			//DontDestroyOnLoad(pointCloudObj);
 
 			MeshFilter pointCloudMF = pointCloudObj.GetComponent<MeshFilter>();
 			if (pointCloudMF) 

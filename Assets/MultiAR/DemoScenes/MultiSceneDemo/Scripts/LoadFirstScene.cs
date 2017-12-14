@@ -13,6 +13,8 @@ public class LoadFirstScene : MonoBehaviour
 		
 		if(!levelLoaded && arManager && arManager.IsInitialized())
 		{
+			Debug.Log("MultiARManager initialized. Loading 1st scene...");
+
 			levelLoaded = true;
 			SceneManager.LoadScene(1);
 		}

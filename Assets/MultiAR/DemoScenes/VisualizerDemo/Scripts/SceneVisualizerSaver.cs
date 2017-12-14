@@ -31,7 +31,8 @@ public class SceneVisualizerSaver : MonoBehaviour
 	private Vector3 camPosition = Vector3.zero;
 	private Quaternion camRotation = Quaternion.identity;
 
-	private float startHeadingGyro = 0f;
+	private float compHeading = 0f;
+	private float startHeading = 0f;
 	private bool startHeadingSet = false;
 
 	// reference to ar-manager
@@ -47,16 +48,17 @@ public class SceneVisualizerSaver : MonoBehaviour
 		arManager = MultiARManager.Instance;
 
 		// start location services
-		if (SystemInfo.supportsLocationService) 
+		if (SystemInfo.supportsLocationService && Input.location.isEnabledByUser) 
 		{
 			locationEnabled = true;
 			Input.location.Start(1f, 0.1f);
+			Input.compass.enabled = true;
 		}
 		else
 		{
 			if (locationInfoText) 
 			{
-				locationInfoText.text = "Location service is not supported.";
+				locationInfoText.text = "Location service not supported or enabled.";
 			}
 		}
 
@@ -75,7 +77,7 @@ public class SceneVisualizerSaver : MonoBehaviour
 		{
 			if (gyroInfoText) 
 			{
-				gyroInfoText.text = "Gyroscope is not supported.";
+				gyroInfoText.text = "Gyroscope not supported.";
 			}
 		}
 	}
@@ -84,9 +86,11 @@ public class SceneVisualizerSaver : MonoBehaviour
 	void Update () 
 	{
 		// report location position
-		if (locationEnabled && locationInfoText) 
+		if (locationEnabled && Input.location.status == LocationServiceStatus.Running) 
 		{
 			lastLoc = Input.location.lastData;
+
+			compHeading = Input.compass.enabled ? Input.compass.trueHeading : 0f;
 
 			if (locationInfoText) 
 			{
@@ -95,6 +99,11 @@ public class SceneVisualizerSaver : MonoBehaviour
 
 				locationInfoText.text = sMessage;
 			}
+		}
+		else
+		{
+			string sMessage = "LocStatus: " + Input.location.status.ToString() + ", Enabled: " + Input.location.isEnabledByUser;
+			locationInfoText.text = sMessage;
 		}
 
 		// report gyro rotation
@@ -106,7 +115,8 @@ public class SceneVisualizerSaver : MonoBehaviour
 			if (gyroInfoText) 
 			{
 				string sMessage = "GyroEnabled: " + gyro.enabled + 
-					"\nAtt: " + FormatQuat(gyroAttitude) + ", Rot: " + FormatQuat(gyroRotation) + ", Head: " + startHeadingGyro;
+					"\nAtt: " + FormatQuat(gyroAttitude) + ", Rot: " + FormatQuat(gyroRotation) + 
+					"\nComp: " + compHeading + ", Head: " + startHeading;
 
 				gyroInfoText.text = sMessage;
 			}
@@ -129,11 +139,16 @@ public class SceneVisualizerSaver : MonoBehaviour
 		}
 
 		// set start heading, when one is available
-		if (!startHeadingSet && mainCamera && gyroEnabled && gyroRotation.eulerAngles.y != 0f) 
+		//if (!startHeadingSet && mainCamera && gyroEnabled && gyroAttitude != Quaternion.identity)
+		if (!startHeadingSet && mainCamera && locationEnabled && compHeading != 0f)
 		{
-			startHeadingGyro = (gyroRotation.eulerAngles.y + 90f);
-			if (startHeadingGyro >= 360f)
-				startHeadingGyro -= 360f;
+			Debug.Log("Set heading with gyroRot: " + gyroRotation.eulerAngles  + ", and gyroAtt: " + gyroAttitude.eulerAngles);
+			
+			//startHeading = (gyroRotation.eulerAngles.y + 90f);
+			startHeading = compHeading;
+
+			if (startHeading >= 360f)
+				startHeading -= 360f;
 
 			startHeadingSet = true;
 		}
@@ -201,10 +216,10 @@ public class SceneVisualizerSaver : MonoBehaviour
 		{
 			MultiARManager marManager = MultiARManager.Instance;
 			sceneInfoText.text = "Saved " + (marManager ? marManager.GetTrackedSurfacesCount() : 0) + 
-				" surfaces (head:" + (int)startHeadingGyro + ") to file: " + sFilePath;
+				" surfaces (head:" + (int)startHeading + ") to file: " + sFilePath;
 
 			// wait for some time
-			yield return new WaitForSeconds(5f);
+			yield return new WaitForSeconds(10f);
 
 			// clear the info
 			sceneInfoText.text = string.Empty;
@@ -249,7 +264,7 @@ public class SceneVisualizerSaver : MonoBehaviour
 		data.sceneDesc = string.Empty;
 		data.timestamp = marManager.GetTrackedSurfacesTimestamp();
 
-		if (locationEnabled) 
+		if (locationEnabled && Input.location.status == LocationServiceStatus.Running) 
 		{
 			data.scenePos = new JsonScenePos();
 
@@ -272,7 +287,7 @@ public class SceneVisualizerSaver : MonoBehaviour
 			data.sceneRot.gyroRot = gyroRotation.eulerAngles;
 		}
 
-		data.startHeading = startHeadingGyro;
+		data.startHeading = startHeading;
 		Quaternion compStartRot = Quaternion.Euler(0f, data.startHeading, 0f);
 
 		data.sceneCam = new JsonSceneCam();

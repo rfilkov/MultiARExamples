@@ -33,6 +33,11 @@ public class LoadSceneWithDelay : MonoBehaviour
 				debugText.text = "MultiARManager is not initialized!";
 				levelLoaded = true;
 			}
+
+//			if (arManager) 
+//			{
+//				Debug.Log("MainCamera: " + arManager.GetMainCamera ());
+//			}
 		}
 	}
 
@@ -43,6 +48,8 @@ public class LoadSceneWithDelay : MonoBehaviour
 		{
 			if(Time.realtimeSinceStartup >= timeToLoadLevel)
 			{
+				Debug.Log("Loading scene " + nextLevel);
+
 				levelLoaded = true;
 				SceneManager.LoadScene(nextLevel);
 			}

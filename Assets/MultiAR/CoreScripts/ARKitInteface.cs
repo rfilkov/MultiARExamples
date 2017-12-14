@@ -8,8 +8,8 @@ public class ARKitInteface : MonoBehaviour, ARPlatformInterface
 	[Tooltip("Material used for camera background.")]
 	public Material yuvMaterial;
 
-	[Tooltip("Reference to the TrackedPlane prefab.")]
-	public GameObject trackedPlanePrefab;
+//	[Tooltip("Reference to the TrackedPlane prefab.")]
+//	public GameObject trackedPlanePrefab;
 
 	[Tooltip("Whether the interface is enabled by MultiARManager.")]
 	private bool isInterfaceEnabled = false;
@@ -137,9 +137,9 @@ public class ARKitInteface : MonoBehaviour, ARPlatformInterface
 		{
 		case ARTrackingState.ARTrackingStateNotAvailable:
 			return MultiARInterop.CameraTrackingState.NotInitialized;
-		case ARTrackingState.ARTrackingStateNormal:  // should be ARTrackingState.ARTrackingStateLimited
+		case ARTrackingState.ARTrackingStateLimited:
 			return MultiARInterop.CameraTrackingState.LimitedTracking;
-		case ARTrackingState.ARTrackingStateLimited:  // should be ARTrackingState.ARTrackingStateNormal
+		case ARTrackingState.ARTrackingStateNormal:
 			return MultiARInterop.CameraTrackingState.NormalTracking;
 		}
 
@@ -557,7 +557,6 @@ public class ARKitInteface : MonoBehaviour, ARPlatformInterface
 		// reset camera position & rotation
 		currentCamera.transform.position = Vector3.zero;
 		currentCamera.transform.rotation = Quaternion.identity;
-		DontDestroyOnLoad(currentCamera.gameObject);
 
 		// set camera parameters
 		currentCamera.clearFlags = CameraClearFlags.Depth;
@@ -572,6 +571,11 @@ public class ARKitInteface : MonoBehaviour, ARPlatformInterface
 		{
 			GameObject cameraParent = new GameObject("CameraParent");
 			currentCamera.transform.SetParent(cameraParent.transform);
+			DontDestroyOnLoad(cameraParent);
+		}
+		else
+		{
+			DontDestroyOnLoad(currentCamera.transform.root.gameObject);
 		}
 
 		// add the needed camera components
@@ -607,6 +611,8 @@ public class ARKitInteface : MonoBehaviour, ARPlatformInterface
 
 		// create camera manager
 		GameObject camManagerObj = new GameObject("ARCameraManager");
+		DontDestroyOnLoad(camManagerObj);
+
 		UnityARCameraManager camManager = camManagerObj.AddComponent<UnityARCameraManager>();
 		camManager.m_camera = currentCamera;
 
@@ -629,11 +635,11 @@ public class ARKitInteface : MonoBehaviour, ARPlatformInterface
 			DontDestroyOnLoad(arData.surfaceRendererRoot);
 		}
 
-		// check for tracked plane display
-		if(arManager.displayTrackedSurfaces && trackedPlanePrefab)
-		{
-			UnityARUtility.InitializePlanePrefab(trackedPlanePrefab);
-		}
+//		// check for tracked plane display
+//		if(arManager.displayTrackedSurfaces && trackedPlanePrefab)
+//		{
+//			UnityARUtility.InitializePlanePrefab(trackedPlanePrefab);
+//		}
 
 		// add needed events
 		UnityARSessionNativeInterface.ARFrameUpdatedEvent += ARFrameUpdated;
@@ -702,6 +708,7 @@ public class ARKitInteface : MonoBehaviour, ARPlatformInterface
 			arData.pointCloudData = camera.pointCloudData;
 			arData.pointCloudLength = arData.pointCloudData.Length;
 			arData.pointCloudTimestamp = lastFrameTimestamp;
+			//Debug.Log("Point cloud size: " + arData.pointCloudLength + " @ " + arData.pointCloudTimestamp);
 		}
 	}
 
