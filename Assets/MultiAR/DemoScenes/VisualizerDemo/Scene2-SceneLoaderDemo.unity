@@ -401,6 +401,7 @@ MonoBehaviour:
   sceneInfoText: {fileID: 1464310481}
   surfaceMaterial: {fileID: 2100000, guid: cce55cd016151ac4e8e6bf0ac4cb7a00, type: 2}
   applyLocationDistance: 0
+  useLocationAltitude: 0
 --- !u!1 &1340707753
 GameObject:
   m_ObjectHideFlags: 0
@@ -582,7 +583,7 @@ GameObject:
   - component: {fileID: 1598738845}
   - component: {fileID: 1598738844}
   m_Layer: 5
-  m_Name: CameraInfoText
+  m_Name: TrackerInfoText
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -652,7 +653,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: camera-info
+  m_Text: tracker-info
 --- !u!222 &1598738846
 CanvasRenderer:
   m_ObjectHideFlags: 0

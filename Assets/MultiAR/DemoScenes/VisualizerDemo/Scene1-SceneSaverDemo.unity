@@ -454,7 +454,7 @@ GameObject:
   - component: {fileID: 1410132058}
   - component: {fileID: 1410132057}
   m_Layer: 5
-  m_Name: CameraInfoText
+  m_Name: TrackerInfoText
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -524,7 +524,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: camera-info
+  m_Text: tracker-info
 --- !u!222 &1410132059
 CanvasRenderer:
   m_ObjectHideFlags: 0

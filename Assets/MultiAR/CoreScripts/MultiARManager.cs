@@ -10,15 +10,15 @@ public class MultiARManager : MonoBehaviour
 	[Tooltip("Whether to apply the AR-detected light.")]
 	public bool applyARLight = true;
 
-	[Tooltip("Whether to get the tracked feature points.")]
-	public bool getPointCloud = false;
+//	[Tooltip("Whether to get the tracked feature points.")]
+//	public bool getPointCloud = false;
 
 	[Tooltip("Mesh-prefab used to display the point cloud in the scene.")]
 	public GameObject pointCloudPrefab;
 
-	[Tooltip("Whether to display the tracked surfaces.")]
-	[HideInInspector]
-	public bool displayTrackedSurfaces = false;
+//	[Tooltip("Whether to display the tracked surfaces.")]
+//	[HideInInspector]
+//	public bool displayTrackedSurfaces = false;
 
 	[Tooltip("Whether the world raycasts may hit tracked surfaces only, or points from the cloud in general.")]
 	[HideInInspector]

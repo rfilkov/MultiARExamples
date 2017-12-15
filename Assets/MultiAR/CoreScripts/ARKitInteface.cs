@@ -620,7 +620,7 @@ public class ARKitInteface : MonoBehaviour, ARPlatformInterface
 		MultiARInterop.MultiARData arData = arManager ? arManager.GetARData() : null;
 
 		// check for point cloud getter
-		if(arManager && arManager.getPointCloud)
+		if(arManager && arManager.pointCloudPrefab != null)
 		{
 			arData.pointCloudData = new Vector3[0];
 			arData.pointCloudLength = 0;
@@ -701,7 +701,7 @@ public class ARKitInteface : MonoBehaviour, ARPlatformInterface
 		currentColorTemperature = lightEstimate.ambientColorTemperature;
 
 		// point cloud
-		if(arManager.getPointCloud)
+		if(arManager.pointCloudPrefab != null)
 		{
 			MultiARInterop.MultiARData arData = arManager.GetARData();
 
@@ -725,11 +725,11 @@ public class ARKitInteface : MonoBehaviour, ARPlatformInterface
 		Debug.Log("Plane added: " + arPlaneAnchor.identifier);
 
 		GameObject go = null;
-		if(arManager.displayTrackedSurfaces)
-		{
-			go = UnityARUtility.CreatePlaneInScene(arPlaneAnchor);
-			go.AddComponent<DontDestroyOnLoad>();  // these GOs persist across scene loads
-		}
+//		if(arManager.displayTrackedSurfaces)
+//		{
+//			go = UnityARUtility.CreatePlaneInScene(arPlaneAnchor);
+//			go.AddComponent<DontDestroyOnLoad>();  // these GOs persist across scene loads
+//		}
 
 		ARPlaneAnchorGameObject arpag = new ARPlaneAnchorGameObject();
 		arpag.planeAnchor = arPlaneAnchor;

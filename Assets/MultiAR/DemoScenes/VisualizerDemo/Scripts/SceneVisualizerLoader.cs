@@ -11,8 +11,6 @@ public class SceneVisualizerLoader : MonoBehaviour
 
 	public Text gyroInfoText;
 
-	public Text cameraInfoText;
-
 	public Text sceneInfoText;
 
 	public Material surfaceMaterial;
@@ -105,6 +103,8 @@ public class SceneVisualizerLoader : MonoBehaviour
 			{
 				string sMessage = "LocStatus: " + Input.location.status.ToString() + ", Enabled: " + Input.location.isEnabledByUser;
 				sMessage += "\nLat: " + lastLoc.latitude + ", Lon: " + lastLoc.longitude + ", Alt: " + lastLoc.altitude;
+				sMessage += "\nHeading: " + FormatHeading(compHeading) + ", Start: " + FormatHeading(startHeading);
+
 
 				locationInfoText.text = sMessage;
 			}
@@ -116,19 +116,15 @@ public class SceneVisualizerLoader : MonoBehaviour
 		}
 
 		// report gyro rotation
+		string sGyroMessage = string.Empty;
+
 		if (gyroEnabled) 
 		{
 			gyroAttitude = gyro.attitude;
 			gyroRotation = gyroParentRot * (gyroAttitude * initialGyroRot);
 
-			if (gyroInfoText) 
-			{
-				string sMessage = "GyroEnabled: " + gyro.enabled + 
-					"\nAtt: " + FormatQuat(gyroAttitude) + ", Rot: " + FormatQuat(gyroRotation) + 
-					"\nComp: " + compHeading + ", Head: " + startHeading;
-
-				gyroInfoText.text = sMessage;
-			}
+			string sMessage = "GyroEnabled: " + gyro.enabled +
+              "\nAtt: " + FormatQuat (gyroAttitude) + ", Rot: " + FormatQuat (gyroRotation);
 		}
 
 		// get the main camera
@@ -140,24 +136,25 @@ public class SceneVisualizerLoader : MonoBehaviour
 			camPosition = mainCamera.transform.position;
 			camRotation = mainCamera.transform.rotation;
 
-			if (cameraInfoText) 
-			{
-				string sMessage = string.Format("Camera - Pos: {0}, Rot: {1}\n", camPosition, FormatQuat(camRotation));
-				cameraInfoText.text = sMessage;
-			}
+			sGyroMessage += string.Format("\nCamPos: {0}, CamRot: {1}\n", camPosition, FormatQuat(camRotation));
+		}
+
+		if (gyroInfoText) 
+		{
+			gyroInfoText.text = sGyroMessage;
 		}
 
 		// set start heading, when one is available
 		//if (!startHeadingSet && mainCamera && gyroEnabled && gyroAttitude != Quaternion.identity)
 		if (!startHeadingSet && mainCamera && locationEnabled && compHeading != 0f)
 		{
-			Debug.Log("Set heading with gyroRot: " + gyroRotation.eulerAngles + ", and gyroAtt: " + gyroAttitude.eulerAngles);
+			Debug.Log("Set heading with gyroRot: " + gyroRotation.eulerAngles + ", and gyroAtt: " + gyroAttitude.eulerAngles + ", compHead: " + compHeading);
 
 			//startHeading = (gyroRotation.eulerAngles.y + 90f);
 			startHeading = compHeading;
 
-			if (startHeading >= 360f)
-				startHeading -= 360f;
+//			if (startHeading >= 360f)
+//				startHeading -= 360f;
 
 			startHeadingSet = true;
 		}
@@ -166,9 +163,9 @@ public class SceneVisualizerLoader : MonoBehaviour
 		if (arManager && arManager.IsInitialized() && arManager.IsInputAvailable(true))
 		{
 			MultiARInterop.InputAction action = arManager.GetInputAction();
-			//float navMagnitude = action == MultiARInterop.InputAction.Grip ? arManager.GetInputNavCoordinates().magnitude : 0f;
+			float navMagnitude = action == MultiARInterop.InputAction.Grip ? arManager.GetInputNavCoordinates().magnitude : 0f;
 
-			if (action == MultiARInterop.InputAction.Grip && !routineRunning)
+			if (action == MultiARInterop.InputAction.Grip && navMagnitude >= 0.1f && !routineRunning)
 			{
 				routineRunning = true;
 				StartCoroutine(LoadButtonClicked());
@@ -183,6 +180,7 @@ public class SceneVisualizerLoader : MonoBehaviour
 		if (locationEnabled) 
 		{
 			Input.location.Stop();
+			Input.compass.enabled = false;
 			locationEnabled = false;
 		}
 
@@ -225,7 +223,7 @@ public class SceneVisualizerLoader : MonoBehaviour
 			yield return new WaitForSeconds(10f);
 
 			// clear the info
-			sceneInfoText.text = string.Empty;
+			sceneInfoText.text = "Slide to load the saved scene.";
 		}
 
 		routineRunning = false;

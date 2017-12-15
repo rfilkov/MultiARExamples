@@ -8,8 +8,8 @@ public class ARCoreInteface : MonoBehaviour, ARPlatformInterface
 	[Tooltip("Reference to the ARCore-Device prefab.")]
 	public GameObject arCoreDevicePrefab;
 
-	[Tooltip("Reference to the TrackedPlane prefab.")]
-	public GameObject trackedPlanePrefab;
+//	[Tooltip("Reference to the TrackedPlane prefab.")]
+//	public GameObject trackedPlanePrefab;
 
 	[Tooltip("Whether to attach the game objects to the planes, where they are anchored.")]
 	public bool attachObjectsToPlanes = false;
@@ -40,8 +40,8 @@ public class ARCoreInteface : MonoBehaviour, ARPlatformInterface
 	// current light intensity
 	protected float currentLightIntensity = 1f;
 
-	// newly detected planes
-	private List<TrackedPlane> newTrackedPlanes = new List<TrackedPlane>();
+//	// newly detected planes
+//	private List<TrackedPlane> newTrackedPlanes = new List<TrackedPlane>();
 
 	// all detected planes
 	private List<TrackedPlane> allTrackedPlanes = new List<TrackedPlane>();
@@ -49,10 +49,10 @@ public class ARCoreInteface : MonoBehaviour, ARPlatformInterface
 	// regarding overlay surfaces
 	private List<string> alSurfacesToDelete = new List<string>();
 
-	// colors to use for plane display
-	private Color[] planeColors = new Color[] { 
-		Color.blue, Color.cyan, Color.green, Color.grey, Color.magenta, Color.red, Color.white, Color.yellow 
-	};
+//	// colors to use for plane display
+//	private Color[] planeColors = new Color[] { 
+//		Color.blue, Color.cyan, Color.green, Color.grey, Color.magenta, Color.red, Color.white, Color.yellow 
+//	};
 
 	// input action and screen position
 	private MultiARInterop.InputAction inputAction = MultiARInterop.InputAction.None;
@@ -592,7 +592,7 @@ public class ARCoreInteface : MonoBehaviour, ARPlatformInterface
 		// get ar-data
 		MultiARInterop.MultiARData arData = arManager ? arManager.GetARData() : null;
 
-		if(arManager && arManager.getPointCloud)
+		if(arManager && arManager.pointCloudPrefab != null)
 		{
 			arData.pointCloudData = new Vector3[MultiARInterop.MAX_POINT_COUNT];
 			arData.pointCloudLength = 0;
@@ -639,7 +639,7 @@ public class ARCoreInteface : MonoBehaviour, ARPlatformInterface
 		// get point cloud, if needed
 		MultiARInterop.MultiARData arData = arManager.GetARData();
 
-		if(arManager.getPointCloud)
+		if(arManager.pointCloudPrefab != null)
 		{
 			PointCloud pointcloud = Frame.PointCloud;
 			if (pointcloud.PointCount > 0 && pointcloud.Timestamp > arData.pointCloudTimestamp)
@@ -655,24 +655,24 @@ public class ARCoreInteface : MonoBehaviour, ARPlatformInterface
 			}
 		}
 
-		// display the tracked planes if needed
-		if(arManager.displayTrackedSurfaces && trackedPlanePrefab)
-		{
-			// get the new planes
-			Frame.GetNewPlanes(ref newTrackedPlanes);
-
-			// Iterate over planes found in this frame and instantiate corresponding GameObjects to visualize them.
-			for (int i = 0; i < newTrackedPlanes.Count; i++)
-			{
-				// Instantiate a plane visualization prefab and set it to track the new plane.
-				GameObject planeObject = Instantiate(trackedPlanePrefab, Vector3.zero, Quaternion.identity);
-				planeObject.GetComponent<GoogleARCore.HelloAR.TrackedPlaneVisualizer>().SetTrackedPlane(newTrackedPlanes[i]);
-
-				// Apply a random color and grid rotation.
-				planeObject.GetComponent<Renderer>().material.SetColor("_GridColor", planeColors[Random.Range(0, planeColors.Length - 1)]);
-				planeObject.GetComponent<Renderer>().material.SetFloat("_UvRotation", Random.Range(0.0f, 360.0f));
-			}
-		}
+//		// display the tracked planes if needed
+//		if(arManager.displayTrackedSurfaces && trackedPlanePrefab)
+//		{
+//			// get the new planes
+//			Frame.GetNewPlanes(ref newTrackedPlanes);
+//
+//			// Iterate over planes found in this frame and instantiate corresponding GameObjects to visualize them.
+//			for (int i = 0; i < newTrackedPlanes.Count; i++)
+//			{
+//				// Instantiate a plane visualization prefab and set it to track the new plane.
+//				GameObject planeObject = Instantiate(trackedPlanePrefab, Vector3.zero, Quaternion.identity);
+//				planeObject.GetComponent<GoogleARCore.HelloAR.TrackedPlaneVisualizer>().SetTrackedPlane(newTrackedPlanes[i]);
+//
+//				// Apply a random color and grid rotation.
+//				planeObject.GetComponent<Renderer>().material.SetColor("_GridColor", planeColors[Random.Range(0, planeColors.Length - 1)]);
+//				planeObject.GetComponent<Renderer>().material.SetFloat("_UvRotation", Random.Range(0.0f, 360.0f));
+//			}
+//		}
 
 		// get all tracked planes
 		Frame.GetAllPlanes(ref allTrackedPlanes);
