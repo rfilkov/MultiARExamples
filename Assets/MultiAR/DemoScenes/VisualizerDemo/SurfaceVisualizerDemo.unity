@@ -397,7 +397,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   locationInfoText: {fileID: 44359616}
   gyroInfoText: {fileID: 803547566}
-  cameraInfoText: {fileID: 0}
   sceneInfoText: {fileID: 1464310481}
   surfaceMaterial: {fileID: 2100000, guid: cce55cd016151ac4e8e6bf0ac4cb7a00, type: 2}
   applyLocationDistance: 0
@@ -564,7 +563,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: Slide to load the saved scene.
+  m_Text: Slide to load the saved scene (experimental).
 --- !u!222 &1464310482
 CanvasRenderer:
   m_ObjectHideFlags: 0

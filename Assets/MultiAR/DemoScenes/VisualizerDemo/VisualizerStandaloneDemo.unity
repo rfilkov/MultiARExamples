@@ -323,7 +323,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: Run the scene to load saved scene.
+  m_Text: Run the scene to load saved scene (experimental).
 --- !u!114 &400457527
 MonoBehaviour:
   m_ObjectHideFlags: 0

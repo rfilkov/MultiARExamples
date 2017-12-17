@@ -271,7 +271,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   locationInfoText: {fileID: 2051310032}
   gyroInfoText: {fileID: 1308923821}
-  cameraInfoText: {fileID: 0}
   sceneInfoText: {fileID: 1464310481}
 --- !u!1 &1308923818
 GameObject:
@@ -613,7 +612,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: Slide to save the scene into local file.
+  m_Text: Slide to save the scene in a file (experimental).
 --- !u!222 &1464310482
 CanvasRenderer:
   m_ObjectHideFlags: 0
