@@ -18,15 +18,14 @@ public class StandaloneSceneLoader : MonoBehaviour
 
 	public bool useSavedHeading = true;
 
-	public float startHeadingGyro = 0f;
+	[Range(0f, 360f)]
+	public float startHeading = 0f;
 
 	public bool displaySavedInfos = false;
 
 	public Text locationInfoText;
 
 	public Text gyroInfoText;
-
-	public Text cameraInfoText;
 
 	public Text sceneInfoText;
 
@@ -106,10 +105,10 @@ public class StandaloneSceneLoader : MonoBehaviour
 		{
 			if (useSavedHeading) 
 			{
-				startHeadingGyro = data.startHeading;
+				startHeading = data.startHeading;
 			}
 
-			Quaternion compStartRot = Quaternion.Euler(0f, -startHeadingGyro, 0f);
+			Quaternion compStartRot = Quaternion.Euler(0f, -startHeading, 0f);
 
 			if (data.surfaceSet != null) 
 			{
@@ -161,6 +160,7 @@ public class StandaloneSceneLoader : MonoBehaviour
 					if (data.scenePos != null) 
 					{
 						string sMessage = "Lat: " + data.scenePos.lat + ", Lon: " + data.scenePos.lon + ", Alt: " + data.scenePos.alt;
+						sMessage += "\nCompass Head: " + FormatHeading(data.compHeading) + ", Start: " + FormatHeading(data.startHeading);
 						locationInfoText.text = sMessage;
 					} 
 					else 
@@ -173,25 +173,14 @@ public class StandaloneSceneLoader : MonoBehaviour
 				{
 					if (data.sceneRot != null) 
 					{
-						string sMessage = "Att: " + data.sceneRot.gyroAtt + ", Rot: " + data.sceneRot.gyroRot + ", Head: " + FormatHeading(data.startHeading);
+						string sMessage = "Gyro Att: " + data.sceneRot.gyroAtt + ", Rot: " + data.sceneRot.gyroRot;
+						if (data.sceneCam != null)
+							sMessage += string.Format("\nCamera Pos: {0}, Rot: {1}", data.sceneCam.camPos, data.sceneCam.camRot);
 						gyroInfoText.text = sMessage;
 					} 
 					else 
 					{
 						gyroInfoText.text = "Gyroscope not supported.";
-					}
-				}
-
-				if (cameraInfoText) 
-				{
-					if (data.sceneCam != null) 
-					{
-						string sMessage = string.Format("Camera - Pos: {0}, Rot: {1}", data.sceneCam.camPos, data.sceneCam.camRot);
-						cameraInfoText.text = sMessage;
-					} 
-					else 
-					{
-						cameraInfoText.text = "Camera info not found.";
 					}
 				}
 			}

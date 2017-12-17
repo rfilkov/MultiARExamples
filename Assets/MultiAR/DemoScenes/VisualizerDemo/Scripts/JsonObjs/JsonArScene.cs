@@ -15,6 +15,8 @@ public class JsonArScene
 
 	public JsonSceneRot sceneRot;
 
+	public float compHeading;
+
 	public float startHeading;
 
 	public JsonSceneCam sceneCam;

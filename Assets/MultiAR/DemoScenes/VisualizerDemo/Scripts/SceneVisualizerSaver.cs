@@ -287,8 +287,9 @@ public class SceneVisualizerSaver : MonoBehaviour
 			data.sceneRot.gyroRot = gyroRotation.eulerAngles;
 		}
 
+		data.compHeading = compHeading;
 		data.startHeading = startHeading;
-		Quaternion compStartRot = Quaternion.Euler(0f, data.startHeading, 0f);
+		Quaternion compStartRot = Quaternion.Euler(0f, startHeading, 0f);
 
 		data.sceneCam = new JsonSceneCam();
 		data.sceneCam.camPos = compStartRot * camPosition;
