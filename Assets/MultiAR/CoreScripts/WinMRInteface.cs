@@ -596,7 +596,7 @@ public class WinMRInteface : MonoBehaviour, ARPlatformInterface
 		MultiARInterop.MultiARData arData = arManager.GetARData();
 
 		// check for point cloud getter
-		if(arManager.getPointCloud)
+		if(arManager.pointCloudPrefab != null)
 		{
 			arData.pointCloudData = new Vector3[0];
 			arData.pointCloudLength = 0;

@@ -123,7 +123,7 @@ public class SceneVisualizerLoader : MonoBehaviour
 			gyroAttitude = gyro.attitude;
 			gyroRotation = gyroParentRot * (gyroAttitude * initialGyroRot);
 
-			string sMessage = "GyroEnabled: " + gyro.enabled +
+			sGyroMessage = "GyroEnabled: " + gyro.enabled +
               "\nAtt: " + FormatQuat (gyroAttitude) + ", Rot: " + FormatQuat (gyroRotation);
 		}
 
