@@ -96,7 +96,17 @@ namespace UnityEngine.XR.iOS {
          */
         public Vector4 extent;
 
-        public string identifierStr { get { return Marshal.PtrToStringAuto(this.ptrIdentifier); } }
+        public string identifierStr 
+		{ 
+			get 
+			{ 
+#if !UNITY_WSA
+				return Marshal.PtrToStringAuto(this.ptrIdentifier); 
+#else
+				return null;
+#endif
+			} 
+		}
 
         public static UnityARAnchorData UnityARAnchorDataFromGameObject(GameObject go) {
             // create an anchor data struct from a game object transform
@@ -120,7 +130,17 @@ namespace UnityEngine.XR.iOS {
 		 */
 		public UnityARMatrix4x4 transform;
 
-		public string identifierStr { get { return Marshal.PtrToStringAuto(this.ptrIdentifier); } }
+		public string identifierStr 
+		{ 
+			get 
+			{ 
+#if !UNITY_WSA
+				return Marshal.PtrToStringAuto(this.ptrIdentifier); 
+#else
+				return null;
+#endif
+			} 
+		}
 
         public static UnityARUserAnchorData UnityARUserAnchorDataFromGameObject(GameObject go) {
             // create an anchor data struct from a game object transform
@@ -566,7 +586,9 @@ namespace UnityEngine.XR.iOS {
 		{
 			//get the identifier for this anchor from the pointer
 			ARPlaneAnchor arPlaneAnchor = new ARPlaneAnchor ();
+#if !UNITY_WSA
             arPlaneAnchor.identifier = Marshal.PtrToStringAuto(anchor.ptrIdentifier);
+#endif
 
 			Matrix4x4 matrix = new Matrix4x4 ();
 	        matrix.SetColumn(0, anchor.transform.column0);
@@ -585,7 +607,9 @@ namespace UnityEngine.XR.iOS {
 		{
 			//get the identifier for this anchor from the pointer
 			ARUserAnchor arUserAnchor = new ARUserAnchor ();
+#if !UNITY_WSA
             arUserAnchor.identifier = Marshal.PtrToStringAuto(anchor.ptrIdentifier);
+#endif
 
 			Matrix4x4 matrix = new Matrix4x4 ();
 	        matrix.SetColumn(0, anchor.transform.column0);
@@ -606,7 +630,9 @@ namespace UnityEngine.XR.iOS {
             arHitTestResult.worldTransform = resultData.worldTransform;
             arHitTestResult.isValid = resultData.isValid;
             if (resultData.anchor != IntPtr.Zero) {
+#if !UNITY_WSA				
                 arHitTestResult.anchorIdentifier = Marshal.PtrToStringAuto (resultData.anchor);
+#endif
             }
             return arHitTestResult;
         }

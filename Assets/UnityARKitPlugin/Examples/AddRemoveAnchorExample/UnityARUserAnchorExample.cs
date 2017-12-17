@@ -31,7 +31,7 @@ public class UnityARUserAnchorExample : MonoBehaviour {
 	{
 		if (m_Clones.Contains(anchor.identifier))
 		{
-            Console.WriteLine("Our anchor was added!");
+			Debug.Log("Our anchor was added!");
 		}
 	}
 
@@ -40,7 +40,7 @@ public class UnityARUserAnchorExample : MonoBehaviour {
 		if (m_Clones.Contains(anchor.identifier))
 		{
             m_Clones.Remove(anchor.identifier);
-            Console.WriteLine("AnchorRemovedExample: " + anchor.identifier);
+			Debug.Log("AnchorRemovedExample: " + anchor.identifier);
 		}
 	}
 
@@ -60,7 +60,7 @@ public class UnityARUserAnchorExample : MonoBehaviour {
 		{
             foreach (string id in m_Clones)
             {
-                Console.WriteLine("Removing anchor with id: " + id);
+				Debug.Log("Removing anchor with id: " + id);
                 UnityARSessionNativeInterface.GetARSessionNativeInterface().RemoveUserAnchor(id);
                 break;
             }

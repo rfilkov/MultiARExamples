@@ -542,11 +542,11 @@ PlayerSettings:
   m_MobileRenderingPath: 1
   metroPackageName: MultiAR
   metroPackageVersion: 1.0.0.0
-  metroCertificatePath: 
+  metroCertificatePath: Assets\WSATestCertificate.pfx
   metroCertificatePassword: 
-  metroCertificateSubject: 
-  metroCertificateIssuer: 
-  metroCertificateNotAfter: 0000000000000000
+  metroCertificateSubject: DefaultCompany
+  metroCertificateIssuer: DefaultCompany
+  metroCertificateNotAfter: 802b63ed4b96d401
   metroApplicationDescription: MultiAR
   wsaImages: {}
   metroTileShortName: 
@@ -575,17 +575,17 @@ PlayerSettings:
       InternetClientServer: False
       Location: False
       Microphone: True
-      MusicLibrary: True
+      MusicLibrary: False
       Objects3D: False
       PhoneCall: False
-      PicturesLibrary: True
+      PicturesLibrary: False
       PrivateNetworkClientServer: False
       Proximity: False
       RemovableStorage: False
       SharedUserCertificates: False
       SpatialPerception: True
       UserAccountInformation: False
-      VideosLibrary: True
+      VideosLibrary: False
       VoipCall: False
       WebCam: True
   metroFTAName: 

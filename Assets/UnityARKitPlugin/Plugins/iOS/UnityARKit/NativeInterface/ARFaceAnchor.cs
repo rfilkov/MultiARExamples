@@ -85,7 +85,17 @@ namespace UnityEngine.XR.iOS
 		 */
 		public UnityARMatrix4x4 transform;
 
-		public string identifierStr { get { return Marshal.PtrToStringAuto(this.ptrIdentifier); } }
+		public string identifierStr 
+		{ 
+			get 
+			{ 
+#if !UNITY_WSA
+				return Marshal.PtrToStringAuto(this.ptrIdentifier);
+#else
+				return null;
+#endif
+			} 
+		}
 
 		public UnityARFaceGeometry faceGeometry;
 		public IntPtr blendShapes;
@@ -213,8 +223,10 @@ namespace UnityEngine.XR.iOS
 		[MonoPInvokeCallback(typeof(DictionaryVisitorHandler))]
 		static void AddElementToManagedDictionary(IntPtr keyPtr, float value)
 		{
+#if !UNITY_WSA
 			string key = Marshal.PtrToStringAuto(keyPtr);
 			blendshapesDictionary.Add(key, value);
+#endif
 		}
 	}
 }

@@ -1,6 +1,8 @@
 ﻿using UnityEngine;
 using System.Collections;
+#if !UNITY_WSA
 using System.Runtime.Serialization.Formatters.Binary;
+#endif
 using System.IO;
 
 namespace Utils
@@ -13,6 +15,7 @@ namespace Utils
 
 		public static byte[] SerializeToByteArray(this object obj)
 		{
+#if !UNITY_WSA			
 			if (obj == null)
 			{
 				return null;
@@ -23,10 +26,14 @@ namespace Utils
 				bf.Serialize(ms, obj);
 				return ms.ToArray();
 			}
+#else
+			return null;
+#endif
 		}
 
 		public static T Deserialize<T>(this byte[] byteArray) where T : class
 		{
+#if !UNITY_WSA
 			if (byteArray == null)
 			{
 				return null;
@@ -39,6 +46,9 @@ namespace Utils
 				var obj = (T)binForm.Deserialize(memStream);
 				return obj;
 			}
+#else
+			return null;
+#endif
 		}
 	}
 }

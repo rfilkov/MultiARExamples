@@ -144,6 +144,7 @@ namespace GoogleARCore
             Action<T> asyncTaskComplete;
             var task = new AsyncTask<T>(out asyncTaskComplete);
 
+#if !UNITY_WSA
             // Spawn thread to perform the task.
             new Thread(() =>
             {
@@ -158,6 +159,7 @@ namespace GoogleARCore
                     asyncTaskComplete(default(T));
                 }
             }).Start();
+#endif
 
             return task;
         }
