@@ -23,6 +23,9 @@ public class ObjectController : MonoBehaviour
 	[Tooltip("Transform of Model3, if any.")]
 	public Transform model3;
 
+	[Tooltip("Whether the virtual model should rotate at the AR-camera or not.")]
+	public bool modelLookingAtCamera = true;
+
 	[Tooltip("UI-Text to show information messages.")]
 	public Text infoText;
 
@@ -152,11 +155,15 @@ public class ObjectController : MonoBehaviour
 		{
 			// set position and look at the camera
 			currentModel.position = vNewPos;
-			currentModel.LookAt(arCamera.transform);
 
-			// avoid rotation around x
-			Vector3 objRotation = currentModel.rotation.eulerAngles;
-			currentModel.rotation = Quaternion.Euler(0f, objRotation.y, objRotation.z);
+			if (modelLookingAtCamera) 
+			{
+				currentModel.LookAt(arCamera.transform);
+
+				// avoid rotation around x
+				Vector3 objRotation = currentModel.rotation.eulerAngles;
+				currentModel.rotation = Quaternion.Euler(0f, objRotation.y, objRotation.z);
+			}
 
 			return true;
 		}

@@ -7,6 +7,9 @@ public class ObjectSpawner : MonoBehaviour
 	[Tooltip("Prefab to be spawn there, where the user clicks on screen.")]
 	public GameObject objectPrefab;
 
+	[Tooltip("Whether the virtual model should rotate at the AR-camera or not.")]
+	public bool modelLookingAtCamera = true;
+
 	// reference to the MultiARManager
 	private MultiARManager arManager;
 
@@ -42,7 +45,7 @@ public class ObjectSpawner : MonoBehaviour
 
 					// look at the camera
 					Camera arCamera = arManager.GetMainCamera();
-					if(arCamera)
+					if(arCamera && modelLookingAtCamera)
 					{
 						spawnObj.transform.LookAt(arCamera.transform);
 						// avoid rotation around x

@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.44657868, g: 0.49641263, b: 0.57481706, a: 1}
+  m_IndirectSpecularColor: {r: 0.44657826, g: 0.49641263, b: 0.57481676, a: 1}
 --- !u!157 &3
 LightmapSettings:
   m_ObjectHideFlags: 0
@@ -247,7 +247,7 @@ RectTransform:
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 587753605}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 516.18695, z: 0}
+  m_LocalPosition: {x: 0, y: 512.0682, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 1671095480}
@@ -720,7 +720,7 @@ RectTransform:
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 1489985699}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: -516.18695, z: 0}
+  m_LocalPosition: {x: 0, y: -512.0682, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 1671095480}
@@ -777,7 +777,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: Tap on detected surface to open a portal there.
+  m_Text: Tap to open a portal on a detected surface.
 --- !u!222 &1489985703
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -893,8 +893,8 @@ RectTransform:
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 1671095479}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 352, y: 188, z: 0}
-  m_LocalScale: {x: 0.35728747, y: 0.35728747, z: 0.35728747}
+  m_LocalPosition: {x: 475.5, y: 250, z: 0}
+  m_LocalScale: {x: 0.47886464, y: 0.47886464, z: 0.47886464}
   m_Children:
   - {fileID: 587753609}
   - {fileID: 1489985700}

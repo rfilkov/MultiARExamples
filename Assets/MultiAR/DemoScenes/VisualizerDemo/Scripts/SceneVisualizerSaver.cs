@@ -203,8 +203,11 @@ public class SceneVisualizerSaver : MonoBehaviour
 		bool bSaved = SaveArScene(sFilePath);
 
 		// save image
-		string sJpegPath = FileUtils.GetPersitentDataPath("SavedSceneImage.jpg");
-		SaveScreenShot(sJpegPath);
+		if (bSaved) 
+		{
+			string sJpegPath = FileUtils.GetPersitentDataPath("SavedSceneImage.jpg");
+			SaveScreenShot(sJpegPath);
+		}
 
 		yield return null;
 
@@ -252,7 +255,7 @@ public class SceneVisualizerSaver : MonoBehaviour
 	public bool SaveArScene(string dataFilePath)
 	{
 		MultiARManager marManager = MultiARManager.Instance;
-		if (!marManager)
+		if (!marManager || marManager.GetTrackedSurfacesCount() == 0)
 			return false;
 		
 		JsonArScene data = new JsonArScene();

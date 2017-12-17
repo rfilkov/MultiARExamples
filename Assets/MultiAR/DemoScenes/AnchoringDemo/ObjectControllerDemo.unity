@@ -268,7 +268,7 @@ Prefab:
       objectReference: {fileID: 0}
     - target: {fileID: 4774689395765626, guid: 9bc339054d3423d48aec8d4acc86aeae, type: 2}
       propertyPath: m_LocalPosition.z
-      value: 0
+      value: -10
       objectReference: {fileID: 0}
     - target: {fileID: 4774689395765626, guid: 9bc339054d3423d48aec8d4acc86aeae, type: 2}
       propertyPath: m_LocalRotation.x
@@ -711,6 +711,7 @@ MonoBehaviour:
   model1: {fileID: 99986133}
   model2: {fileID: 1544257670}
   model3: {fileID: 1508205923}
+  modelLookingAtCamera: 1
   infoText: {fileID: 1585732038}
 --- !u!1001 &1136722533
 Prefab:
@@ -729,7 +730,7 @@ Prefab:
       objectReference: {fileID: 0}
     - target: {fileID: 4307507243167418, guid: 4909b1d942e338f448b7db6f8709b51c, type: 2}
       propertyPath: m_LocalPosition.z
-      value: 0
+      value: -10
       objectReference: {fileID: 0}
     - target: {fileID: 4307507243167418, guid: 4909b1d942e338f448b7db6f8709b51c, type: 2}
       propertyPath: m_LocalRotation.x
@@ -962,7 +963,7 @@ Prefab:
       objectReference: {fileID: 0}
     - target: {fileID: 4697807048781098, guid: 5ea92076957e22a4cb1327f11d0a489b, type: 2}
       propertyPath: m_LocalPosition.z
-      value: 0
+      value: -10
       objectReference: {fileID: 0}
     - target: {fileID: 4697807048781098, guid: 5ea92076957e22a4cb1327f11d0a489b, type: 2}
       propertyPath: m_LocalRotation.x

@@ -13,6 +13,9 @@ public class ObjectScaler : MonoBehaviour
 	[Tooltip("Smooth factor for object scaling.")]
 	public float smoothFactor = 10f;
 
+	[Tooltip("Whether the virtual model should rotate at the AR-camera or not.")]
+	public bool modelLookingAtCamera = true;
+
 	[Tooltip("UI-Text to show information messages.")]
 	public UnityEngine.UI.Text infoText;
 
@@ -70,7 +73,7 @@ public class ObjectScaler : MonoBehaviour
 
 					// look at the camera
 					Camera arCamera = arManager.GetMainCamera();
-					if(arCamera)
+					if(arCamera && modelLookingAtCamera)
 					{
 						objectInstance.transform.LookAt(arCamera.transform);
 						// avoid rotation around x

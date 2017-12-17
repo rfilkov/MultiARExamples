@@ -17,6 +17,9 @@ public class ModelAnchorController : MonoBehaviour
 	[Tooltip("Toggle to show if the model is anchored or not.")]
 	public Toggle anchorActiveToggle;
 
+	[Tooltip("Whether the virtual model should rotate at the AR-camera or not.")]
+	public bool modelLookingAtCamera = true;
+
 	[Tooltip("UI-Text to show information messages.")]
 	public Text infoText;
 
@@ -101,11 +104,15 @@ public class ModelAnchorController : MonoBehaviour
 		{
 			// set position and look at the camera
 			modelTransform.position = vNewPos;
-			modelTransform.LookAt(arCamera.transform);
 
-			// avoid rotation around x
-			Vector3 objRotation = modelTransform.rotation.eulerAngles;
-			modelTransform.rotation = Quaternion.Euler(0f, objRotation.y, objRotation.z);
+			if (modelLookingAtCamera) 
+			{
+				modelTransform.LookAt(arCamera.transform);
+
+				// avoid rotation around x
+				Vector3 objRotation = modelTransform.rotation.eulerAngles;
+				modelTransform.rotation = Quaternion.Euler(0f, objRotation.y, objRotation.z);
+			}
 
 			return true;
 		}

@@ -211,7 +211,7 @@ GameObject:
   - component: {fileID: 754451774}
   - component: {fileID: 754451775}
   m_Layer: 0
-  m_Name: ObjectScalerController
+  m_Name: ObjectScaler
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
