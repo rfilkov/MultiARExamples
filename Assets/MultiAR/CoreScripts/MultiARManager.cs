@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class MultiARManager : MonoBehaviour 
 {
-	[Tooltip("The preferred AR platform. Should be available, too.")]
+	[Tooltip("The preferred AR platform, if available.")]
 	public MultiARInterop.ARPlatform preferredPlatform = MultiARInterop.ARPlatform.None;
 
 	[Tooltip("Whether to apply the AR-detected light.")]
@@ -31,20 +31,20 @@ public class MultiARManager : MonoBehaviour
 	[Tooltip("Material used to render the overlay surfaces.")]
 	public Material surfaceVisualizationMaterial;
 
-	[Tooltip("Material used to render the overlay surfaces.")]
+	[Tooltip("Material used for overlay surface occlusion.")]
 	public Material surfaceOcclusionMaterial;
 
 	[Tooltip("Whether the overlay surfaces should have colliders, or not.")]
 	public bool surfaceCollider = true;
 
-	[Tooltip("Physic material to be used by overlay surface colliders.")]
+	[Tooltip("Physic material used by overlay surface colliders.")]
 	public PhysicMaterial colliderMaterial;
 
 	public enum ShowCursorEnum : int { Never, OnSurfacesOnly, OnSceneObjects, Always };
-	[Tooltip("How the cursor should be visualized.")]
+	[Tooltip("Determines when the cursor should be displayed.")]
 	public ShowCursorEnum showCursor = ShowCursorEnum.Always;
 
-	[Tooltip("The cursor object that will be visualized.")]
+	[Tooltip("The cursor object that will be displayed in the scene.")]
 	public Transform cursorObject;
 
 	[Tooltip("UI-Text to display tracker information messages.")]
