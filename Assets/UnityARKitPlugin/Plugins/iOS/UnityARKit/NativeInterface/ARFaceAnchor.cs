@@ -4,6 +4,7 @@ using System.Runtime.InteropServices;
 using System;
 using System.Collections.Generic;
 using AOT;
+using System.Text;
 
 namespace UnityEngine.XR.iOS
 {
@@ -102,7 +103,7 @@ namespace UnityEngine.XR.iOS
 
 	};
 
-
+	#if !UNITY_EDITOR
 	public class ARFaceGeometry
 	{
 		private UnityARFaceGeometry uFaceGeometry;
@@ -176,7 +177,6 @@ namespace UnityEngine.XR.iOS
 		}
 	}
 
-
 	public class ARFaceAnchor 
 	{
 		private UnityARFaceAnchorData faceAnchorData;
@@ -223,10 +223,9 @@ namespace UnityEngine.XR.iOS
 		[MonoPInvokeCallback(typeof(DictionaryVisitorHandler))]
 		static void AddElementToManagedDictionary(IntPtr keyPtr, float value)
 		{
-#if !UNITY_WSA
 			string key = Marshal.PtrToStringAuto(keyPtr);
 			blendshapesDictionary.Add(key, value);
-#endif
 		}
 	}
+	#endif
 }
