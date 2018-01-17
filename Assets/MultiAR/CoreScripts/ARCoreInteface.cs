@@ -11,8 +11,8 @@ public class ARCoreInteface : MonoBehaviour, ARPlatformInterface
 //	[Tooltip("Reference to the TrackedPlane prefab.")]
 //	public GameObject trackedPlanePrefab;
 
-	[Tooltip("Whether to attach the game objects to the planes, where they are anchored.")]
-	public bool attachObjectsToPlanes = false;
+//	[Tooltip("Whether to attach the game objects to the planes, where they are anchored.")]
+//	public bool attachObjectsToPlanes = false;
 
 	//public GameObject envLightPrefab;
 
@@ -35,7 +35,7 @@ public class ARCoreInteface : MonoBehaviour, ARPlatformInterface
 	private double lastFrameTimestamp = 0.0;
 
 	// current tracking state
-	private FrameTrackingState cameraTrackingState = FrameTrackingState.TrackingNotInitialized;
+	private TrackingState cameraTrackingState = TrackingState.Stopped;
 
 	// current light intensity
 	protected float currentLightIntensity = 1f;
@@ -146,11 +146,11 @@ public class ARCoreInteface : MonoBehaviour, ARPlatformInterface
 	{
 		switch(cameraTrackingState)
 		{
-		case FrameTrackingState.TrackingNotInitialized:
+		case TrackingState.Stopped:
 			return MultiARInterop.CameraTrackingState.NotInitialized;
-		case FrameTrackingState.LostTracking:
+		case TrackingState.Paused:
 			return MultiARInterop.CameraTrackingState.LimitedTracking;
-		case FrameTrackingState.Tracking:
+		case TrackingState.Tracking:
 			return MultiARInterop.CameraTrackingState.NormalTracking;
 		}
 
@@ -202,10 +202,10 @@ public class ARCoreInteface : MonoBehaviour, ARPlatformInterface
 
 			if(bGetPoints)
 			{
-				trackedPlanes[i].bounds = new Vector3(surface.Bounds.x, 0f, surface.Bounds.y);
+				trackedPlanes[i].bounds = new Vector3(surface.ExtentX * 2f, 0f, surface.ExtentZ * 2f);
 
 				List<Vector3> alPoints = new List<Vector3>();
-				surface.GetBoundaryPolygon(ref alPoints);
+				surface.GetBoundaryPolygon(alPoints);
 
 				int vertexCount = alPoints.Count;
 				Quaternion invRot = Quaternion.Inverse(surface.Rotation);
@@ -372,16 +372,16 @@ public class ARCoreInteface : MonoBehaviour, ARPlatformInterface
 	public bool RaycastToWorld(bool fromInputPos, out MultiARInterop.TrackableHit hit)
 	{
 		hit = new MultiARInterop.TrackableHit();
-		if(!isInitialized || (cameraTrackingState == FrameTrackingState.TrackingNotInitialized))
+		if(!isInitialized || (cameraTrackingState == TrackingState.Stopped))
 			return false;
 		
 		TrackableHit intHit;
-		TrackableHitFlag raycastFilter = TrackableHitFlag.PlaneWithinBounds | TrackableHitFlag.PlaneWithinPolygon;
+		TrackableHitFlags raycastFilter = TrackableHitFlags.PlaneWithinBounds | TrackableHitFlags.PlaneWithinPolygon;
 
 		if(arManager && !arManager.hitTrackedSurfacesOnly)
 		{
-			raycastFilter |= TrackableHitFlag.PlaneWithinInfinity;
-			raycastFilter |= TrackableHitFlag.PointCloud;
+			raycastFilter |= TrackableHitFlags.PlaneWithinInfinity;
+			raycastFilter |= TrackableHitFlags.PointCloud;
 		}
 
 		Vector2 screenPos = fromInputPos ? inputPos : new Vector2(Screen.width / 2f, Screen.height / 2f);
@@ -390,13 +390,13 @@ public class ARCoreInteface : MonoBehaviour, ARPlatformInterface
 		hit.rayPos = screenRay.origin;
 		hit.rayDir = screenRay.direction;
 
-		if (Session.Raycast(screenRay, raycastFilter, out intHit))
+		if (Session.Raycast(screenPos.x, screenPos.y, raycastFilter, out intHit))
 		{
-			hit.point = intHit.Point;
-			hit.normal = intHit.Normal;
+			hit.point = intHit.Pose.position;
+			hit.normal = intHit.Pose.rotation * Vector3.up;
 			hit.distance = intHit.Distance;
 
-			hit.psObject = intHit.Plane;
+			hit.psObject = intHit;
 
 			return true;
 		}
@@ -412,20 +412,36 @@ public class ARCoreInteface : MonoBehaviour, ARPlatformInterface
 	/// <param name="hit">Trackable hit.</param>
 	public string AnchorGameObjectToWorld(GameObject gameObj, MultiARInterop.TrackableHit hit)
 	{
-		string anchorId = AnchorGameObjectToWorld(gameObj, hit.point, Quaternion.identity);
+		string anchorId = string.Empty;
 
-		if(!string.IsNullOrEmpty(anchorId) && hit.psObject != null && attachObjectsToPlanes)
+		if(hit.psObject != null && hit.psObject is TrackableHit)
 		{
 			// valid anchor - attach the tracked plane
-			TrackedPlane trackedPlane = (TrackedPlane)hit.psObject;
+			TrackableHit intHit = (TrackableHit)hit.psObject;
+			Anchor anchor = intHit.Trackable.CreateAnchor(intHit.Pose);
+			if (anchor == null)
+				return string.Empty;
+			
+			anchorId = anchor.m_AnchorNativeHandle.ToString();
+			DontDestroyOnLoad(anchor.gameObject);  // don't destroy it accross scenes
 
-			GoogleARCore.HelloAR.PlaneAttachment planeAttachment = gameObj.GetComponent<GoogleARCore.HelloAR.PlaneAttachment>();
-			if(planeAttachment == null)
+			if(gameObj)
 			{
-				planeAttachment = gameObj.AddComponent<GoogleARCore.HelloAR.PlaneAttachment>();
+				gameObj.transform.SetParent(anchor.transform, true);
+				gameObj.transform.localPosition = Vector3.zero;
 			}
 
-			planeAttachment.Attach(trackedPlane);
+			MultiARInterop.MultiARData arData = arManager.GetARData();
+			arData.allAnchorsDict[anchorId] = new List<GameObject>();
+
+			if(gameObj)
+			{
+				arData.allAnchorsDict[anchorId].Add(gameObj);
+			}
+		}
+		else
+		{
+			anchorId = AnchorGameObjectToWorld(gameObj, hit.point, Quaternion.identity);
 		}
 
 		return anchorId;
@@ -440,12 +456,20 @@ public class ARCoreInteface : MonoBehaviour, ARPlatformInterface
 	/// <param name="worldRotation">World rotation.</param>
 	public string AnchorGameObjectToWorld(GameObject gameObj, Vector3 worldPosition, Quaternion worldRotation)
 	{
-		if(!isInitialized || (cameraTrackingState == FrameTrackingState.TrackingNotInitialized))
+		if(!isInitialized || (cameraTrackingState == TrackingState.Stopped))
 			return string.Empty;
 
 		if(arManager)
 		{
-			Anchor anchor = Session.CreateAnchor(worldPosition, worldRotation);
+			Pose pose = new Pose();
+			pose.position = worldPosition;
+			pose.rotation = worldRotation;
+
+			Anchor anchor = Session.CreateWorldAnchor(pose);
+			if (anchor == null)
+				return string.Empty;
+
+			string anchorId = anchor.m_AnchorNativeHandle.ToString();
 			DontDestroyOnLoad(anchor.gameObject);  // don't destroy it accross scenes
 
 			if(gameObj)
@@ -455,14 +479,14 @@ public class ARCoreInteface : MonoBehaviour, ARPlatformInterface
 			}
 
 			MultiARInterop.MultiARData arData = arManager.GetARData();
-			arData.allAnchorsDict[anchor.Id] = new List<GameObject>();
+			arData.allAnchorsDict[anchorId] = new List<GameObject>();
 
 			if(gameObj)
 			{
-				arData.allAnchorsDict[anchor.Id].Add(gameObj);
+				arData.allAnchorsDict[anchorId].Add(gameObj);
 			}
 
-			return anchor.Id;
+			return anchorId;
 		}
 
 		return string.Empty;
@@ -503,17 +527,7 @@ public class ARCoreInteface : MonoBehaviour, ARPlatformInterface
 						anchoredObj.SetActive(false);
 					}
 
-					//Destroy(parentObj);  // ARCore uses the object internally
-				}
-
-				if(anchoredObj)
-				{
-					// remove the plane attachment
-					GoogleARCore.HelloAR.PlaneAttachment planeAttachment = anchoredObj.GetComponent<GoogleARCore.HelloAR.PlaneAttachment>();
-					if(planeAttachment != null)
-					{
-						Destroy(planeAttachment);
-					}
+					Destroy(parentObj);  // todo: check if thus works in Preview2
 				}
 			}
 
@@ -629,11 +643,11 @@ public class ARCoreInteface : MonoBehaviour, ARPlatformInterface
 
 		// tracking state
 		cameraTrackingState = Frame.TrackingState;
-		if(cameraTrackingState == FrameTrackingState.TrackingNotInitialized)
+		if(cameraTrackingState == TrackingState.Stopped)
 			return;
 
 		// get frame timestamp and light intensity
-		lastFrameTimestamp = Frame.Timestamp;
+		lastFrameTimestamp = GetCurrentTimestamp();
 		currentLightIntensity = Frame.LightEstimate.PixelIntensity;
 
 		// get point cloud, if needed
@@ -641,17 +655,16 @@ public class ARCoreInteface : MonoBehaviour, ARPlatformInterface
 
 		if(arManager.pointCloudPrefab != null)
 		{
-			PointCloud pointcloud = Frame.PointCloud;
-			if (pointcloud.PointCount > 0 && pointcloud.Timestamp > arData.pointCloudTimestamp)
+			if (Frame.PointCloud.PointCount > 0 && Frame.PointCloud.IsUpdatedThisFrame)
 			{
 				// Copy the point cloud points
-				for (int i = 0; i < pointcloud.PointCount; i++)
+				for (int i = 0; i < Frame.PointCloud.PointCount; i++)
 				{
-					arData.pointCloudData[i] = pointcloud.GetPoint(i);
+					arData.pointCloudData[i] = Frame.PointCloud.GetPoint(i);
 				}
 
-				arData.pointCloudLength = pointcloud.PointCount;
-				arData.pointCloudTimestamp = pointcloud.Timestamp;
+				arData.pointCloudLength = Frame.PointCloud.PointCount;
+				arData.pointCloudTimestamp = lastFrameTimestamp;
 			}
 		}
 
@@ -675,7 +688,7 @@ public class ARCoreInteface : MonoBehaviour, ARPlatformInterface
 //		}
 
 		// get all tracked planes
-		Frame.GetAllPlanes(ref allTrackedPlanes);
+		Frame.GetPlanes(allTrackedPlanes, TrackableQueryFilter.All);
 
 		// create overlay surfaces as needed
 		if(arManager.useOverlaySurface != MultiARManager.SurfaceRenderEnum.None)
@@ -689,7 +702,7 @@ public class ARCoreInteface : MonoBehaviour, ARPlatformInterface
 
 			for(int i = 0; i < allTrackedPlanes.Count; i++)
 			{
-				string surfId = allTrackedPlanes[i].m_apiPlaneData.id.ToString();
+				string surfId = allTrackedPlanes[i].m_TrackableNativeHandle.ToString();
 
 				if(!arData.dictOverlaySurfaces.ContainsKey(surfId))
 				{
@@ -751,7 +764,7 @@ public class ARCoreInteface : MonoBehaviour, ARPlatformInterface
 				{
 					Anchor anchor = parentTrans.GetComponent<Anchor>();
 
-					if(anchor == null || anchor.TrackingState == AnchorTrackingState.StoppedTracking)
+					if(anchor == null || anchor.TrackingState == TrackingState.Stopped)
 					{
 						if(!alAnchorsToRemove.Contains(anchorId))
 							alAnchorsToRemove.Add(anchorId);
@@ -773,6 +786,17 @@ public class ARCoreInteface : MonoBehaviour, ARPlatformInterface
 		alAnchorsToRemove.Clear();
 	}
 
+
+	// returns the timestamp in seconds
+	private double GetCurrentTimestamp()
+	{
+		double dTimestamp = System.DateTime.Now.Ticks;
+		dTimestamp /= 10000000.0;
+
+		return dTimestamp;
+	}
+
+
 	// Updates overlay surface mesh. Returns true on success, false if the surface needs to be deleted
 	private bool UpdateOverlaySurface(OverlaySurfaceUpdater overlaySurface, TrackedPlane trackedSurface)
 	{
@@ -785,7 +809,7 @@ public class ARCoreInteface : MonoBehaviour, ARPlatformInterface
 		{
 			return false;
 		}
-		else if (!trackedSurface.IsValid || Frame.TrackingState != FrameTrackingState.Tracking)
+		else if (Frame.TrackingState != TrackingState.Tracking)
 		{
 			overlaySurface.SetEnabled(false);
 			return true;
@@ -798,7 +822,7 @@ public class ARCoreInteface : MonoBehaviour, ARPlatformInterface
 		List<Vector3> meshVertices = new List<Vector3>();
 
 		// GetBoundaryPolygon returns points in clockwise order.
-		trackedSurface.GetBoundaryPolygon(ref meshVertices);
+		trackedSurface.GetBoundaryPolygon(meshVertices);
 		int verticeLength = meshVertices.Count;
 
 		// surface position & rotation
@@ -879,9 +903,9 @@ public class ARCoreInteface : MonoBehaviour, ARPlatformInterface
 	private void _QuitOnConnectionErrors()
 	{
 		// Do not update if ARCore is not tracking.
-		if (Session.ConnectionState == SessionConnectionState.DeviceNotSupported)
+		if (Session.ConnectionState == SessionConnectionState.InvalidConfiguration)
 		{
-			_ShowAndroidToastMessage("This device does not support ARCore.");
+			_ShowAndroidToastMessage("Invalid ARCore configuration.");
 			Application.Quit();
 		}
 		else if (Session.ConnectionState == SessionConnectionState.UserRejectedNeededPermission)

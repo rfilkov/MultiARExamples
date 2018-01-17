@@ -1,5 +1,5 @@
 //-----------------------------------------------------------------------
-// <copyright file="EnvironmentBasedProvider.cs" company="Google">
+// <copyright file="ARDebug.cs" company="Google">
 //
 // Copyright 2016 Google Inc. All Rights Reserved.
 //
@@ -20,6 +20,7 @@
 
 namespace GoogleARCoreInternal
 {
+    using System;
     using System.Diagnostics;
     using UnityEngine;
 
@@ -34,11 +35,7 @@ namespace GoogleARCoreInternal
         /// <param name="message">The error message.</param>
         public static void LogError(object message)
         {
-#if !UNITY_WSA
             UnityEngine.Debug.LogErrorFormat(message + "\n{0}", new StackTrace(1));
-#else
-			UnityEngine.Debug.LogError(message);
-#endif
         }
 
         /// <summary>
@@ -48,13 +45,10 @@ namespace GoogleARCoreInternal
         /// <param name="args">The output arguments.</param>
         public static void LogErrorFormat(string format, params object[] args)
         {
-#if !UNITY_WSA
             object[] newArgs = new object[args.Length + 1];
+            Array.Copy(args, newArgs, args.Length);
             newArgs[args.Length] = new StackTrace(1);
             UnityEngine.Debug.LogErrorFormat(format + "\n{" + args.Length + "}", newArgs);
-#else
-			UnityEngine.Debug.LogErrorFormat(format, args);
-#endif
         }
     }
 }
