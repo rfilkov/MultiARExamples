@@ -895,6 +895,45 @@ public class ARCoreInteface : MonoBehaviour, ARPlatformInterface
 				inputTimestamp = lastFrameTimestamp;
 			}
 		}
+		else
+		{
+#if UNITY_EDITOR
+			bool bInputAction = true;
+
+			if(Input.GetMouseButtonDown(0))
+			{
+				inputAction = MultiARInterop.InputAction.Click;
+				startInputPos = Input.mousePosition;
+				startTimestamp = lastFrameTimestamp;
+			}
+			else if(Input.GetMouseButton(0))
+			{
+				if ((lastFrameTimestamp - startTimestamp) >= 0.25) 
+				{
+					inputAction = MultiARInterop.InputAction.Grip;
+
+					//Vector3 screenSize = new Vector3(Screen.width, Screen.height, 0f);
+					float screenMinDim = Screen.width < Screen.height ? Screen.width : Screen.height;
+					Vector3 mouseRelPos = Input.mousePosition - (Vector3)startInputPos;
+					inputNavCoordinates = mouseRelPos / screenMinDim;  // new Vector3(mouseRelPos.x / screenSize.x, mouseRelPos.y / screenSize.y, 0f);
+				}
+			}
+			else if(Input.GetMouseButtonUp(0))
+			{
+				inputAction = MultiARInterop.InputAction.Release;
+			}
+			else
+			{
+				bInputAction = false;
+			}
+
+			if(bInputAction)
+			{
+				inputPos = Input.mousePosition;
+				inputTimestamp = lastFrameTimestamp;
+			}
+#endif
+		}
 	}
 
 	/// <summary>
