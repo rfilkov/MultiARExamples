@@ -140,6 +140,7 @@ namespace UnityEngine.XR.iOS
 
 			editorID = playerID;
 
+			Screen.sleepTimeout = SleepTimeout.NeverSleep;
 		}
 
 		void EditorDisconnected(int playerID)
@@ -150,6 +151,8 @@ namespace UnityEngine.XR.iOS
 			}
 
 			DisconnectFromEditor ();
+			Screen.sleepTimeout = SleepTimeout.SystemSetting;
+
 			#if !UNITY_EDITOR
 			if (m_session != null)
 			{
