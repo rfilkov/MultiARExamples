@@ -37,6 +37,7 @@ namespace GoogleARCore
         /// <param name="flags">Type of the hit.</param>
         /// <param name="trackable">Trackable object of the hit.</param>
         public TrackableHit(Pose pose, float distance, TrackableHitFlags flags, Trackable trackable)
+			: this()
         {
             Pose = pose;
             Distance = distance;

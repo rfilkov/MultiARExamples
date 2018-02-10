@@ -35,6 +35,7 @@ namespace GoogleARCore
         /// <param name="pixelIntensity">Average pixel intensity. Values range from 0.0
         /// to 1.0, where 0.0 represents black and 1.0 represents white.</param>
         public LightEstimate(LightEstimateState state, float pixelIntensity)
+			: this()
         {
             State = state;
             PixelIntensity = pixelIntensity;

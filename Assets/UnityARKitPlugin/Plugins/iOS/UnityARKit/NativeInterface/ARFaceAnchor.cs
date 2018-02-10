@@ -223,7 +223,12 @@ namespace UnityEngine.XR.iOS
 		[MonoPInvokeCallback(typeof(DictionaryVisitorHandler))]
 		static void AddElementToManagedDictionary(IntPtr keyPtr, float value)
 		{
-			string key = Marshal.PtrToStringAuto(keyPtr);
+			//string key = Marshal.PtrToStringAuto(keyPtr);
+#if !UNITY_WSA
+		string key = Marshal.PtrToStringAuto(keyPtr);
+#else
+		string key = null;
+#endif
 			blendshapesDictionary.Add(key, value);
 		}
 	}
