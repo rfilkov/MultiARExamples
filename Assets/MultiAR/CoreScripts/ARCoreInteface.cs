@@ -546,7 +546,7 @@ public class ARCoreInteface : MonoBehaviour, ARPlatformInterface
 		
 		if(!arCoreDevicePrefab)
 		{
-			Debug.LogError("ARCore-interface cannot start: ArCoreDevicePrefab is not set.");
+			Debug.LogError("ARCore-interface cannot start: ArCoreDevice-prefab is not set.");
 			return;
 		}
 

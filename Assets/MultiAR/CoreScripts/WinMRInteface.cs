@@ -1046,7 +1046,7 @@ public class WinMRInteface : MonoBehaviour, ARPlatformInterface
 
 				if(mesh)
 				{
-					checkSum ^= (i ^ mesh.vertexCount ^ mesh.triangles.Length);
+					checkSum += mesh.vertexCount;
 				}
 			}
 

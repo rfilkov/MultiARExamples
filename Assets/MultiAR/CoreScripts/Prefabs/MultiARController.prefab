@@ -40,6 +40,7 @@ GameObject:
   - component: {fileID: 114504722886925034}
   - component: {fileID: 114787928919029918}
   - component: {fileID: 114120882542670782}
+  - component: {fileID: 114809287314297596}
   m_Layer: 0
   m_Name: MultiARController
   m_TagString: Untagged
@@ -226,8 +227,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   yuvMaterial: {fileID: 2100000, guid: f1d9352050a75486f878ab19fa578f16, type: 2}
-  trackedPlanePrefab: {fileID: 1372998203143648, guid: f879aaf3eeb0c467eb22cbaf08dc97a4,
-    type: 2}
 --- !u!114 &114787928919029918
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -241,9 +240,21 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   arCoreDevicePrefab: {fileID: 1905656715913530, guid: c10877f7cd5764de18d46d7b777d1faa,
     type: 2}
-  trackedPlanePrefab: {fileID: 1654175882956584, guid: 6a35c744e5010405c847fad90282d2be,
+--- !u!114 &114809287314297596
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1541651302486692}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 518efc7ffd9650a43836a292c9ce44bd, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  metaCameraRigPrefab: {fileID: 1000011859835720, guid: 0f29804ebd89fa1409e93097cbff1a1d,
     type: 2}
-  attachObjectsToPlanes: 0
+  metaHandsPrefab: {fileID: 1000013163591650, guid: a4475e147b98e59469ab06ad348bd9e3,
+    type: 2}
 --- !u!114 &114962951517112342
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -257,10 +268,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   preferredPlatform: 0
   applyARLight: 1
-  getPointCloud: 1
   pointCloudPrefab: {fileID: 1707953204718416, guid: 2f471897ca3904978b6ce3a09dae9a0f,
     type: 2}
-  displayTrackedSurfaces: 1
   hitTrackedSurfacesOnly: 1
   useOverlaySurface: 2
   surfaceVisualizationMaterial: {fileID: 2100000, guid: db609c97cfc8f33498a041f25909d840,

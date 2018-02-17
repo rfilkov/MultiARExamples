@@ -12,7 +12,8 @@ public class MultiARInterop
 		None = 0,
 		ArKit = 1,
 		ArCore = 2,
-		WindowsMR = 3
+		WindowsMR = 3,
+		Meta2 = 4
 	}
 
 	/// <summary>
@@ -23,7 +24,8 @@ public class MultiARInterop
 		Unknown = -1,
 		NotInitialized = 0,
 		LimitedTracking = 1,
-		NormalTracking = 2
+		NormalTracking = 2,
+		TrackingError = 3
 	}
 
 	/// <summary>
