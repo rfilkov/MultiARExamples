@@ -64,6 +64,7 @@ namespace Meta
         /// <param name="dllPath">directory to add to the path.</param>
         private void AddPathVariable(string dllPath)
         {
+#if !UNITY_WSA
             String currentPath = Environment.GetEnvironmentVariable("PATH", EnvironmentVariableTarget.Process);
 
             // Check that we haven't added it already.
@@ -74,6 +75,7 @@ namespace Meta
 
             // Add the dllpath to the 
             Environment.SetEnvironmentVariable("PATH", dllPath + Path.PathSeparator + currentPath, EnvironmentVariableTarget.Process);
+#endif
         }
 
     }

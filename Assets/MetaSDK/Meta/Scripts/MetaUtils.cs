@@ -87,11 +87,13 @@ namespace Meta
         /// </summary>
         public static bool IsBeta()
         {
+#if !UNITY_WSA
             if (Assembly.GetAssembly(MethodBase.GetCurrentMethod().DeclaringType).GetType("MetaBeta", false, true) != null
                 && Assembly.GetAssembly(MethodBase.GetCurrentMethod().DeclaringType).GetType("MetaInternal", false, true) == null)
             {
                 return true;
             }
+#endif
             return false;
         }
 
@@ -117,10 +119,12 @@ namespace Meta
         /// </summary>
         public static bool IsInternal()
         {
+#if !UNITY_WSA
             if (Assembly.GetAssembly(MethodBase.GetCurrentMethod().DeclaringType).GetType("MetaInternal", false, true) != null)
             {
                 return true;
             }
+#endif
             return false;
         }
 

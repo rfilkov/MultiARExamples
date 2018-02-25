@@ -170,10 +170,12 @@ namespace Meta.Reconstruction
             }
 
             // saves the file
+#if !UNITY_WSA
             using (StreamWriter streamWriter = new StreamWriter(filename))
             {
                 streamWriter.Write(content);
             }
+#endif
         }
 
         /// <summary>

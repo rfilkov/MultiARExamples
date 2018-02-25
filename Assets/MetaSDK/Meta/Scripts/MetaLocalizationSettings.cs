@@ -65,9 +65,13 @@ namespace Meta
         public List<Type> GetLocalizationTypes()
         {
             Type baseType = typeof(ILocalizer);
+#if !UNITY_WSA
             var assembly = Assembly.GetExecutingAssembly();
             var types = assembly.GetTypes().Where(baseType.IsAssignableFrom).Where(t => baseType != t).ToList();
             return types;
+#else
+			return null;
+#endif
         }
 
         /// <summary>

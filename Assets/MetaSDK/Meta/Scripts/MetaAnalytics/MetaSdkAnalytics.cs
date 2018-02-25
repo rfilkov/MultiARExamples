@@ -166,8 +166,10 @@ namespace Meta
 
         private void SendAsyncAnalytics(string eventName, JObject o)
         {
+#if !UNITY_WSA
             Thread t = new Thread(() => { _metaAnalytics.SendAnalytics(eventName, o.ToString()); });
             t.Start();
+#endif
         }
 
         private void SceneStopAnalytics()

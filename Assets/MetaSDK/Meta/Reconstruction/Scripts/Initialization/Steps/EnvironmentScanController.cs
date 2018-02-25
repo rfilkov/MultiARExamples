@@ -105,7 +105,7 @@ namespace Meta.Reconstruction
             _metaReconstruction.StopReconstruction();
         }
 
-        private void StartScanning()
+		public void StartScanning()
         {
             Validate();
             if (_scanState == ScanState.Finished || _scanState == ScanState.Scanning)
@@ -119,7 +119,7 @@ namespace Meta.Reconstruction
             }
         }
 
-        private void FinishScanning()
+		public void FinishScanning()
         {
             if (_scanState == ScanState.Waiting || _scanState == ScanState.Finished)
             {

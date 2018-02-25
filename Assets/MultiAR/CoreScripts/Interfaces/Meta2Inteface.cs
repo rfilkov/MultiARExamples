@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿#if (UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN) && (!UNITY_ANDROID && !UNITY_IOS && !UNITY_WSA)
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Meta;
@@ -11,6 +12,10 @@ public class Meta2Inteface : MonoBehaviour, ARPlatformInterface
 
 	[Tooltip("Reference to the Meta-Hands prefab.")]
 	public GameObject metaHandsPrefab;
+
+	[Tooltip("The time used for reconstruction after the start.")]
+	public float initialRecoTime = 20f;
+
 
 	// Whether the interface is enabled by MultiARManager
 	private bool isInterfaceEnabled = false;
@@ -78,11 +83,11 @@ public class Meta2Inteface : MonoBehaviour, ARPlatformInterface
 	/// <returns><c>true</c> if the platform is available; otherwise, <c>false</c>.</returns>
 	public bool IsPlatformAvailable()
 	{
-#if UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN
+//#if (UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN) && (!UNITY_ANDROID && !UNITY_IOS && !UNITY_WSA)
 		return true;
-#else
-		return false;
-#endif
+//#else
+//		return false;
+//#endif
 	}
 
 	/// <summary>
@@ -669,6 +674,28 @@ public class Meta2Inteface : MonoBehaviour, ARPlatformInterface
 //			// init surface reconstruction
 //			metaReconstruction.InitReconstruction();
 
+			// wait for the sensors
+			while (cameraTrackingState != MultiARInterop.CameraTrackingState.NormalTracking) 
+			{
+				yield return null;
+			}
+
+			// perform initial reconstruction
+			recoState = metaReconstruction.GetState();
+			if (recoState != MetaReconstruction.ReconstructionState.Scanning) 
+			{
+				EnvironmentScanController recoController = GameObject.FindObjectOfType<EnvironmentScanController>();
+				if (recoController) 
+				{
+					recoController.StartScanning();
+
+					yield return new WaitForSeconds(initialRecoTime);
+
+					recoController.FinishScanning();
+				}
+
+			}
+
 			// wait for meta reconstruction start
 			//float waitTillTime = Time.time + 10f;
 			while (metaReconstruction.ReconstructionRoot == null /**&& (Time.time < waitTillTime)*/) 
@@ -1163,3 +1190,4 @@ public class Meta2Inteface : MonoBehaviour, ARPlatformInterface
 
 }
 
+#endif

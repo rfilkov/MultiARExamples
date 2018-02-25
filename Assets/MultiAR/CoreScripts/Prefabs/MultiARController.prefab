@@ -255,6 +255,7 @@ MonoBehaviour:
     type: 2}
   metaHandsPrefab: {fileID: 1000013163591650, guid: a4475e147b98e59469ab06ad348bd9e3,
     type: 2}
+  initialRecoTime: 20
 --- !u!114 &114962951517112342
 MonoBehaviour:
   m_ObjectHideFlags: 1

@@ -69,7 +69,11 @@ namespace Meta
         [DllImport("user32.dll", CharSet = CharSet.Unicode)]
         public static extern IntPtr FindWindowEx(IntPtr parentHandle, IntPtr childAfter, string lclassName, string windowTitle);
 
-        [DllImport("User32.dll", SetLastError = true, CharSet = CharSet.Auto)]
+#if UNITY_WSA
+		[DllImport("User32.dll", SetLastError = true)]
+#else
+		[DllImport("User32.dll", SetLastError = true, CharSet = CharSet.Auto)]
+#endif
         public static extern long GetClassName(IntPtr hwnd, StringBuilder lpClassName, long nMaxCount);
     }
 }

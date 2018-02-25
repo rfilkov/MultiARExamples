@@ -67,7 +67,9 @@ namespace Meta
             get { return (_alignmentDirFilePathDir + _alignmentDirFileName); }
         }
 
+#if !UNITY_WSA
         private FileSystemWatcher _fsWatcher;
+#endif
 
         /// <summary>
         /// The index of the alignment profile that is active (retrieved from the alignment-directory-file)
@@ -99,6 +101,7 @@ namespace Meta
         {
             if (File.Exists(_fullADFPath))
             {
+#if !UNITY_WSA
                 _fsWatcher = new FileSystemWatcher(_alignmentDirFilePathDir);
                 _fsWatcher.Filter = _alignmentDirFileName;
                 _fsWatcher.NotifyFilter = NotifyFilters.LastWrite;
@@ -111,6 +114,7 @@ namespace Meta
                         listener.OnAlignmentUpdate(profile);
                     }
                 };
+#endif
             }
 
             //Run this at least once so that the index is loaded from the alignment-directory-file.
@@ -124,11 +128,13 @@ namespace Meta
 
         private void OnApplicationQuit()
         {
+#if !UNITY_WSA
             if (_fsWatcher != null)
             {
                 _fsWatcher.Dispose();
             }
             _fsWatcher = null;
+#endif
         }
 
         /// <summary>

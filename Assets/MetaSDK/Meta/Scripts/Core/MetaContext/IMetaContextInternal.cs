@@ -34,7 +34,7 @@ namespace Meta
     /// <summary>
     /// Handles setup and references to modules for access to different components of the Meta SDK
     /// </summary>
-    internal interface IMetaContextInternal : IMetaContext
+	internal interface IMetaContextInternal : IMetaContext
     {
         /// <summary>
         /// Returns the effective scale factor applied to Meta objects, based on the default scale of 1m to 100 Unity units.

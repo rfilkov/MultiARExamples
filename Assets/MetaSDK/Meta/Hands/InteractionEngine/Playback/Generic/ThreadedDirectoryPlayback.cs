@@ -68,7 +68,9 @@ namespace Meta.Internal.Playback
         {
             _totalFrameLock = new object();
             _incrementLastQueuedIdLock = new object();
+#if !UNITY_WSA
             ThreadPool.SetMaxThreads(MaxThreads, MaxThreads);
+#endif
         }
 
         /// <summary>
@@ -80,7 +82,9 @@ namespace Meta.Internal.Playback
         {
             _totalFrameLock = new object();
             _incrementLastQueuedIdLock = new object();
+#if !UNITY_WSA
             ThreadPool.SetMaxThreads(MaxThreads, MaxThreads);
+#endif
         }
 
         /// <summary>
@@ -92,7 +96,9 @@ namespace Meta.Internal.Playback
         {
             _totalFrameLock = new object();
             _incrementLastQueuedIdLock = new object();
+#if !UNITY_WSA
             ThreadPool.SetMaxThreads(MaxThreads, MaxThreads);
+#endif
         }
 
         /// <summary>
@@ -101,8 +107,10 @@ namespace Meta.Internal.Playback
         /// 
         public sealed override void LoadFrameFiles()
         {
+#if !UNITY_WSA
             _readThread = new Thread(QueueFilesForThreads);
             _readThread.Start(); 
+#endif
         }
 
         /// <summary>
@@ -131,7 +139,9 @@ namespace Meta.Internal.Playback
             int frameId = 0;
             foreach (FileInfo f in files)
             {
+#if !UNITY_WSA
                 ThreadPool.QueueUserWorkItem(ThreadPoolCallback, new ParseTaskInfo(f, frameId++));
+#endif
             }
         }
 
@@ -150,7 +160,9 @@ namespace Meta.Internal.Playback
                 T frame = ownParser.ParseFile(taskInfo.file, fileNameId);
                 while (taskInfo.frameID != _lastQueuedFrameId + 1)
                 {
+#if !UNITY_WSA
                     Thread.Sleep(SleepTimer);
+#endif
                 }
                 AddToPlayback(frame);
             }
@@ -160,7 +172,9 @@ namespace Meta.Internal.Playback
                 DecrementTotalFrames();
                 while (taskInfo.frameID != _lastQueuedFrameId + 1)
                 {
+#if !UNITY_WSA
                     Thread.Sleep(SleepTimer);
+#endif
                 }
                 IncrementLastQueuedFrame();
             }
@@ -288,7 +302,9 @@ namespace Meta.Internal.Playback
             _lastQueuedFrameId = -1;
             if (_readThread != null)
             {
+				#if !UNITY_WSA
                 _readThread.Abort();
+				#endif
             }
             base.UseNewPlaybackSourcePath(directory, extension);
         }

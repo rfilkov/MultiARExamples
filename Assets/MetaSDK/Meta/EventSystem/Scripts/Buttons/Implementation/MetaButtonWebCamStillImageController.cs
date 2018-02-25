@@ -166,7 +166,9 @@ namespace Meta.Buttons
 
             // Save to file
             _writer = File.Create(GetTargetFileName());
+#if !UNITY_WSA
             _writer.BeginWrite(bytes, 0, bytes.Length, OnFileWriteFinished, _stateObject);
+#endif
         }
 
         /// <summary>
@@ -174,7 +176,9 @@ namespace Meta.Buttons
         /// </summary>
         private void OnFileWriteFinished(IAsyncResult result)
         {
+#if !UNITY_WSA
             _writer.EndWrite(result);
+#endif
             _writer.Dispose();
             _writer = null;
             _isProcessing = false;
@@ -195,11 +199,15 @@ namespace Meta.Buttons
         private string GetTargetFileName()
         {
             // Get root folder
+#if !UNITY_WSA
             var root = Environment.GetEnvironmentVariable("META_ROOT", EnvironmentVariableTarget.Process);
             if (string.IsNullOrEmpty(root))
             {
                 root = "";
             }
+#else
+			var root = "";
+#endif
 
             // Get Subfolder
             var path = Path.Combine(root, "Screenshots");

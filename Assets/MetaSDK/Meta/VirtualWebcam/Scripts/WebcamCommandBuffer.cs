@@ -159,8 +159,10 @@ namespace Meta
             _compositeCamera.AddCommandBuffer(CameraEvent.AfterEverything, _drawComposite);
 
             _waitHandle = new EventWaitHandle(false,EventResetMode.AutoReset);
+#if !UNITY_WSA
             _fetchRgbWorker = new Thread(FetchRgb);
             _fetchRgbWorker.Start();
+#endif
         }
 
         private void Update()

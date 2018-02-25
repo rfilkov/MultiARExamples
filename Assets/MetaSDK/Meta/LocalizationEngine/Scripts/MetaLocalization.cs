@@ -97,10 +97,12 @@ namespace Meta
                 SetLocalizer(oldComponents[0]);
                 return; //Avoid reassignment and loss of set script values in editor
             }
+#if !UNITY_WSA
             if (!(typeof(ILocalizer).IsAssignableFrom(localizerType)))
             {
                 return; // type was not a ILocalizer
             }
+#endif
 
             if (oldComponents != null)
             {

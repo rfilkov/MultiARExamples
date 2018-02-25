@@ -65,7 +65,9 @@ namespace Meta.Mouse
         {
             _writer.Seek(0, SeekOrigin.Begin);
             _writer.Write(_numFrames);
+			#if !UNITY_WSA
             _writer.Close();
+			#endif
         }
     }
 }

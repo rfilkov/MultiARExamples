@@ -90,10 +90,12 @@ namespace Meta.Reconstruction
         public void UpdateMeshes(double[] reconstructionVertices, int[] reconstructionTriangles)
         {
             // if there is no split in process
+#if !UNITY_WSA
             if (_thread != null && _thread.IsAlive)
             {
                 return;
             }
+#endif
 
             // create new meshes
             while (reconstructionTriangles.Length / 3 > _maxTriangles * _reconstruction.Count)
@@ -106,6 +108,7 @@ namespace Meta.Reconstruction
                 UpdateMeshes();
 
                 // split meshes
+#if !UNITY_WSA
                 _thread = new Thread(() =>
                 {
                     lock (_lockObject)
@@ -115,6 +118,7 @@ namespace Meta.Reconstruction
                 });
 
                 _thread.Start();
+#endif
             }
             else
             {
@@ -132,10 +136,12 @@ namespace Meta.Reconstruction
             {
                 lock (_lockObject)
                 {
+#if !UNITY_WSA
                     if (_thread.IsAlive)
                     {
                         _thread.Abort();
                     }
+#endif
 
                     InitLists();
                 }

@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.44657826, g: 0.49641263, b: 0.57481676, a: 1}
+  m_IndirectSpecularColor: {r: 0.44657898, g: 0.4964133, b: 0.5748178, a: 1}
 --- !u!157 &3
 LightmapSettings:
   m_ObjectHideFlags: 0
@@ -137,7 +137,7 @@ RectTransform:
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 174152563}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: -529.96625, z: 0}
+  m_LocalPosition: {x: 0, y: -467.1343, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 176708034}
@@ -283,8 +283,8 @@ RectTransform:
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 176708030}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 444.5, y: 250, z: 0}
-  m_LocalScale: {x: 0.4629919, y: 0.4629919, z: 0.4629919}
+  m_LocalPosition: {x: 472.5, y: 207.5, z: 0}
+  m_LocalScale: {x: 0.43488804, y: 0.43488804, z: 0.43488804}
   m_Children:
   - {fileID: 1319910162}
   - {fileID: 174152564}
@@ -527,16 +527,18 @@ Prefab:
       propertyPath: m_RootOrder
       value: 4
       objectReference: {fileID: 0}
-    - target: {fileID: 114962951517112342, guid: cb4d91dd0146cac4395f7dadfdec7aac,
+    - target: {fileID: 114809287314297596, guid: cb4d91dd0146cac4395f7dadfdec7aac,
         type: 2}
-      propertyPath: infoText
+      propertyPath: metaCameraRigPrefab
       value: 
-      objectReference: {fileID: 1319910159}
-    - target: {fileID: 114962951517112342, guid: cb4d91dd0146cac4395f7dadfdec7aac,
+      objectReference: {fileID: 1000011859835720, guid: 0f29804ebd89fa1409e93097cbff1a1d,
         type: 2}
-      propertyPath: useOverlaySurface
-      value: 2
-      objectReference: {fileID: 0}
+    - target: {fileID: 114809287314297596, guid: cb4d91dd0146cac4395f7dadfdec7aac,
+        type: 2}
+      propertyPath: metaHandsPrefab
+      value: 
+      objectReference: {fileID: 1000013163591650, guid: a4475e147b98e59469ab06ad348bd9e3,
+        type: 2}
     m_RemovedComponents: []
   m_ParentPrefab: {fileID: 100100000, guid: cb4d91dd0146cac4395f7dadfdec7aac, type: 2}
   m_IsPrefabParent: 0
@@ -618,7 +620,7 @@ RectTransform:
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 1319910158}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 529.96625, z: 0}
+  m_LocalPosition: {x: 0, y: 467.1343, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 176708034}

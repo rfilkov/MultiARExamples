@@ -1,4 +1,5 @@
-﻿// Copyright Â© 2018, Meta Company.  All rights reserved.
+﻿#if UNITY_EDITOR
+// Copyright Â© 2018, Meta Company.  All rights reserved.
 // 
 // Redistribution and use of this software (the "Software") in binary form, without modification, is 
 // permitted provided that the following conditions are met:
@@ -44,3 +45,4 @@ namespace Meta.Buttons
         }
     }
 }
+#endif

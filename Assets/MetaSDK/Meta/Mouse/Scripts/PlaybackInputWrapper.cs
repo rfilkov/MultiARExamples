@@ -134,7 +134,9 @@ namespace Meta.Mouse
 
         public void CloseFile()
         {
+			#if !UNITY_WSA
             _reader.Close();
+			#endif
         }
     }
 }

@@ -43,7 +43,7 @@ namespace Meta
     /// Encapsulates the Meta 3D reconstruction functionality.
     /// Adds game object to the scene containing the 3D reconstruction.
     /// </summary>
-    internal class MetaReconstruction : MetaBehaviourInternal, IMetaReconstruction
+	internal class MetaReconstruction : MetaBehaviourInternal, IMetaReconstruction
     {
         public enum ReconstructionState
         {
@@ -521,6 +521,7 @@ namespace Meta
             for (int i = 0; i < environmentProfile.Meshes.Count; i++)
             {
                 string meshPath = environmentProfile.Meshes[i];
+#if !UNITY_WSA
                 Thread thread = new Thread(
                     () =>
                     {
@@ -531,11 +532,14 @@ namespace Meta
                     });
                 thread.Start();
                 threads.Add(thread);
+#endif
                 yield return null;
             }
 
+#if !UNITY_WSA
             Thread invokeOnFinished = new Thread(() => ScanThreads(threads, out _loadFinished));
             invokeOnFinished.Start();
+#endif
 
             // wait for the end of the loading threads
             yield return new WaitWhile(() => !_loadFinished);
@@ -600,14 +604,18 @@ namespace Meta
                     string meshName = Path.Combine(path, (++index).ToString());
                     meshesName.Add(meshName + ".obj");
 
+#if !UNITY_WSA
                     Thread thread = new Thread(() => _modelFileManipulator.SaveMeshToFile(meshName, vertices, triangles));
                     thread.Start();
                     threads.Add(thread);
+#endif
                     yield return null;
                 }
 
+#if !UNITY_WSA
                 Thread invokeOnFinished = new Thread(() => ScanThreads(threads, out _saveFinished));
                 invokeOnFinished.Start();
+#endif
                 yield return new WaitWhile(() => !_saveFinished);
 
                 _environmentProfileRepository.SetMeshes(environmentProfile.Id, meshesName);
@@ -633,13 +641,15 @@ namespace Meta
         private IEnumerator SaveReconstructionChangesInProfile()
         {
             bool ready = false;
-            Thread saveThread = new Thread(() =>
+#if !UNITY_WSA
+        	Thread saveThread = new Thread(() =>
             {
                 _environmentProfileRepository.Save();
                 ready = true;
             });
             saveThread.Start();
-            yield return new WaitUntil(() => ready);
+#endif
+        	yield return new WaitUntil(() => ready);
         }
 
         private void ReconstructMesh()
@@ -697,11 +707,13 @@ namespace Meta
                 bool isAlive = false;
                 foreach (Thread thread in threads)
                 {
+#if !UNITY_WSA	
                     if (thread.IsAlive)
                     {
                         isAlive = true;
                         break;
                     }
+#endif
                 }
                 // if there is no thread alive
                 if (!isAlive)

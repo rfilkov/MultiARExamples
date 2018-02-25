@@ -82,8 +82,10 @@ namespace Meta
             if (_isDone)
             {
                 _isDone = false;
+#if !UNITY_WSA
                 _thread = new Thread(Run);
                 _thread.Start();
+#endif
             }
             else
             {
@@ -96,10 +98,12 @@ namespace Meta
         /// </summary>
         public virtual void Abort()
         {
+#if !UNITY_WSA
             if (_thread != null && _thread.ThreadState == ThreadState.Running)
             {
                 _thread.Abort();
             }
+#endif
             _isDone = true;
         }
     }

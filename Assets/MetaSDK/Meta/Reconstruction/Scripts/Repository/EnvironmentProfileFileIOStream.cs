@@ -62,16 +62,18 @@ namespace Meta.Reconstruction
             Debug.Assert(!string.IsNullOrEmpty(_path));
             try
             {
+				#if !UNITY_WSA
                 using (StreamReader reader = new StreamReader(_path))
                 {
                     string fileContent = reader.ReadToEnd();
                     return fileContent;
                 }
+				#endif
             }
             catch (Exception)
             {
-                return null;
             }
+			return null;
         }
 
         /// <summary>
@@ -88,10 +90,12 @@ namespace Meta.Reconstruction
                 fileInfo.Directory.Create();
             }
 
+#if !UNITY_WSA
             using (StreamWriter writer = new StreamWriter(_path, false))
             {
                 writer.Write(content);
             }
+#endif
         }
     }
 }
