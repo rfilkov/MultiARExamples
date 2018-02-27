@@ -238,7 +238,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 997ad931e0571a74ea785567768be5b7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  arCoreDevicePrefab: {fileID: 1905656715913530, guid: c10877f7cd5764de18d46d7b777d1faa,
+  arCoreDevicePrefab: {fileID: 1772147192650458, guid: c10877f7cd5764de18d46d7b777d1faa,
     type: 2}
 --- !u!114 &114809287314297596
 MonoBehaviour:
