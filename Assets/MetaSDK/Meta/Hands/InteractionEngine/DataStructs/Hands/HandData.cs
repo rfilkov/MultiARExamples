@@ -1,4 +1,4 @@
-﻿// Copyright Â© 2018, Meta Company.  All rights reserved.
+﻿// Copyright © 2018, Meta Company.  All rights reserved.
 // 
 // Redistribution and use of this software (the "Software") in binary form, without modification, is 
 // permitted provided that the following conditions are met:
@@ -6,7 +6,7 @@
 // 1.      Redistributions of the unmodified Software in binary form must reproduce the above 
 //         copyright notice, this list of conditions and the following disclaimer in the 
 //         documentation and/or other materials provided with the distribution.
-// 2.      The name of Meta Company (â€œMetaâ€) may not be used to endorse or promote products derived 
+// 2.      The name of Meta Company (“Meta”) may not be used to endorse or promote products derived 
 //         from this Software without specific prior written permission from Meta.
 // 3.      LIMITATION TO META PLATFORM: Use of the Software is limited to use on or in connection 
 //         with Meta-branded devices or Meta-branded software development kits.  For example, a bona 
@@ -16,7 +16,7 @@
 //         into an application designed or offered for use on a non-Meta-branded device.
 // 
 // For the sake of clarity, the Software may not be redistributed under any circumstances in source 
-// code form, or in the form of modified binary code â€“ and nothing in this License shall be construed 
+// code form, or in the form of modified binary code – and nothing in this License shall be construed 
 // to permit such redistribution.
 // 
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDER "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, 
@@ -27,36 +27,97 @@
 // INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT 
 // LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS 
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+using System;
 using UnityEngine;
 
 namespace Meta.HandInput
 {
-    [System.Serializable]
-    public class HandData
+    public enum ControllerType
     {
-        private const float kMaxUntrackedTime = 1.55f;
-        private const float kMaxAnglesFromGaze = 32.5f;
+        Hand, Controller
+    }
 
-        /// <summary> Depth camera transform object </summary>
-        private readonly Transform _handsOriginTransform;
+    [System.Serializable]
+    public class HandData : IInteractionController
+    {
+        private const float MaxUntrackedTime = 1.0f;
+        private const float MaxAnglesFromGaze = 32.5f;
 
         /// <summary> Unique id for hand </summary>
-        public int HandId { get; private set; }
+        public int UniqueId
+        {
+            get; private set;
+        }
         /// <summary> Hand's top point </summary>
-        public Vector3 Top { get; private set; }
+        public Vector3 Top
+        {
+            get; private set;
+        }
         /// <summary> Hand's palm anchor </summary>
-        public Vector3 Palm { get; private set; }
+        public Vector3 Palm
+        {
+            get; private set;
+        }
         /// <summary> Hand's grab anchor </summary>
-        public Vector3 GrabAnchor { get; private set; }
+        public Vector3 GrabAnchor
+        {
+            get; private set;
+        }
         /// <summary> Hand's grab value </summary>
-        public bool IsGrabbing { get; private set; }
+        public bool IsGrasping
+        {
+            get; private set;
+        }
         /// <summary> hand's HandType </summary>
-        public HandType HandType { get; private set; }
+        public HandType HandType
+        {
+            get; private set;
+        }
         /// <summary> Is the hand visible is the cameras view. </summary>
-        public bool IsTracked { get; private set; }
+        public bool IsTracked
+        {
+            get; private set;
+        }
+
+        /// <summary> Unique id for hand </summary>
+        [Obsolete("Property HandId is deprecated, please use UniqueId")]
+        public int HandId
+        {
+            get
+            {
+                return UniqueId;
+            }
+        }
+
+        public event Action OnUpdated = () => { };
+
+        public Vector3 Position
+        {
+            get
+            {
+                return Palm;
+            }
+        }
+        public Quaternion Rotation
+        {
+            get
+            {
+                return Quaternion.identity;
+            }
+        }
+        public ControllerType ControllerType
+        {
+            get
+            {
+                return ControllerType.Hand;
+            }
+        }
+
+
 
         private bool _wasTracked;
         private bool _untrackedInView;
+        private bool _wasTrackedPerFrame;
         private float _timeLostTracking;
 
         /// <summary> Event to get fired whenever the hand has entered the camera's view. /// </summary>
@@ -73,61 +134,36 @@ namespace Meta.HandInput
         {
             get
             {
-                var palmToSensorDir = (Palm - _handsOriginTransform.transform.position).normalized;
-                return Vector3.Angle(_handsOriginTransform.forward, palmToSensorDir);
+                var palmToSensorDir = (Position - Camera.main.transform.position).normalized;
+                return Vector3.Angle(Camera.main.transform.forward, palmToSensorDir);
             }
         }
 
-        public HandData(Transform origin)
+        public HandData()
         {
-            _handsOriginTransform = origin;
         }
 
         /// <summary>
-        /// Applies hand properties from input meta.types.HandData to current hand.
+        /// Applies hand properties from input types.fbs.HandData to current hand.
         /// </summary>
-        public void UpdateHand(meta.types.HandData? cocoHand)
+        public void UpdateHand(types.fbs.HandData? cocoHand)
         {
             _wasTracked = IsTracked;
+            var hand = cocoHand.Value;
 
-            if (_untrackedInView)
-            {
-                if (cocoHand.HasValue || Time.time - _timeLostTracking > kMaxUntrackedTime) 
-                {
-                    _untrackedInView = false;
-                }
-            }
-            else if (!cocoHand.HasValue && AnglesFromGaze < kMaxAnglesFromGaze)
-            {
-                _untrackedInView = true;
-                _timeLostTracking = Time.time;
-            }
+            CalculateTrackingState(hand);
 
-            if (_untrackedInView)
-            {
-                return;
-            }
+            UniqueId = hand.HandId;
+            HandType = hand.HandType == types.fbs.HandType.RIGHT ? HandType.Right : HandType.Left;
+            IsGrasping = hand.IsGrabbing;
 
+            GrabAnchor = hand.GrabAnchor.Value.ToVector3();
+            Palm = hand.Palm.Value.ToVector3();
+            Top = hand.Top.Value.ToVector3();
 
-            if (cocoHand.HasValue)
-            {
-                var hand = cocoHand.Value;
-                var localToWorldMatrix = _handsOriginTransform.localToWorldMatrix;
-
-                HandId = hand.HandId;
-                HandType = hand.HandType == meta.types.HandType.RIGHT ? HandType.Right : HandType.Left;
-                IsGrabbing = hand.IsGrabbing;
-                GrabAnchor = localToWorldMatrix.MultiplyPoint3x4(hand.GrabAnchor.Value.ToVector3());
-                Palm = localToWorldMatrix.MultiplyPoint3x4(hand.HandAnchor.Value.ToVector3());
-                Top = localToWorldMatrix.MultiplyPoint3x4(hand.Top.Value.ToVector3());
-                IsTracked = true;
-            }
-            else
-            {
-                IsGrabbing = false;
-                IsTracked = false;
-            }
+            OnUpdated.Invoke();
         }
+
 
         /// <summary>
         /// Fires all hand related events. 
@@ -154,12 +190,42 @@ namespace Meta.HandInput
             }
         }
 
+        private void CalculateTrackingState(types.fbs.HandData hand)
+        {
+            if (hand.IsTracked)
+            {
+                IsTracked = true;
+            }
+            else
+            {
+                if (_wasTrackedPerFrame)
+                {
+                    _timeLostTracking = Time.time;
+                }
+
+                if (AnglesFromGaze < MaxAnglesFromGaze)
+                {
+                    if (Time.time - _timeLostTracking > MaxUntrackedTime)
+                    {
+                        IsTracked = false;
+                    }
+                }
+                else
+                {
+                    IsTracked = false;
+                }
+            }
+
+            _wasTrackedPerFrame = hand.IsTracked;
+        }
+
+
         public override string ToString()
         {
             string data;
-            data  = "Hand Type: " + (HandType == HandType.Right ? "Right" : "Left");
-            data += "\nHand Id: " + HandId;
-            data += "\nIs Grabbed: " + (IsGrabbing ? "True" : "False");
+            data = "Hand Type: " + (HandType == HandType.Right ? "Right" : "Left");
+            data += "\nHand Id: " + UniqueId;
+            data += "\nIs Grabbed: " + (IsGrasping ? "True" : "False");
             data += "\nIs Tracked: " + (IsTracked ? "True" : "False");
             return data;
         }

@@ -1,4 +1,4 @@
-﻿// Copyright Â© 2018, Meta Company.  All rights reserved.
+﻿// Copyright © 2018, Meta Company.  All rights reserved.
 // 
 // Redistribution and use of this software (the "Software") in binary form, without modification, is 
 // permitted provided that the following conditions are met:
@@ -6,7 +6,7 @@
 // 1.      Redistributions of the unmodified Software in binary form must reproduce the above 
 //         copyright notice, this list of conditions and the following disclaimer in the 
 //         documentation and/or other materials provided with the distribution.
-// 2.      The name of Meta Company (â€œMetaâ€) may not be used to endorse or promote products derived 
+// 2.      The name of Meta Company (“Meta”) may not be used to endorse or promote products derived 
 //         from this Software without specific prior written permission from Meta.
 // 3.      LIMITATION TO META PLATFORM: Use of the Software is limited to use on or in connection 
 //         with Meta-branded devices or Meta-branded software development kits.  For example, a bona 
@@ -16,7 +16,7 @@
 //         into an application designed or offered for use on a non-Meta-branded device.
 // 
 // For the sake of clarity, the Software may not be redistributed under any circumstances in source 
-// code form, or in the form of modified binary code â€“ and nothing in this License shall be construed 
+// code form, or in the form of modified binary code – and nothing in this License shall be construed 
 // to permit such redistribution.
 // 
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDER "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, 
@@ -35,6 +35,8 @@ using Newtonsoft.Json.Linq;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
+using WebcamInterop = Meta.Interop.WebcamInterop;
+
 namespace Meta
 {
     /// <summary>
@@ -44,8 +46,12 @@ namespace Meta
     {
         private int _numberOfSuccessfulSlamInitializations = 0;
         private int _numberOfFailedSlamInitializations = 0;
+        private float _slamSuccessfulRelocalizationDuration = float.PositiveInfinity;
+        private bool _slamRelocalizationSuccessful = false;
+        private bool _slamRelocalizationChanceSpent = false;
+        private bool _slamImuStartedOk = false;
 
-        private float _slamInitBeginTime = 0;
+        private float _slamInitBeginTime = float.NegativeInfinity;
 
         /// <summary>
         /// Whether SLAM had begun initializing. This is used to conditionally record 
@@ -89,12 +95,12 @@ namespace Meta
                 return;
             }
 
+            slamLocalizer.onSlamSensorsReady.AddListener(() => {  _slamInitBeginTime = Time.fixedUnscaledTime;});
             slamLocalizer.onSlamSensorsReady.AddListener(BeginLocalizationEvent);
             slamLocalizer.onSlamLocalizerResetEvent.AddListener(BeginLocalizationEvent);
 
             slamLocalizer.onSlamMappingComplete.AddListener(() => { EndLocalizationEvent(true); });
             slamLocalizer.onSlamInitializationFailed.AddListener(() => { EndLocalizationEvent(false); });
-
         }
 
         private void BeginLocalizationEvent()
@@ -105,6 +111,29 @@ namespace Meta
 
         private void EndLocalizationEvent(bool success)
         {
+            SlamLocalizer slamLocalizer = GameObject.FindObjectOfType<SlamLocalizer>();
+            if (slamLocalizer)
+            {
+                RecordSlamSuccessRate(success);
+                _slamImuStartedOk = slamLocalizer.SlamFeedback.HasFirstImu;
+
+                if (slamLocalizer.SlamInitializedFromLoadedMap && !_slamRelocalizationChanceSpent)
+                {
+                    _slamSuccessfulRelocalizationDuration = Time.fixedUnscaledTime - _slamInitBeginTime;
+                    _slamRelocalizationSuccessful = true;
+                }
+                else if (_slamBeganInitialization)
+                {
+                    _slamInitTimes.Add(Time.fixedUnscaledTime - _slamInitBeginTime);
+                    _slamBeganInitialization = false;
+                }
+
+                _slamRelocalizationChanceSpent = true;
+            }
+        }
+
+        private void RecordSlamSuccessRate(bool success)
+        {
             if (!success)
             {
                 _numberOfFailedSlamInitializations++;
@@ -113,14 +142,7 @@ namespace Meta
             {
                 _numberOfSuccessfulSlamInitializations++;
             }
-
-            if (_slamBeganInitialization)
-            {
-                _slamInitTimes.Add(Time.fixedUnscaledTime - _slamInitBeginTime);
-                _slamBeganInitialization = false;
-            }
-            
-        } 
+        }
 
 
 #if !NET_2_0_SUBSET
@@ -129,7 +151,7 @@ namespace Meta
             //Prevents generating analytics when the scene is started
             if (_webcamEnabled == null)
             {
-                _webcamEnabled = Meta.Plugin.Webcam.IsWebcamOn();
+                _webcamEnabled = WebcamInterop.IsWebcamOn();
                 return;
             }
 
@@ -138,7 +160,7 @@ namespace Meta
 
         private void WebcamToggleAnalytics()
         {
-            bool webcamEnabled = Meta.Plugin.Webcam.IsWebcamOn();
+            bool webcamEnabled = WebcamInterop.IsWebcamOn();
             if (webcamEnabled != _webcamEnabled)
             {
                 _webcamEnabled = webcamEnabled;
@@ -166,10 +188,8 @@ namespace Meta
 
         private void SendAsyncAnalytics(string eventName, JObject o)
         {
-#if !UNITY_WSA
             Thread t = new Thread(() => { _metaAnalytics.SendAnalytics(eventName, o.ToString()); });
             t.Start();
-#endif
         }
 
         private void SceneStopAnalytics()
@@ -186,6 +206,9 @@ namespace Meta
         {
             o["slam_successful"] = _numberOfSuccessfulSlamInitializations;
             o["slam_fail"] = _numberOfFailedSlamInitializations;
+            o["relocalization_time"] = _slamSuccessfulRelocalizationDuration;
+            o["relocalization_successful"] = _slamRelocalizationSuccessful;
+            o["imu_initialized"] = _slamImuStartedOk;
 
             float min, avg, max;
             min = avg = max = float.PositiveInfinity;

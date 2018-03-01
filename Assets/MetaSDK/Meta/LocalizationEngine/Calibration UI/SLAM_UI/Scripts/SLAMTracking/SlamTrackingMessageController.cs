@@ -1,4 +1,4 @@
-﻿// Copyright Â© 2018, Meta Company.  All rights reserved.
+﻿// Copyright © 2018, Meta Company.  All rights reserved.
 // 
 // Redistribution and use of this software (the "Software") in binary form, without modification, is 
 // permitted provided that the following conditions are met:
@@ -6,7 +6,7 @@
 // 1.      Redistributions of the unmodified Software in binary form must reproduce the above 
 //         copyright notice, this list of conditions and the following disclaimer in the 
 //         documentation and/or other materials provided with the distribution.
-// 2.      The name of Meta Company (â€œMetaâ€) may not be used to endorse or promote products derived 
+// 2.      The name of Meta Company (“Meta”) may not be used to endorse or promote products derived 
 //         from this Software without specific prior written permission from Meta.
 // 3.      LIMITATION TO META PLATFORM: Use of the Software is limited to use on or in connection 
 //         with Meta-branded devices or Meta-branded software development kits.  For example, a bona 
@@ -16,7 +16,7 @@
 //         into an application designed or offered for use on a non-Meta-branded device.
 // 
 // For the sake of clarity, the Software may not be redistributed under any circumstances in source 
-// code form, or in the form of modified binary code â€“ and nothing in this License shall be construed 
+// code form, or in the form of modified binary code – and nothing in this License shall be construed 
 // to permit such redistribution.
 // 
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDER "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, 
@@ -29,6 +29,7 @@
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 using System;
 using UnityEngine;
+using Text = UnityEngine.UI.Text;
 
 namespace Meta
 {
@@ -39,6 +40,8 @@ namespace Meta
     {
         [SerializeField]
         private Animator _animator;
+        [SerializeField]
+        private Text _targetText;
         private Action _currentCallback;
 
         /// <summary>
@@ -65,12 +68,18 @@ namespace Meta
         /// <param name="callback">Callback</param>
         public override void Hide(Action callback)
         {
+            if (_targetText)
+            {
+                _targetText.text = "Full tracking restored";
+            }
+            
             if (_currentCallback != null)
             {
                 return;
             }
 
             _currentCallback = callback;
+            _animator.Play("SlamTrackingLost-FadeIn");
             _animator.SetTrigger("Hide");
         }
 

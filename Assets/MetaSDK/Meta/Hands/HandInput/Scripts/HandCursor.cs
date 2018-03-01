@@ -1,4 +1,4 @@
-﻿// Copyright Â© 2018, Meta Company.  All rights reserved.
+﻿// Copyright © 2018, Meta Company.  All rights reserved.
 // 
 // Redistribution and use of this software (the "Software") in binary form, without modification, is 
 // permitted provided that the following conditions are met:
@@ -6,7 +6,7 @@
 // 1.      Redistributions of the unmodified Software in binary form must reproduce the above 
 //         copyright notice, this list of conditions and the following disclaimer in the 
 //         documentation and/or other materials provided with the distribution.
-// 2.      The name of Meta Company (â€œMetaâ€) may not be used to endorse or promote products derived 
+// 2.      The name of Meta Company (“Meta”) may not be used to endorse or promote products derived 
 //         from this Software without specific prior written permission from Meta.
 // 3.      LIMITATION TO META PLATFORM: Use of the Software is limited to use on or in connection 
 //         with Meta-branded devices or Meta-branded software development kits.  For example, a bona 
@@ -16,7 +16,7 @@
 //         into an application designed or offered for use on a non-Meta-branded device.
 // 
 // For the sake of clarity, the Software may not be redistributed under any circumstances in source 
-// code form, or in the form of modified binary code â€“ and nothing in this License shall be construed 
+// code form, or in the form of modified binary code – and nothing in this License shall be construed 
 // to permit such redistribution.
 // 
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDER "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, 
@@ -37,7 +37,7 @@ namespace Meta.HandInput
     /// and will provide feedback for when it is grabbing.
     /// </summary>
     [RequireComponent(typeof(AudioSource))]
-    public class HandCursor: MetaBehaviour
+    public class HandCursor : MetaBehaviour
     {
         /// <summary>
         /// Represents an edge of the viewport.
@@ -45,11 +45,10 @@ namespace Meta.HandInput
 
         [SerializeField]
         private bool _playAudio = true;
-
+        [SerializeField]
+        private bool _showVisualFeedback = true;
         [SerializeField]
         private Transform _cursorTransform;
-
-
         [SerializeField]
         private SpriteRenderer _idleSprite;
         [SerializeField]
@@ -58,13 +57,8 @@ namespace Meta.HandInput
         private SpriteRenderer _hoverSprite;
         [SerializeField]
         private SpriteRenderer _grabSprite;
-
-
-        
-
         [SerializeField]
         private AudioRandomizer _grabAudio;
-
         [SerializeField]
         private AudioRandomizer _releaseAudio;
 
@@ -74,8 +68,8 @@ namespace Meta.HandInput
         private SpriteRenderer _centerOutOfBoundsSpriteRenderer;
         private CenterHandFeature _centerHandFeature;
         private Transform _centerOutOfBoundsSprite;
+        private Transform _headsetTransform;
         private PalmState _lastPalmState = PalmState.Idle;
-        private Vector3 _priorPos;
         private bool _vicinityOn = false;
 
 
@@ -97,6 +91,26 @@ namespace Meta.HandInput
             set { _releaseAudio = value; }
         }
 
+        /// <summary>
+        /// Enables or disables the visual feedback
+        /// </summary>
+        public bool ShowVisualFeedback
+        {
+            get { return _showVisualFeedback; }
+            set
+            {
+                _showVisualFeedback = value;
+                if (!_showVisualFeedback)
+                {
+                    DisableVisualFeedback();
+                }
+                else
+                {
+                    _cursorTransform.gameObject.SetActive(true);
+                }
+            }
+        }
+
         private void Start()
         {
             _audioSource = GetComponent<AudioSource>();
@@ -104,24 +118,46 @@ namespace Meta.HandInput
             _centerHandFeature = GetComponent<CenterHandFeature>();
             _centerHandFeature.OnEngagedEvent.AddListener(OnGrab);
             _centerHandFeature.OnDisengagedEvent.AddListener(OnRelease);
-            _priorPos = ComputePriorPosition();
+            _headsetTransform = metaContext.Get<IEventCamera>().EventCameraRef.transform;
+
             _idleSprite.enabled = false;
             _idleContactSprite.enabled = false;
             _hoverSprite.enabled = false;
             _grabSprite.enabled = false;
         }
 
-        private Vector3 ComputePriorPosition()
-        {
-            const float alpha = 0.75f;
-            return Vector3.Lerp(_hand.Data.GrabAnchor, _hand.Palm.Position, alpha);
-        }
-
         private void LateUpdate()
         {
-            _cursorTransform.position = GetSmoothHandPosition();
-            _cursorTransform.LookAt(Camera.main.transform);
+            _cursorTransform.position = _hand.Palm.Position;
+            _cursorTransform.LookAt(_headsetTransform);
             SetCursorVisualState();
+        }
+
+        /// <summary>
+        /// Disable the visual feedback.
+        /// </summary>
+        private void DisableVisualFeedback()
+        {
+            if (_cursorTransform != null)
+            {
+                _cursorTransform.gameObject.SetActive(false);
+            }
+            if (_idleSprite != null)
+            {
+                _idleSprite.enabled = false;
+            }
+            if (_idleContactSprite != null)
+            {
+                _idleContactSprite.enabled = false;
+            }
+            if (_hoverSprite != null)
+            {
+                _hoverSprite.enabled = false;
+            }
+            if (_grabSprite != null)
+            {
+                _grabSprite.enabled = false;
+            }
         }
 
         /// <summary>
@@ -129,47 +165,56 @@ namespace Meta.HandInput
         /// </summary>
         private void SetCursorVisualState()
         {
+            // Return if no feedback should be displayed
+            if (!_showVisualFeedback)
+            {
+                return;
+            }
 
+            //bool vicinityTargetState = false;
             if (_centerHandFeature.PalmState != _lastPalmState)
             {
                 switch (_centerHandFeature.PalmState)
                 {
 
                     case PalmState.Idle:
+                        _idleSprite.enabled = false;
                         _idleContactSprite.enabled = false;
                         _hoverSprite.enabled = false;
                         _grabSprite.enabled = false;
                         break;
                     case PalmState.Hovering:
+                        _idleSprite.enabled = false;
                         _idleContactSprite.enabled = false;
                         _hoverSprite.enabled = true;
                         _grabSprite.enabled = false;
 
                         break;
                     case PalmState.Grabbing:
+                        _idleSprite.enabled = false;
                         _idleContactSprite.enabled = false;
                         _hoverSprite.enabled = false;
                         _grabSprite.enabled = true;
                         break;
                 }
             }
-            if((_centerHandFeature.NearObjects.Count != 0) ^ _vicinityOn)
+            if ((_centerHandFeature.NearObjects.Count != 0) ^ _vicinityOn)
             {
                 _vicinityOn = !_vicinityOn;
-                if(_vicinityOn && _centerHandFeature.PalmState == PalmState.Idle)
+                if (_vicinityOn && _centerHandFeature.PalmState == PalmState.Idle)
                 {
+                    _idleSprite.enabled = false;
                     _idleContactSprite.enabled = true;
                 }
                 if (!_vicinityOn && _centerHandFeature.PalmState == PalmState.Idle)
                 {
+                    _idleSprite.enabled = false;
                     _idleContactSprite.enabled = false;
                 }
             }
 
             _lastPalmState = _centerHandFeature.PalmState;
         }
-
-
 
         private void OnGrab(HandFeature handFeature)
         {
@@ -185,8 +230,6 @@ namespace Meta.HandInput
         /// Checks if the hand is in the out of bounds region for the field of view.
         /// </summary>
         /// <returns>True, if the hand is is outside the pre-defined boundary regions.</returns>
-
-
         private void PlayAudioClip(bool isGrabbing)
         {
             if (PlayAudio)
@@ -200,16 +243,6 @@ namespace Meta.HandInput
                     _releaseAudio.Play(_audioSource);
                 }
             }
-        }
-        
-
-
-        private Vector3 GetSmoothHandPosition()
-        {
-            const float alpha = 0.8f;
-            Vector3 smoothPos = Vector3.Lerp(_priorPos, ComputePriorPosition(), alpha);
-            _priorPos = smoothPos;
-            return smoothPos;
         }
     }
 }

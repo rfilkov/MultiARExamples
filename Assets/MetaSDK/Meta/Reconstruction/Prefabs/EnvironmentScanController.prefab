@@ -212,7 +212,7 @@ MonoBehaviour:
   m_Script: {fileID: 708705254, guid: f5f67c52d1564df4a8936ccd202a3bd8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_Material: {fileID: 0}
+  m_Material: {fileID: 2100000, guid: 6639e70b374f87540b3153157904fc9f, type: 2}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_RaycastTarget: 1
   m_OnCullStateChanged:
@@ -247,7 +247,7 @@ MonoBehaviour:
   m_Script: {fileID: 708705254, guid: f5f67c52d1564df4a8936ccd202a3bd8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_Material: {fileID: 0}
+  m_Material: {fileID: 2100000, guid: 6639e70b374f87540b3153157904fc9f, type: 2}
   m_Color: {r: 0.4852941, g: 0.7393048, b: 1, a: 1}
   m_RaycastTarget: 1
   m_OnCullStateChanged:
@@ -280,7 +280,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 33676e25ba66798469e4f15d717e9362, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _scanDone:
+  _scanControllerDone:
     m_PersistentCalls:
       m_Calls: []
     m_TypeName: UnityEngine.Events.UnityEvent, UnityEngine, Version=0.0.0.0, Culture=neutral,
@@ -455,7 +455,7 @@ MonoBehaviour:
   m_Script: {fileID: 708705254, guid: f5f67c52d1564df4a8936ccd202a3bd8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_Material: {fileID: 0}
+  m_Material: {fileID: 2100000, guid: 6639e70b374f87540b3153157904fc9f, type: 2}
   m_Color: {r: 0.4852941, g: 0.7393048, b: 1, a: 1}
   m_RaycastTarget: 1
   m_OnCullStateChanged:

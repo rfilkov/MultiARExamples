@@ -1,4 +1,4 @@
-﻿// Copyright Â© 2018, Meta Company.  All rights reserved.
+﻿// Copyright © 2018, Meta Company.  All rights reserved.
 // 
 // Redistribution and use of this software (the "Software") in binary form, without modification, is 
 // permitted provided that the following conditions are met:
@@ -6,7 +6,7 @@
 // 1.      Redistributions of the unmodified Software in binary form must reproduce the above 
 //         copyright notice, this list of conditions and the following disclaimer in the 
 //         documentation and/or other materials provided with the distribution.
-// 2.      The name of Meta Company (â€œMetaâ€) may not be used to endorse or promote products derived 
+// 2.      The name of Meta Company (“Meta”) may not be used to endorse or promote products derived 
 //         from this Software without specific prior written permission from Meta.
 // 3.      LIMITATION TO META PLATFORM: Use of the Software is limited to use on or in connection 
 //         with Meta-branded devices or Meta-branded software development kits.  For example, a bona 
@@ -16,7 +16,7 @@
 //         into an application designed or offered for use on a non-Meta-branded device.
 // 
 // For the sake of clarity, the Software may not be redistributed under any circumstances in source 
-// code form, or in the form of modified binary code â€“ and nothing in this License shall be construed 
+// code form, or in the form of modified binary code – and nothing in this License shall be construed 
 // to permit such redistribution.
 // 
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDER "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, 
@@ -41,7 +41,7 @@ namespace Meta.Reconstruction
         private BaseEnvironmentScanController _environmentScanControllerPrefab;
         private MetaLocalization _metaLocalization;
         private IEnvironmentProfileRepository _environmentProfileRepository;
-        private ISlamLocalizer _slamLocalizer;
+        private ISlamEventProvider _slamEventProvider;
 
         /// <summary>
         /// Creates an instance of <see cref="EnvironmentInitializerFactory"/> class.
@@ -59,7 +59,7 @@ namespace Meta.Reconstruction
             _environmentScanControllerPrefab = environmentScanControllerPrefab;
             _metaLocalization = _metaContext.Get<MetaLocalization>();
             _environmentProfileRepository = _metaContext.Get<IEnvironmentProfileRepository>();
-            _slamLocalizer = GameObject.FindObjectOfType<SlamLocalizer>();
+            _slamEventProvider = GameObject.FindObjectOfType<SlamLocalizer>();
         }
 
         /// <summary>
@@ -71,7 +71,7 @@ namespace Meta.Reconstruction
         /// <returns>The environment initializer for the given environment initializer type.</returns>
         internal IEnvironmentInitializer Create(bool slamRelocalizationActive, bool surfaceReconstructionActive, EnvironmentProfileType environmentProfileType)
         {
-            if (_slamLocalizer == null)
+            if (_slamEventProvider == null)
             {
                 return CreateDefaultInitializer();
             }
@@ -91,7 +91,7 @@ namespace Meta.Reconstruction
             }
 
             IMetaReconstruction metaReconstruction = _metaContext.Get<IMetaReconstruction>();
-            IEnvironmentInitialization initialization = new ReconstructionOnlyEnvironmentInitialization(_slamLocalizer, metaReconstruction, _environmentScanControllerPrefab);
+            IEnvironmentInitialization initialization = new ReconstructionOnlyEnvironmentInitialization(_slamEventProvider, metaReconstruction, _environmentScanControllerPrefab);
             IEnvironmentReset environmentReset = new ReconstructionOnlyEnvironmentReset(metaReconstruction);
             
             return new EnvironmentInitializer(initialization, environmentReset, _metaLocalization);
@@ -110,7 +110,7 @@ namespace Meta.Reconstruction
 
         private IEnvironmentInitializer CreateDefaultProfileInitializer(bool surfaceReconstructionActive)
         {
-            ISlamChecker slamChecker = new SlamChecker(_slamLocalizer);
+            ISlamChecker slamChecker = new SlamChecker(_slamEventProvider);
             IEnvironmentProfileSelector environmentProfileSelector = new DefaultEnvironmentProfileSelector(_environmentProfileRepository, slamChecker);
             IEnvironmentInitializationFactory environmentInitializationFactory;
             IEnvironmentReset environmentReset;
@@ -118,12 +118,12 @@ namespace Meta.Reconstruction
             if (surfaceReconstructionActive)
             {
                 IMetaReconstruction metaReconstruction = _metaContext.Get<IMetaReconstruction>();
-                environmentInitializationFactory = new DefaultEnvironmentWithReconstructionInitializationFactory(_environmentProfileRepository, _slamLocalizer, metaReconstruction, _environmentScanControllerPrefab);
+                environmentInitializationFactory = new DefaultEnvironmentWithReconstructionInitializationFactory(_environmentProfileRepository, _slamEventProvider, metaReconstruction, _environmentScanControllerPrefab);
                 environmentReset = new DefaultEnvironmentReset(_environmentProfileRepository, metaReconstruction);
             }
             else
             {
-                environmentInitializationFactory = new DefaultEnvironmentInitializationFactory(_environmentProfileRepository, _slamLocalizer);
+                environmentInitializationFactory = new DefaultEnvironmentInitializationFactory(_environmentProfileRepository, _slamEventProvider);
                 environmentReset = new DefaultEnvironmentReset(_environmentProfileRepository);
             }
             return new EnvironmentProfileInitializer(environmentProfileSelector, environmentInitializationFactory, environmentReset, _metaLocalization);

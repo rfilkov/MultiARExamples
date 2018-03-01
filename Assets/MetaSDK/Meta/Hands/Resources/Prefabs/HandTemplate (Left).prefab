@@ -246,7 +246,7 @@ Transform:
   m_GameObject: {fileID: 1217513364383386}
   m_LocalRotation: {x: -0, y: -1, z: -0, w: 0}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalScale: {x: 0.2, y: 0.2, z: 0.2}
   m_Children: []
   m_Father: {fileID: 4789395613527044}
   m_RootOrder: 2
@@ -259,7 +259,7 @@ Transform:
   m_GameObject: {fileID: 1167108790934744}
   m_LocalRotation: {x: -0, y: -1, z: -0, w: 0}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalScale: {x: 0.2, y: 0.2, z: 0.2}
   m_Children: []
   m_Father: {fileID: 4789395613527044}
   m_RootOrder: 0
@@ -272,7 +272,7 @@ Transform:
   m_GameObject: {fileID: 1992209599809192}
   m_LocalRotation: {x: -0, y: -1, z: -0, w: 0}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalScale: {x: 0.2, y: 0.2, z: 0.2}
   m_Children: []
   m_Father: {fileID: 4789395613527044}
   m_RootOrder: 1
@@ -313,7 +313,7 @@ Transform:
   m_GameObject: {fileID: 1713735562593940}
   m_LocalRotation: {x: -0, y: -1, z: -0, w: 0}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalScale: {x: 0.2, y: 0.2, z: 0.2}
   m_Children: []
   m_Father: {fileID: 4789395613527044}
   m_RootOrder: 3
@@ -324,9 +324,9 @@ Transform:
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1297555751251964}
-  m_LocalRotation: {x: 0, y: 1, z: 0, w: 0}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 0.13, y: 0.13, z: 0.13}
+  m_LocalScale: {x: 0.5, y: 0.5, z: 0.5}
   m_Children:
   - {fileID: 4338977680806338}
   - {fileID: 4349949416401088}
@@ -334,7 +334,7 @@ Transform:
   - {fileID: 4695608497156824}
   m_Father: {fileID: 4000010791461762}
   m_RootOrder: 0
-  m_LocalEulerAnglesHint: {x: 0, y: 180, z: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!4 &4934637260321724
 Transform:
   m_ObjectHideFlags: 1
@@ -582,7 +582,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _playAudio: 1
-  _cursorTransform: {fileID: 4789395613527044}
+  _showVisualFeedback: 1
+  _cursorTransform: {fileID: 4000010791461762}
   _idleSprite: {fileID: 212036254376078642}
   _idleContactSprite: {fileID: 212223218355617688}
   _hoverSprite: {fileID: 212639156552629236}

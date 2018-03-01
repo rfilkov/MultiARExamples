@@ -41,8 +41,8 @@ Shader "Meta/OverlayUI"
 
 		Cull Off
 		Lighting Off
-		ZWrite Off
-		ZTest Off
+		ZWrite On
+		ZTest Always
 		Blend SrcAlpha OneMinusSrcAlpha
 		ColorMask[_ColorMask]
 

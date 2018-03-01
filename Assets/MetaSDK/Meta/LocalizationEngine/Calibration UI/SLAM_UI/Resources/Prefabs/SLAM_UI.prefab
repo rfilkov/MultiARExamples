@@ -293,6 +293,7 @@ GameObject:
   - component: {fileID: 4190676342081372}
   - component: {fileID: 114298366581135604}
   - component: {fileID: 114006269537933086}
+  - component: {fileID: 114108960537174242}
   m_Layer: 0
   m_Name: SLAM_UI
   m_TagString: Untagged
@@ -530,6 +531,17 @@ MonoBehaviour:
   m_FillAmount: 1
   m_FillClockwise: 1
   m_FillOrigin: 0
+--- !u!114 &114108960537174242
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1789542458887094}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6ad7bc8f626a2db43a3170528df7ebc0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!114 &114115214277728012
 MonoBehaviour:
   m_ObjectHideFlags: 1

@@ -13,8 +13,11 @@ public class Meta2Inteface : MonoBehaviour, ARPlatformInterface
 	[Tooltip("Reference to the Meta-Hands prefab.")]
 	public GameObject metaHandsPrefab;
 
-	[Tooltip("The time used for reconstruction after the start.")]
-	public float initialRecoTime = 20f;
+	[Tooltip("Time used for environment scanning after the start.")]
+	public float environmentScanningTime = 20f;
+
+	[Tooltip("Whether to keep the original Meta-hands functionality in vicinity only, or not.")]
+	public bool keepMetaHandsFunctionality = false;
 
 
 	// Whether the interface is enabled by MultiARManager
@@ -64,6 +67,7 @@ public class Meta2Inteface : MonoBehaviour, ARPlatformInterface
 	private HandsProvider handsProvider;
 
 	private Meta.HandInput.Hand handLeft, handRight;
+	private Meta.HandInput.CenterHandFeature palmLeft, palmRight;
 	private bool handLeftGrabbing = false, handRightGrabbing = false;
 	private float handLeftTime = 0f, handRightTime = 0f;
 
@@ -687,9 +691,25 @@ public class Meta2Inteface : MonoBehaviour, ARPlatformInterface
 				EnvironmentScanController recoController = GameObject.FindObjectOfType<EnvironmentScanController>();
 				if (recoController) 
 				{
-					recoController.StartScanning();
+					UnityEngine.UI.Text recoText = GetRecoInfoText(recoController);
+//					if (recoText) 
+//					{
+//						recoText.alignment = TextAnchor.UpperCenter;
+//					}
 
-					yield return new WaitForSeconds(initialRecoTime);
+					recoController.StartScanning();
+					float remRecoTime = environmentScanningTime;
+
+					while (remRecoTime > 0f) 
+					{
+						if (recoText) 
+						{
+							recoText.text = string.Format("Look around for {0:F0} seconds", remRecoTime);
+						}
+
+						yield return new WaitForSeconds(1f);
+						remRecoTime -= 1f;
+					}
 
 					recoController.FinishScanning();
 				}
@@ -716,6 +736,34 @@ public class Meta2Inteface : MonoBehaviour, ARPlatformInterface
 				DontDestroyOnLoad(objRenderer);
 			}
 		}
+	}
+
+
+	// setups the reconstruction info text to remain for the needed time; returns reference to the text-component
+	private UnityEngine.UI.Text GetRecoInfoText(EnvironmentScanController recoController)
+	{
+		TemporalHelpAnimationMessageController[] helpAnims = recoController.gameObject.GetComponentsInChildren<TemporalHelpAnimationMessageController>();
+
+		foreach (TemporalHelpAnimationMessageController helpAnim in helpAnims) 
+		{
+			if (helpAnim.gameObject.name == "ScanUIInitMessage") 
+			{
+				helpAnim._showDelay = 0f;
+				helpAnim._stayTime = environmentScanningTime;
+
+				UnityEngine.UI.Text[] texts = helpAnim.GetComponentsInChildren<UnityEngine.UI.Text>();
+				foreach (UnityEngine.UI.Text text in texts) 
+				{
+					if (text.gameObject.name != "header") 
+					{
+						return text;
+					}
+				}
+				break;
+			}
+		}
+
+		return null;
 	}
 
 	// slam events
@@ -757,10 +805,22 @@ public class Meta2Inteface : MonoBehaviour, ARPlatformInterface
 		if (hand.HandType == Meta.HandInput.HandType.Left) 
 		{
 			handLeft = hand;
+			palmLeft = handLeft.Palm;
+
+			if (palmLeft && !keepMetaHandsFunctionality) 
+			{
+				palmLeft.MoveStateMachine(Meta.HandInput.PalmStateCommand.HoverEnter);
+			}
 		}
 		else if (hand.HandType == Meta.HandInput.HandType.Right) 
 		{
 			handRight = hand;
+			palmRight = handRight.Palm;
+
+			if (palmRight && !keepMetaHandsFunctionality) 
+			{
+				palmRight.MoveStateMachine(Meta.HandInput.PalmStateCommand.HoverEnter);
+			}
 		}
 	}
 
@@ -770,11 +830,39 @@ public class Meta2Inteface : MonoBehaviour, ARPlatformInterface
 
 		if (hand.HandType == Meta.HandInput.HandType.Left) 
 		{
+			if (palmLeft) 
+			{
+				if (handLeftGrabbing) 
+				{
+					handLeftGrabbing = false;
+					if(!keepMetaHandsFunctionality)
+						palmLeft.MoveStateMachine(Meta.HandInput.PalmStateCommand.Release);
+				}
+
+				if(!keepMetaHandsFunctionality)
+					palmLeft.MoveStateMachine(Meta.HandInput.PalmStateCommand.HoverLeave);
+			}
+
 			handLeft = null;
+			palmLeft = null;
 		} 
 		else if (hand.HandType == Meta.HandInput.HandType.Right) 
 		{
+			if (palmRight) 
+			{
+				if (handRightGrabbing) 
+				{
+					handRightGrabbing = false;
+					if(!keepMetaHandsFunctionality)
+						palmRight.MoveStateMachine(Meta.HandInput.PalmStateCommand.Release);
+				}
+
+				if(!keepMetaHandsFunctionality)
+					palmRight.MoveStateMachine(Meta.HandInput.PalmStateCommand.HoverLeave);
+			}
+
 			handRight = null;
+			palmRight = null;
 		}
 	}
 
@@ -864,102 +952,6 @@ public class Meta2Inteface : MonoBehaviour, ARPlatformInterface
 	}
 
 
-//	// invoked by Anchor.OnTrackingChanged-event
-//	void Anchor_OnTrackingChanged(WorldAnchor self, bool located)
-//	{
-//		if(!arManager || !self)
-//			return;
-//
-//		MultiARInterop.MultiARData arData = arManager.GetARData();
-//		string anchorId = self.gameObject.name;
-//
-//		Debug.Log("Anchor " + anchorId + " tracking: " + located);
-//
-//		if (arData.allAnchorsDict.ContainsKey(anchorId))
-//		{
-//			GameObject anchorObj = GameObject.Find(anchorId);
-//
-//			if(anchorObj)
-//			{
-//				anchorObj.SetActive(located);
-//			}
-//		}
-//	}
-
-//	// invoked when the tap-gesture is done by the user
-//	void GestureRecognizer_Tapped(TappedEventArgs obj)
-//	{
-//		inputAction = MultiARInterop.InputAction.Click;
-//		inputNavCoordinates = Vector3.zero;
-//		inputTimestamp = lastFrameTimestamp;
-//		//Debug.Log("GestureRecognizer_Tapped");
-//	}
-//
-//	void GestureRecognizer_NavigationStarted (NavigationStartedEventArgs obj)
-//	{
-//		inputAction = MultiARInterop.InputAction.Grip;
-//		inputNavCoordinates = Vector3.zero;
-//		inputTimestamp = lastFrameTimestamp;
-//		//Debug.Log("GestureRecognizer_NavigationStarted");
-//	}
-//
-//	void GestureRecognizer_NavigationUpdated (NavigationUpdatedEventArgs obj)
-//	{
-//		inputAction = MultiARInterop.InputAction.Grip;
-//		inputNavCoordinates = obj.normalizedOffset;
-//		inputTimestamp = lastFrameTimestamp;
-//		//Debug.Log("GestureRecognizer_NavigationUpdated: " + obj.normalizedOffset);
-//	}
-//
-//	void GestureRecognizer_NavigationCompleted (NavigationCompletedEventArgs obj)
-//	{
-//		inputAction = MultiARInterop.InputAction.Release;
-//		inputTimestamp = lastFrameTimestamp;
-//		//Debug.Log("GestureRecognizer_NavigationCompleted: " + obj.normalizedOffset);
-//	}
-//
-//	void GestureRecognizer_NavigationCanceled (NavigationCanceledEventArgs obj)
-//	{
-//		inputAction = MultiARInterop.InputAction.Release;
-//		inputTimestamp = lastFrameTimestamp;
-//		//Debug.Log("GestureRecognizer_NavigationCanceled");
-//	}
-//
-//	void InteractionManager_InteractionSourcePressed (InteractionSourcePressedEventArgs obj)
-//	{
-//		if(obj.pressType == InteractionSourcePressType.Select)
-//		{
-//			inputAction = MultiARInterop.InputAction.Click;
-//			inputTimestamp = lastFrameTimestamp;
-//		}
-//		else if(obj.pressType == InteractionSourcePressType.Thumbstick)
-//		{
-//			inputAction = MultiARInterop.InputAction.Grip;
-//			inputNavCoordinates = Vector3.zero;
-//			inputTimestamp = lastFrameTimestamp;
-//		}
-//	}
-//
-//	void InteractionManager_InteractionSourceUpdated (InteractionSourceUpdatedEventArgs obj)
-//	{
-//		if(obj.state.thumbstickPressed)
-//		{
-//			inputAction = MultiARInterop.InputAction.Grip;
-//			inputNavCoordinates = obj.state.thumbstickPosition;
-//			inputTimestamp = lastFrameTimestamp;
-//		}
-//	}
-//
-//	void InteractionManager_InteractionSourceReleased (InteractionSourceReleasedEventArgs obj)
-//	{
-//		if(obj.pressType == InteractionSourcePressType.Thumbstick)
-//		{
-//			inputAction = MultiARInterop.InputAction.Release;
-//			inputTimestamp = lastFrameTimestamp;
-//		}
-//	}
-
-
 	void Update()
 	{
 		if(!isInitialized)
@@ -970,6 +962,23 @@ public class Meta2Inteface : MonoBehaviour, ARPlatformInterface
 		{
 			// count frames only when the tracking is active
 			lastFrameTimestamp = GetCurrentTimestamp();
+		}
+
+		if (keepMetaHandsFunctionality) 
+		{
+			// keep the original meta-hands functionality
+			if (palmLeft) 
+			{
+				palmLeft.MaintainState();
+				palmLeft._wasGrabbing = palmLeft.Hand ? palmLeft.Hand.IsGrabbing : false;
+			}
+
+			if (palmRight) 
+			{
+				palmRight.MaintainState();
+				palmRight._wasGrabbing = palmRight.Hand ? palmRight.Hand.IsGrabbing : false;
+			}
+
 		}
 
 		// check for grab-release input
@@ -996,7 +1005,12 @@ public class Meta2Inteface : MonoBehaviour, ARPlatformInterface
 				startMousePos = handLeft.Palm.Position;
 				inputTimestamp = lastFrameTimestamp;
 
-				Debug.Log("Left hand click");
+				if (palmLeft && !keepMetaHandsFunctionality) 
+				{
+					palmLeft.MoveStateMachine(Meta.HandInput.PalmStateCommand.Grab);
+				}
+
+				//Debug.Log("Left hand click");
 			}
 
 			// check for left grab
@@ -1004,10 +1018,10 @@ public class Meta2Inteface : MonoBehaviour, ARPlatformInterface
 			{
 				inputAction = MultiARInterop.InputAction.Grip;
 
-				inputNavCoordinates = handLeft.Palm.Position - startMousePos;
+				inputNavCoordinates = (handLeft.Palm.Position - startMousePos) * 2f;
 				inputTimestamp = lastFrameTimestamp;
 
-				Debug.Log("Left hand grip, nav: " + inputNavCoordinates);
+				//Debug.Log("Left hand grip, nav: " + inputNavCoordinates);
 			}
 		}
 
@@ -1020,7 +1034,12 @@ public class Meta2Inteface : MonoBehaviour, ARPlatformInterface
 				inputAction = MultiARInterop.InputAction.Release;
 				inputTimestamp = lastFrameTimestamp;
 
-				Debug.Log("Left hand release");
+				if (palmLeft && !keepMetaHandsFunctionality) 
+				{
+					palmLeft.MoveStateMachine(Meta.HandInput.PalmStateCommand.Release);
+				}
+
+				//Debug.Log("Left hand release");
 			}
 		}
 
@@ -1037,7 +1056,12 @@ public class Meta2Inteface : MonoBehaviour, ARPlatformInterface
 				startMousePos = handRight.Palm.Position;
 				inputTimestamp = lastFrameTimestamp;
 
-				Debug.Log("Right hand click");
+				if (palmRight && !keepMetaHandsFunctionality) 
+				{
+					palmRight.MoveStateMachine(Meta.HandInput.PalmStateCommand.Grab);
+				}
+
+				//Debug.Log("Right hand click");
 			}
 
 			// check for right grab
@@ -1045,10 +1069,10 @@ public class Meta2Inteface : MonoBehaviour, ARPlatformInterface
 			{
 				inputAction = MultiARInterop.InputAction.Grip;
 
-				inputNavCoordinates = handRight.Palm.Position - startMousePos;
+				inputNavCoordinates = (handRight.Palm.Position - startMousePos) * 2f;
 				inputTimestamp = lastFrameTimestamp;
 
-				Debug.Log("Right hand grip, nav: " + inputNavCoordinates);
+				//Debug.Log("Right hand grip, nav: " + inputNavCoordinates);
 			}
 		}
 
@@ -1061,7 +1085,12 @@ public class Meta2Inteface : MonoBehaviour, ARPlatformInterface
 				inputAction = MultiARInterop.InputAction.Release;
 				inputTimestamp = lastFrameTimestamp;
 
-				Debug.Log("Right hand release");
+				if (palmRight && !keepMetaHandsFunctionality) 
+				{
+					palmRight.MoveStateMachine(Meta.HandInput.PalmStateCommand.Release);
+				}
+
+				//Debug.Log("Right hand release");
 			}
 		}
 

@@ -1,4 +1,4 @@
-﻿// Copyright Â© 2018, Meta Company.  All rights reserved.
+﻿// Copyright © 2018, Meta Company.  All rights reserved.
 // 
 // Redistribution and use of this software (the "Software") in binary form, without modification, is 
 // permitted provided that the following conditions are met:
@@ -6,7 +6,7 @@
 // 1.      Redistributions of the unmodified Software in binary form must reproduce the above 
 //         copyright notice, this list of conditions and the following disclaimer in the 
 //         documentation and/or other materials provided with the distribution.
-// 2.      The name of Meta Company (â€œMetaâ€) may not be used to endorse or promote products derived 
+// 2.      The name of Meta Company (“Meta”) may not be used to endorse or promote products derived 
 //         from this Software without specific prior written permission from Meta.
 // 3.      LIMITATION TO META PLATFORM: Use of the Software is limited to use on or in connection 
 //         with Meta-branded devices or Meta-branded software development kits.  For example, a bona 
@@ -16,7 +16,7 @@
 //         into an application designed or offered for use on a non-Meta-branded device.
 // 
 // For the sake of clarity, the Software may not be redistributed under any circumstances in source 
-// code form, or in the form of modified binary code â€“ and nothing in this License shall be construed 
+// code form, or in the form of modified binary code – and nothing in this License shall be construed 
 // to permit such redistribution.
 // 
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDER "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, 
@@ -30,6 +30,7 @@
 using System.Collections;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.Serialization;
 
 namespace Meta.Mouse
 {
@@ -37,19 +38,13 @@ namespace Meta.Mouse
     /// Handles positional translation of an object via pointer events. Left click to translate X and Y. 
     /// Left click and scroll to translate Z.
     /// </summary>
-    public class DragTranslate : MonoBehaviour, IBeginDragHandler, IDragHandler, IPointerDownHandler, IPointerUpHandler
+    public class DragTranslate : MonoBehaviour, IPointerAction, IBeginDragHandler, IDragHandler, IPointerDownHandler, IPointerUpHandler, IPointerEnterHandler, IPointerExitHandler
     {
         /// <summary>
         /// The transform to be translated.
         /// </summary>
         [SerializeField]
         private Transform _translateTransform;
-
-        public Transform TranslateTransform
-        {
-            get { return _translateTransform; }
-            set { _translateTransform = value; }
-        }
 
         /// <summary>
         /// The increment at which the transform should be translated in depth using the scrollwheel.
@@ -83,12 +78,28 @@ namespace Meta.Mouse
         /// <summary>
         /// Event called when a pointer is first held down.
         /// </summary>
-        private MetaInteractionDataEvent _onPointerDownEvent = new MetaInteractionDataEvent();
+        [SerializeField]
+        [FormerlySerializedAs("_onPointerDownEvent")]
+        private MetaInteractionDataEvent _pointerDown = new MetaInteractionDataEvent();
 
         /// <summary>
         /// Event called when a pointer is released from being held down.
         /// </summary>
-        private MetaInteractionDataEvent _onPointerUpEvent = new MetaInteractionDataEvent();
+        [SerializeField]
+        [FormerlySerializedAs("_onPointerUpEvent")]
+        private MetaInteractionDataEvent _pointerUp = new MetaInteractionDataEvent();
+
+        /// <summary>
+        /// Event called when a pointer enters.
+        /// </summary>
+        [SerializeField]
+        private MetaInteractionDataEvent _pointerEnter = new MetaInteractionDataEvent();
+
+        /// <summary>
+        /// Event called when a pointer exits.
+        /// </summary>
+        [SerializeField]
+        private MetaInteractionDataEvent _pointerExit = new MetaInteractionDataEvent();
 
         /// <summary>
         /// The minimum allowable distance an object can be translated depth-wise from the user.
@@ -99,20 +110,39 @@ namespace Meta.Mouse
         private float _beginDistance;
         private Coroutine _heldCoroutine;
 
-        /// <summary>
-        /// Event called when a pointer is first held down.
-        /// </summary>
-        public MetaInteractionDataEvent OnPointerDownEvent
+        ///<inheritdoc />
+        public Transform TargetTransform
         {
-            get { return _onPointerDownEvent; }
+            get { return _translateTransform; }
+            set { _translateTransform = value; }
+        }
+
+        ///<inheritdoc />
+        public MetaInteractionDataEvent PointerDown
+        {
+            get { return _pointerDown; }
+        }
+
+        ///<inheritdoc />
+        public MetaInteractionDataEvent PointerUp
+        {
+            get { return _pointerUp; }
         }
 
         /// <summary>
-        /// Event called when a pointer is released from being held down.
+        /// Event called when a pointer enters.
         /// </summary>
-        public MetaInteractionDataEvent OnPointerUpEvent
+        public MetaInteractionDataEvent PointerEnter
         {
-            get { return _onPointerUpEvent; }
+            get { return _pointerEnter; }
+        }
+
+        /// <summary>
+        /// Event called when a pointer exits.
+        /// </summary>
+        public MetaInteractionDataEvent PointerExit
+        {
+            get { return _pointerExit; }
         }
 
         private void Awake()
@@ -123,6 +153,10 @@ namespace Meta.Mouse
             }
         }
 
+        /// <summary>
+        /// Pointer button is down.
+        /// </summary>
+        /// <inheritdoc />
         public void OnPointerDown(PointerEventData eventData)
         {
             if (!(eventData is MetaHandEventData) && eventData.button == _button)
@@ -130,9 +164,9 @@ namespace Meta.Mouse
                 eventData.useDragThreshold = false;
                 _heldCoroutine = StartCoroutine(HeldCoroutine(eventData));
 
-                if (_onPointerDownEvent != null)
+                if (_pointerDown != null)
                 {
-                    _onPointerDownEvent.Invoke(new MetaInteractionData(eventData, null));
+                    _pointerDown.Invoke(new MetaInteractionData(eventData, null));
                 }
             }
         }
@@ -163,14 +197,34 @@ namespace Meta.Mouse
             }
         }
 
+        public void OnPointerEnter(PointerEventData eventData)
+        {
+            if (!(eventData is MetaHandEventData) && _pointerEnter != null)
+            {
+                _pointerEnter.Invoke(new MetaInteractionData(eventData, null));
+            }
+        }
+
+        public void OnPointerExit(PointerEventData eventData)
+        {
+            if (!(eventData is MetaHandEventData) && _pointerExit != null)
+            {
+                _pointerExit.Invoke(new MetaInteractionData(eventData, null));
+            }
+        }
+
+        /// <summary>
+        /// Pointer button is up.
+        /// </summary>
+        /// <inheritdoc />
         public void OnPointerUp(PointerEventData eventData)
         {
             if (!(eventData is MetaHandEventData) && eventData.button == _button)
             {
                 StopCoroutine(_heldCoroutine);
-                if (_onPointerUpEvent != null)
+                if (_pointerUp != null)
                 {
-                    _onPointerUpEvent.Invoke(new MetaInteractionData(eventData, null));
+                    _pointerUp.Invoke(new MetaInteractionData(eventData, null));
                 }
             }
         }

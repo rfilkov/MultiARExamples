@@ -1,5 +1,4 @@
-﻿#if UNITY_EDITOR
-// Copyright Â© 2018, Meta Company.  All rights reserved.
+﻿// Copyright © 2018, Meta Company.  All rights reserved.
 // 
 // Redistribution and use of this software (the "Software") in binary form, without modification, is 
 // permitted provided that the following conditions are met:
@@ -7,7 +6,7 @@
 // 1.      Redistributions of the unmodified Software in binary form must reproduce the above 
 //         copyright notice, this list of conditions and the following disclaimer in the 
 //         documentation and/or other materials provided with the distribution.
-// 2.      The name of Meta Company (â€œMetaâ€) may not be used to endorse or promote products derived 
+// 2.      The name of Meta Company (“Meta”) may not be used to endorse or promote products derived 
 //         from this Software without specific prior written permission from Meta.
 // 3.      LIMITATION TO META PLATFORM: Use of the Software is limited to use on or in connection 
 //         with Meta-branded devices or Meta-branded software development kits.  For example, a bona 
@@ -17,7 +16,7 @@
 //         into an application designed or offered for use on a non-Meta-branded device.
 // 
 // For the sake of clarity, the Software may not be redistributed under any circumstances in source 
-// code form, or in the form of modified binary code â€“ and nothing in this License shall be construed 
+// code form, or in the form of modified binary code – and nothing in this License shall be construed 
 // to permit such redistribution.
 // 
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDER "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, 
@@ -30,6 +29,7 @@
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 using UnityEditor;
 
+
 namespace Meta
 {
 
@@ -39,28 +39,28 @@ namespace Meta
     /// instead cause Unity to crash.
     /// </summary>
     [InitializeOnLoad]
-    public class LiveRecompileLock : Editor 
+    public class LiveRecompileLock : Editor
     {
 
-    #if UNITY_2017_2_OR_NEWER //The API changed in 2017.2 https://unity3d.com/unity/whats-new/unity-2017.2.0
-        static LiveRecompileLock()
-        {
-            EditorApplication.playModeStateChanged += ChangePlaymodeCallback;
-        }
+#if UNITY_2017_2_OR_NEWER //The API changed in 2017.2 https://unity3d.com/unity/whats-new/unity-2017.2.0
+    static LiveRecompileLock()
+    {
+        EditorApplication.playModeStateChanged += ChangePlaymodeCallback;
+    }
 
-        private static void ChangePlaymodeCallback(PlayModeStateChange state)
+    private static void ChangePlaymodeCallback(PlayModeStateChange state)
+    {
+        if (state == PlayModeStateChange.EnteredPlayMode)
         {
-            if (state == PlayModeStateChange.EnteredPlayMode)
-            {
-                UnityEditor.EditorPrefs.SetBool("kAutoRefresh", false);
-            }
-            else if(state == PlayModeStateChange.EnteredEditMode)
-            {
-                UnityEditor.EditorPrefs.SetBool("kAutoRefresh", true);
-                UnityEditor.AssetDatabase.Refresh();
-            }
+            UnityEditor.EditorPrefs.SetBool("kAutoRefresh", false);
         }
-    #else
+        else if(state == PlayModeStateChange.EnteredEditMode)
+        {
+            UnityEditor.EditorPrefs.SetBool("kAutoRefresh", true);
+            UnityEditor.AssetDatabase.Refresh();
+        }
+    }
+#else
         static LiveRecompileLock()
         {
             UnityEditor.EditorApplication.playmodeStateChanged += ChangePlaymodeCallback;
@@ -78,8 +78,7 @@ namespace Meta
                 UnityEditor.AssetDatabase.Refresh();
             }
         }
-    #endif
+#endif
 
     }
 }
-#endif

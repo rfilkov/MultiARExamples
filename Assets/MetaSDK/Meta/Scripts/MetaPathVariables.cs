@@ -1,4 +1,4 @@
-﻿// Copyright Â© 2018, Meta Company.  All rights reserved.
+﻿// Copyright © 2018, Meta Company.  All rights reserved.
 // 
 // Redistribution and use of this software (the "Software") in binary form, without modification, is 
 // permitted provided that the following conditions are met:
@@ -6,7 +6,7 @@
 // 1.      Redistributions of the unmodified Software in binary form must reproduce the above 
 //         copyright notice, this list of conditions and the following disclaimer in the 
 //         documentation and/or other materials provided with the distribution.
-// 2.      The name of Meta Company (â€œMetaâ€) may not be used to endorse or promote products derived 
+// 2.      The name of Meta Company (“Meta”) may not be used to endorse or promote products derived 
 //         from this Software without specific prior written permission from Meta.
 // 3.      LIMITATION TO META PLATFORM: Use of the Software is limited to use on or in connection 
 //         with Meta-branded devices or Meta-branded software development kits.  For example, a bona 
@@ -16,7 +16,7 @@
 //         into an application designed or offered for use on a non-Meta-branded device.
 // 
 // For the sake of clarity, the Software may not be redistributed under any circumstances in source 
-// code form, or in the form of modified binary code â€“ and nothing in this License shall be construed 
+// code form, or in the form of modified binary code – and nothing in this License shall be construed 
 // to permit such redistribution.
 // 
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDER "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, 
@@ -41,18 +41,20 @@ namespace Meta
     ///// It adds Assets/Plugins/x86 to the path in the editor, and ApplicationDataFolder\Plugins to the build path.
     ///// *NOTE*The static constructor for this class needs to be loaded before the assembly tris to load the dlls. therfore, changing the MetaWorld script exxecution order will create problems for builds.*NOTE*
     ///// </remarks>
-    internal class MetaPathVariables
+    internal static class MetaPathVariables
     {
-        public void AddPathVariables()
+        public static void AddPathVariables()
         {
-            string metaCoreEnvironmentVar = "META_CORE";
+            //Assumes that the META_SDK2 Environment Variable exists. This should have been defined by either the Meta Installer or pathmaker.
+            //Plugin.SystemApi.GetPath cannot be used because the dlls have not been loaded at this time.
+            const string metaBuildLocation = @"%META_SDK2%\bin";
 
             // Add the unity plugins folder to the path.
             string pluginsPath = Application.dataPath + Path.DirectorySeparatorChar + (Application.isEditor ? "MetaSDK" + Path.DirectorySeparatorChar : "") + "Plugins";
             pluginsPath = pluginsPath.Replace("/", "\\");
 
             // Add meta core path.  IMPORTANT that this added AFTER the plugins path.
-            string coreDllsPath = Environment.GetEnvironmentVariable(metaCoreEnvironmentVar);
+            string coreDllsPath = Environment.ExpandEnvironmentVariables(metaBuildLocation);
 
             AddPathVariable(pluginsPath);
             AddPathVariable(coreDllsPath);
@@ -62,9 +64,8 @@ namespace Meta
         /// Add From lowest precedence to highest precedence.
         /// </summary>
         /// <param name="dllPath">directory to add to the path.</param>
-        private void AddPathVariable(string dllPath)
+        private static void AddPathVariable(string dllPath)
         {
-#if !UNITY_WSA
             String currentPath = Environment.GetEnvironmentVariable("PATH", EnvironmentVariableTarget.Process);
 
             // Check that we haven't added it already.
@@ -75,7 +76,6 @@ namespace Meta
 
             // Add the dllpath to the 
             Environment.SetEnvironmentVariable("PATH", dllPath + Path.PathSeparator + currentPath, EnvironmentVariableTarget.Process);
-#endif
         }
 
     }

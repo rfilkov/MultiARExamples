@@ -1,4 +1,4 @@
-﻿// Copyright Â© 2018, Meta Company.  All rights reserved.
+﻿// Copyright © 2018, Meta Company.  All rights reserved.
 // 
 // Redistribution and use of this software (the "Software") in binary form, without modification, is 
 // permitted provided that the following conditions are met:
@@ -6,7 +6,7 @@
 // 1.      Redistributions of the unmodified Software in binary form must reproduce the above 
 //         copyright notice, this list of conditions and the following disclaimer in the 
 //         documentation and/or other materials provided with the distribution.
-// 2.      The name of Meta Company (â€œMetaâ€) may not be used to endorse or promote products derived 
+// 2.      The name of Meta Company (“Meta”) may not be used to endorse or promote products derived 
 //         from this Software without specific prior written permission from Meta.
 // 3.      LIMITATION TO META PLATFORM: Use of the Software is limited to use on or in connection 
 //         with Meta-branded devices or Meta-branded software development kits.  For example, a bona 
@@ -16,7 +16,7 @@
 //         into an application designed or offered for use on a non-Meta-branded device.
 // 
 // For the sake of clarity, the Software may not be redistributed under any circumstances in source 
-// code form, or in the form of modified binary code â€“ and nothing in this License shall be construed 
+// code form, or in the form of modified binary code – and nothing in this License shall be construed 
 // to permit such redistribution.
 // 
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDER "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, 
@@ -36,20 +36,16 @@ namespace Meta.Reconstruction
     /// </summary>
     public class SlamChecker : ISlamChecker
     {
-        private readonly ISlamLocalizer _slamLocalizer;
+        private readonly ISlamEventProvider _slamEventProvider;
         private Action<bool> _doneAction;
 
         /// <summary>
         /// Creates an instance of <see cref="SlamChecker"/> class.
         /// </summary>
-        /// <param name="slamLocalizer">Slam type localizer.</param>
-        public SlamChecker(ISlamLocalizer slamLocalizer)
+        /// <param name="slamEventProvider">Slam type localizer.</param>
+        public SlamChecker(ISlamEventProvider slamEventProvider)
         {
-            _slamLocalizer = slamLocalizer;
-            if (_slamLocalizer != null)
-            {
-                _slamLocalizer.SetInitializeOnStart(false);
-            }
+            _slamEventProvider = slamEventProvider;
         }
 
         /// <summary>
@@ -59,7 +55,7 @@ namespace Meta.Reconstruction
         /// <param name="doneAction">Action called with the localization response.</param>
         public void TryLocalizeMap(string mapPath, Action<bool> doneAction)
         {
-            if (_slamLocalizer == null)
+            if (_slamEventProvider == null)
             {
                 if (doneAction != null)
                 {
@@ -68,14 +64,14 @@ namespace Meta.Reconstruction
                 return;
             }
 
-            if (_slamLocalizer.IsFinished)
+            if (_slamEventProvider.IsFinished)
             {
-                throw new Exception("SlamLocalizer was already initialized");
+                throw new Exception("SlamEventProvider was already initialized");
             }
             
             SetSlamListener();
             _doneAction = doneAction;
-            _slamLocalizer.LoadSlamMap(mapPath);
+            _slamEventProvider.LoadSlamMap(mapPath);
         }
 
         /// <summary>
@@ -88,14 +84,14 @@ namespace Meta.Reconstruction
 
         private void SetSlamListener()
         {
-            _slamLocalizer.SlamMapLoadingFailed.AddListener(SlamNotLocalized);
-            _slamLocalizer.SlamMappingCompleted.AddListener(SlamLocalized);
+            _slamEventProvider.SlamMapLoadingFailed.AddListener(SlamNotLocalized);
+            _slamEventProvider.SlamMappingCompleted.AddListener(SlamLocalized);
         }
 
         private void StopSlamListener()
         {
-            _slamLocalizer.SlamMapLoadingFailed.RemoveListener(SlamNotLocalized);
-            _slamLocalizer.SlamMappingCompleted.RemoveListener(SlamLocalized);
+            _slamEventProvider.SlamMapLoadingFailed.RemoveListener(SlamNotLocalized);
+            _slamEventProvider.SlamMappingCompleted.RemoveListener(SlamLocalized);
         }
 
         private void SlamNotLocalized()

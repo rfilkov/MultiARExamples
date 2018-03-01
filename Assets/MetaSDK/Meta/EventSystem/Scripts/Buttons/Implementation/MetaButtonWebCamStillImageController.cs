@@ -1,4 +1,4 @@
-﻿// Copyright Â© 2018, Meta Company.  All rights reserved.
+﻿// Copyright © 2018, Meta Company.  All rights reserved.
 // 
 // Redistribution and use of this software (the "Software") in binary form, without modification, is 
 // permitted provided that the following conditions are met:
@@ -6,7 +6,7 @@
 // 1.      Redistributions of the unmodified Software in binary form must reproduce the above 
 //         copyright notice, this list of conditions and the following disclaimer in the 
 //         documentation and/or other materials provided with the distribution.
-// 2.      The name of Meta Company (â€œMetaâ€) may not be used to endorse or promote products derived 
+// 2.      The name of Meta Company (“Meta”) may not be used to endorse or promote products derived 
 //         from this Software without specific prior written permission from Meta.
 // 3.      LIMITATION TO META PLATFORM: Use of the Software is limited to use on or in connection 
 //         with Meta-branded devices or Meta-branded software development kits.  For example, a bona 
@@ -16,7 +16,7 @@
 //         into an application designed or offered for use on a non-Meta-branded device.
 // 
 // For the sake of clarity, the Software may not be redistributed under any circumstances in source 
-// code form, or in the form of modified binary code â€“ and nothing in this License shall be construed 
+// code form, or in the form of modified binary code – and nothing in this License shall be construed 
 // to permit such redistribution.
 // 
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDER "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, 
@@ -32,6 +32,8 @@ using System.IO;
 using System.Collections;
 using UnityEngine;
 
+using Meta.Interop.Buttons;
+
 namespace Meta.Buttons
 {
     /// <summary>
@@ -39,7 +41,7 @@ namespace Meta.Buttons
     /// </summary>
     public class MetaButtonWebCamStillImageController : MonoBehaviour, IOnMetaButtonEvent
     {
-        private const string WEBCAM_NAME = "Meta 2 Webcam";
+        private const string WEBCAM_NAME = "Meta2 Webcam + Holographic Overlay";
 
         [SerializeField]
         [Tooltip("(Optional) Target where to render the Webcam feed")]
@@ -70,7 +72,7 @@ namespace Meta.Buttons
         /// Process the Meta Button Event
         /// </summary>
         /// <param name="button">Button Message</param>
-        public void OnMetaButtonEvent(IMetaButton button)
+        public void OnMetaButtonEvent(MetaButton button)
         {
             if (button.Type != ButtonType.ButtonCamera)
                 return;
@@ -166,9 +168,7 @@ namespace Meta.Buttons
 
             // Save to file
             _writer = File.Create(GetTargetFileName());
-#if !UNITY_WSA
             _writer.BeginWrite(bytes, 0, bytes.Length, OnFileWriteFinished, _stateObject);
-#endif
         }
 
         /// <summary>
@@ -176,9 +176,7 @@ namespace Meta.Buttons
         /// </summary>
         private void OnFileWriteFinished(IAsyncResult result)
         {
-#if !UNITY_WSA
             _writer.EndWrite(result);
-#endif
             _writer.Dispose();
             _writer = null;
             _isProcessing = false;
@@ -199,15 +197,11 @@ namespace Meta.Buttons
         private string GetTargetFileName()
         {
             // Get root folder
-#if !UNITY_WSA
             var root = Environment.GetEnvironmentVariable("META_ROOT", EnvironmentVariableTarget.Process);
             if (string.IsNullOrEmpty(root))
             {
                 root = "";
             }
-#else
-			var root = "";
-#endif
 
             // Get Subfolder
             var path = Path.Combine(root, "Screenshots");

@@ -1,4 +1,4 @@
-﻿// Copyright Â© 2018, Meta Company.  All rights reserved.
+﻿// Copyright © 2018, Meta Company.  All rights reserved.
 // 
 // Redistribution and use of this software (the "Software") in binary form, without modification, is 
 // permitted provided that the following conditions are met:
@@ -6,7 +6,7 @@
 // 1.      Redistributions of the unmodified Software in binary form must reproduce the above 
 //         copyright notice, this list of conditions and the following disclaimer in the 
 //         documentation and/or other materials provided with the distribution.
-// 2.      The name of Meta Company (â€œMetaâ€) may not be used to endorse or promote products derived 
+// 2.      The name of Meta Company (“Meta”) may not be used to endorse or promote products derived 
 //         from this Software without specific prior written permission from Meta.
 // 3.      LIMITATION TO META PLATFORM: Use of the Software is limited to use on or in connection 
 //         with Meta-branded devices or Meta-branded software development kits.  For example, a bona 
@@ -16,7 +16,7 @@
 //         into an application designed or offered for use on a non-Meta-branded device.
 // 
 // For the sake of clarity, the Software may not be redistributed under any circumstances in source 
-// code form, or in the form of modified binary code â€“ and nothing in this License shall be construed 
+// code form, or in the form of modified binary code – and nothing in this License shall be construed 
 // to permit such redistribution.
 // 
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDER "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, 
@@ -35,7 +35,7 @@ namespace Meta.Mouse
     /// <summary>
     /// Rotates an object using mouse click and drag.
     /// </summary>
-    public class DragRotate : MonoBehaviour, IDragHandler, IPointerDownHandler
+    public class DragRotate : MonoBehaviour, IPointerAction, IDragHandler, IPointerDownHandler, IPointerUpHandler
     {
         /// <summary>
         /// Transform to rotate
@@ -48,6 +48,28 @@ namespace Meta.Mouse
         [SerializeField]
         private PointerEventData.InputButton _button = PointerEventData.InputButton.Right;
 
+        private readonly MetaInteractionDataEvent _pointerDown = new MetaInteractionDataEvent();
+        private readonly MetaInteractionDataEvent _pointerUp = new MetaInteractionDataEvent();
+
+        ///<inheritdoc />
+        public MetaInteractionDataEvent PointerDown
+        {
+            get { return _pointerDown; }
+        }
+
+        ///<inheritdoc />
+        public MetaInteractionDataEvent PointerUp
+        {
+            get { return _pointerUp; }
+        }
+
+        ///<inheritdoc />
+        public Transform TargetTransform
+        {
+            get { return _rotateTransform; }
+            set { _rotateTransform = value; }
+        }
+
         private void Awake()
         {
             if (_rotateTransform == null)
@@ -56,11 +78,32 @@ namespace Meta.Mouse
             }
         }
 
+        /// <summary>
+        /// Pointer button is down.
+        /// </summary>
+        /// <inheritdoc />
         public void OnPointerDown(PointerEventData eventData)
         {
             if (eventData.button == _button)
             {
                 eventData.useDragThreshold = false;
+            }
+
+            if (_pointerDown != null)
+            {
+                _pointerDown.Invoke(new MetaInteractionData(eventData, null));
+            }
+        }
+
+        /// <summary>
+        /// Pointer button is up.
+        /// </summary>
+        /// <inheritdoc />
+        public void OnPointerUp(PointerEventData eventData)
+        {
+            if (_pointerUp != null)
+            {
+                _pointerUp.Invoke(new MetaInteractionData(eventData, null));
             }
         }
 

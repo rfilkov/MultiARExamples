@@ -7,7 +7,7 @@ Material:
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_Name: HandCursor
-  m_Shader: {fileID: 4800000, guid: 6f4aeb690a4408b468c88b8e0d724f6c, type: 3}
+  m_Shader: {fileID: 4800000, guid: 8d3e277bae230904d832e40952e24b78, type: 3}
   m_ShaderKeywords: ETC1_EXTERNAL_ALPHA
   m_LightmapFlags: 5
   m_EnableInstancingVariants: 0

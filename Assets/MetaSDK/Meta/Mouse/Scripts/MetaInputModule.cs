@@ -1,4 +1,4 @@
-﻿// Copyright Â© 2018, Meta Company.  All rights reserved.
+﻿// Copyright © 2018, Meta Company.  All rights reserved.
 // 
 // Redistribution and use of this software (the "Software") in binary form, without modification, is 
 // permitted provided that the following conditions are met:
@@ -6,7 +6,7 @@
 // 1.      Redistributions of the unmodified Software in binary form must reproduce the above 
 //         copyright notice, this list of conditions and the following disclaimer in the 
 //         documentation and/or other materials provided with the distribution.
-// 2.      The name of Meta Company (â€œMetaâ€) may not be used to endorse or promote products derived 
+// 2.      The name of Meta Company (“Meta”) may not be used to endorse or promote products derived 
 //         from this Software without specific prior written permission from Meta.
 // 3.      LIMITATION TO META PLATFORM: Use of the Software is limited to use on or in connection 
 //         with Meta-branded devices or Meta-branded software development kits.  For example, a bona 
@@ -16,7 +16,7 @@
 //         into an application designed or offered for use on a non-Meta-branded device.
 // 
 // For the sake of clarity, the Software may not be redistributed under any circumstances in source 
-// code form, or in the form of modified binary code â€“ and nothing in this License shall be construed 
+// code form, or in the form of modified binary code – and nothing in this License shall be construed 
 // to permit such redistribution.
 // 
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDER "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, 
@@ -55,6 +55,11 @@ namespace Meta.Mouse
         {
             get { return _metaMouseConfig; }
         }
+
+        /// <summary>
+        /// Whether any input button is pressed or not.
+        /// </summary>
+        public bool IsPressed { get; private set; }
 
         protected override void Awake()
         {
@@ -105,6 +110,21 @@ namespace Meta.Mouse
         }
 
         /// <summary>
+        /// Called when the window gains or loses input focus.
+        /// </summary>
+        /// <param name="focus">Indicates whether the window gained focus.</param>
+        public void OnApplicationFocus(bool focus)
+        {
+            if (_metaMouse != null)
+            {
+                if (_metaMouse.IsShown)
+                {
+                    _metaMouse.UpdateCursor();
+                }
+            }
+        }
+
+        /// <summary>
         /// Returns the current MouseState.
         /// </summary>
         /// <remarks>
@@ -140,13 +160,6 @@ namespace Meta.Mouse
 
             leftData.pointerCurrentRaycast = raycast;
 
-            UpdateCursorStates(leftData, raycast);
-
-            _metaMouse.RaycastHit = raycast.isValid;
-            _metaMouse.RaycastDistance = raycast.distance;
-
-            m_RaycastResultCache.Clear();
-
             // copy the apropriate data into right and middle slots
             PointerEventData rightData;
             GetPointerData(kMouseRightId, out rightData, true);
@@ -157,6 +170,16 @@ namespace Meta.Mouse
             GetPointerData(kMouseMiddleId, out middleData, true);
             CopyFromTo(leftData, middleData);
             middleData.button = PointerEventData.InputButton.Middle;
+
+            UpdateCursorStates(leftData, rightData, middleData, raycast);
+
+            _metaMouse.RaycastHit = raycast.isValid;
+            //The raycast result of an EventSystem Raycast will be missing its world position if the ray
+            // collided with a GUI element.
+            _metaMouse.DidRaycastHitUiComponent = raycast.worldPosition.Equals(Vector3.zero);
+            _metaMouse.RaycastDistance = raycast.distance;
+
+            m_RaycastResultCache.Clear();
 
             _mouseStateRecyclable.SetButtonState(PointerEventData.InputButton.Left, StateForMouseButton(0), leftData);
             _mouseStateRecyclable.SetButtonState(PointerEventData.InputButton.Right, StateForMouseButton(1), rightData);
@@ -300,7 +323,27 @@ namespace Meta.Mouse
                 return rhs.depth.CompareTo(lhs.depth);
 
             if (lhs.distance != rhs.distance)
+            {
+#if UNITY_2017_1_OR_NEWER
+                //For Unity 2017.1+, the calculation for the distance for a raycast hit changed.
+                //The camera position is now used for the origin for Physics raycasts, while for 
+                //GUI raycasts, the ray uses the near clipping plane as the origin.
+
+                //In Unity, a raycast hit is known to be from a Graphics raycast 
+                //if it is missing its world position.
+                if (lhs.worldPosition.Equals(Vector3.zero))
+                {
+                    lhs.distance -= lhs.module.eventCamera.nearClipPlane;
+                }
+
+                if (rhs.worldPosition.Equals(Vector3.zero))
+                {
+                    rhs.distance -= rhs.module.eventCamera.nearClipPlane;
+                }
+#endif
                 return lhs.distance.CompareTo(rhs.distance);
+            }
+                
 
             return lhs.index.CompareTo(rhs.index);
         }
@@ -321,18 +364,22 @@ namespace Meta.Mouse
             }
         }
 
-        private void UpdateCursorStates(PointerEventData leftData, RaycastResult raycast)
+        private void UpdateCursorStates(PointerEventData leftData, PointerEventData rightData, PointerEventData middleData, RaycastResult raycast)
         {
+            IsPressed = leftData.pointerPress || rightData.pointerPress || middleData.pointerPress;
+
             //Cursor States
             if (leftData.pointerPress != null)
             {
                 string stateName = "";
+
                 //get state from cursorState
                 MetaMouseCursorState cursorState = leftData.pointerPress.GetComponent<MetaMouseCursorState>();
                 if (cursorState != null)
                 {
                     stateName = cursorState.EngagedKeyState();
                 }
+
                 //is no state from cursorState use default
                 if (string.IsNullOrEmpty(stateName))
                 {
@@ -343,6 +390,7 @@ namespace Meta.Mouse
             else
             {
                 string stateName = "";
+
                 //get state from cursorState
                 if (leftData.pointerEnter != null)
                 {
@@ -352,6 +400,7 @@ namespace Meta.Mouse
                         stateName = cursorState.EngagedKeyState();
                     }
                 }
+
                 //is no state from cursorState use default
                 if (string.IsNullOrEmpty(stateName))
                 {
@@ -377,7 +426,7 @@ namespace Meta.Mouse
         private bool GetLockKeyUp()
         {
             bool up = false;
-            int state = User32interop.GetKeyState(VirtualKeyCodes.VK_F8);
+            int state = Interop.User32Interop.GetKeyState(VirtualKeyCodes.VK_F8);
             if (state < -1 && _priorLockKeyState > -1)
             {
                 //down
@@ -393,16 +442,26 @@ namespace Meta.Mouse
 
         private void ToggleCursorLock()
         {
-            if (_inputWrapper.LockState == CursorLockMode.None)
+            if (_metaMouse.IsShown)
             {
-                _inputWrapper.LockState = CursorLockMode.Locked;
-                _metaMouse.Show();
+                HideMouse();
             }
-            else if (_inputWrapper.LockState == CursorLockMode.Locked)
+            else
             {
-                _inputWrapper.LockState = CursorLockMode.None;
-                _metaMouse.Hide();
+                ShowMouse();
             }
+        }
+
+        private void ShowMouse()
+        {
+            _inputWrapper.LockState = CursorLockMode.Locked;
+            _metaMouse.Show();
+        }
+
+        private void HideMouse()
+        {
+            _inputWrapper.LockState = CursorLockMode.None;
+            _metaMouse.Hide();
         }
     }
 }

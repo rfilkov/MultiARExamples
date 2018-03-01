@@ -1,4 +1,4 @@
-﻿// Copyright Â© 2018, Meta Company.  All rights reserved.
+﻿// Copyright © 2018, Meta Company.  All rights reserved.
 // 
 // Redistribution and use of this software (the "Software") in binary form, without modification, is 
 // permitted provided that the following conditions are met:
@@ -6,7 +6,7 @@
 // 1.      Redistributions of the unmodified Software in binary form must reproduce the above 
 //         copyright notice, this list of conditions and the following disclaimer in the 
 //         documentation and/or other materials provided with the distribution.
-// 2.      The name of Meta Company (â€œMetaâ€) may not be used to endorse or promote products derived 
+// 2.      The name of Meta Company (“Meta”) may not be used to endorse or promote products derived 
 //         from this Software without specific prior written permission from Meta.
 // 3.      LIMITATION TO META PLATFORM: Use of the Software is limited to use on or in connection 
 //         with Meta-branded devices or Meta-branded software development kits.  For example, a bona 
@@ -16,7 +16,7 @@
 //         into an application designed or offered for use on a non-Meta-branded device.
 // 
 // For the sake of clarity, the Software may not be redistributed under any circumstances in source 
-// code form, or in the form of modified binary code â€“ and nothing in this License shall be construed 
+// code form, or in the form of modified binary code – and nothing in this License shall be construed 
 // to permit such redistribution.
 // 
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDER "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, 
@@ -28,6 +28,8 @@
 // LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS 
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 using System;
+using UnityEngine;
+using User32Interop = Meta.Interop.User32Interop;
 
 namespace Meta.Mouse
 {
@@ -37,7 +39,7 @@ namespace Meta.Mouse
 
         public WindowsUnityWindow()
         {
-            _unityHWnd = User32interop.GetForegroundWindow();
+            _unityHWnd = User32Interop.FindWindow(null, Application.productName);
         }
 
         public IntPtr GetUnityWindowHandle()
@@ -45,16 +47,16 @@ namespace Meta.Mouse
             return _unityHWnd;
         }
 
-        public Win32Point GetUnityWindowCenter()
+        public User32Interop.Win32Point GetUnityWindowCenter()
         {
-            Win32Rect rect;
-            User32interop.GetWindowRect(_unityHWnd, out rect);
-            return new Win32Point((rect.left + rect.right) / 2, (rect.bottom + rect.top) / 2);
+            User32Interop.Win32Rect rect;
+            User32Interop.GetWindowRect(_unityHWnd, out rect);
+            return new User32Interop.Win32Point((rect.left + rect.right) / 2, (rect.bottom + rect.top) / 2);
         }
 
         public void SetUnityWindowForeground()
         {
-            User32interop.SetActiveWindow(_unityHWnd);
+            User32Interop.SetActiveWindow(_unityHWnd);
         }
     }
 }

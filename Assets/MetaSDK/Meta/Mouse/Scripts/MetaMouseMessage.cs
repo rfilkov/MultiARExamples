@@ -1,4 +1,4 @@
-﻿// Copyright Â© 2018, Meta Company.  All rights reserved.
+﻿// Copyright © 2018, Meta Company.  All rights reserved.
 // 
 // Redistribution and use of this software (the "Software") in binary form, without modification, is 
 // permitted provided that the following conditions are met:
@@ -6,7 +6,7 @@
 // 1.      Redistributions of the unmodified Software in binary form must reproduce the above 
 //         copyright notice, this list of conditions and the following disclaimer in the 
 //         documentation and/or other materials provided with the distribution.
-// 2.      The name of Meta Company (â€œMetaâ€) may not be used to endorse or promote products derived 
+// 2.      The name of Meta Company (“Meta”) may not be used to endorse or promote products derived 
 //         from this Software without specific prior written permission from Meta.
 // 3.      LIMITATION TO META PLATFORM: Use of the Software is limited to use on or in connection 
 //         with Meta-branded devices or Meta-branded software development kits.  For example, a bona 
@@ -16,7 +16,7 @@
 //         into an application designed or offered for use on a non-Meta-branded device.
 // 
 // For the sake of clarity, the Software may not be redistributed under any circumstances in source 
-// code form, or in the form of modified binary code â€“ and nothing in this License shall be construed 
+// code form, or in the form of modified binary code – and nothing in this License shall be construed 
 // to permit such redistribution.
 // 
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDER "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, 
@@ -37,7 +37,7 @@ namespace Meta.Mouse
     /// Class responsible to provide user feedback about the meta mouse. It handles animations, sounds, etc...
     /// </summary>
     [DisallowMultipleComponent]
-    internal class MetaMouseMessage : MonoBehaviour
+    internal class MetaMouseMessage : MonoBehaviour, IMetaMouseFeedback
     {
         /// <summary>
         /// Class that encapsulate the animation config values for the MetaMouseFeedback
@@ -45,6 +45,12 @@ namespace Meta.Mouse
         [System.Serializable]
         internal class MouseAnimationParameters
         {
+            /// <summary>
+            ///The target scale factor of the cursor
+            /// </summary>
+            [SerializeField]
+            private float _cursorTargetScaleFactor;
+
             /// <summary>
             /// Duration of the mouse scale animation
             /// </summary>
@@ -80,6 +86,11 @@ namespace Meta.Mouse
             /// </summary>
             [SerializeField]
             private AudioClip _audioClip;
+
+            /// <summary>
+            ///The target scale of the cursor
+            /// </summary>
+            public Vector3 CursorTargetScale { get; private set; }
 
             /// <summary>
             /// Duration of the mouse scale animation
@@ -134,6 +145,11 @@ namespace Meta.Mouse
                 get { return _audioClip; }
                 set { _audioClip = value; }
             }
+
+            public void SetCursorTargetScale(Vector3 regularScale)
+            {
+                CursorTargetScale = regularScale * _cursorTargetScaleFactor;
+            }
         }
 
         /// <summary>
@@ -168,13 +184,10 @@ namespace Meta.Mouse
         private MouseAnimationParameters _offAnimationParameters;
 
         /// <summary>
-        /// Scale used to hide the mouse during the animations.
+        /// Scale used to highLight the mouse during the animations.
         /// </summary>
-        private Vector3 _hideScale = Vector3.zero;
-        /// <summary>
-        /// Scale used to show the mouse during the animations.
-        /// </summary>
-        private Vector3 _regularCursorScale;
+        [SerializeField]
+        private MouseAnimationParameters _highlightParameters;
 
         /// <summary>
         /// Mouse cursor transform. Use it to change its properties during animations.
@@ -231,31 +244,33 @@ namespace Meta.Mouse
         }
 
         /// <summary>
+        /// Whether a mouse animation is running.
+        /// </summary>
+        public bool Animating { get; private set; }
+
+        /// <summary>
         /// Start the mouse configuration. This will set the initial state of the mouse, but with no animation.
         /// </summary>
         /// <param name="visible"></param>
-        public void StartMouse(bool visible)
+        public void HandleStartMouse(bool visible)
         {
-            _regularCursorScale = _cursor.localScale;
-            EnableText(false);
+            Vector3 regularCursorScale = _cursor.localScale;
 
-            if (visible)
-            {
-                _cursor.localScale = _regularCursorScale;
-            }
-            else
-            {
-                _cursor.localScale = _hideScale;
-            }
+            _onAnimationParameters.SetCursorTargetScale(regularCursorScale);
+            _offAnimationParameters.SetCursorTargetScale(regularCursorScale);
+            _highlightParameters.SetCursorTargetScale(regularCursorScale);
+
+            EnableText(false);
+            _cursor.localScale = visible ? _onAnimationParameters.CursorTargetScale : OffAnimationParameters.CursorTargetScale;
         }
 
         /// <summary>
         /// Play the animations to show or hide the mouse.
         /// </summary>
         /// <param name="visible"></param>
-        public void EnableMouse(bool visible)
+        public void HandleShowMouse(bool visible)
         {
-            StopAllCoroutines();
+            StopAnimations();
             if (visible)
             {
                 Show();
@@ -267,18 +282,50 @@ namespace Meta.Mouse
         }
 
         /// <summary>
+        /// Enable or disable the MetaMouse feedback.
+        /// </summary>
+        /// <param name="enable"></param>
+        public void EnableMetaMouseFeedback(bool enable)
+        {
+            EnableText(enable);
+            if (!enable)
+            {
+                StopAnimations();
+            }
+        }
+
+        /// <summary>
+        /// Highlight the meta mouse.
+        /// </summary>
+        /// <param name="metaMouseOn"></param>
+        public void Highlight(bool metaMouseOn)
+        {
+            if (!Animating)
+            {
+                StartCoroutine(metaMouseOn ? PlayHighlightAnimation() : PlayNoMouseHighlightAnimation());
+            }
+        }
+
+
+        /// <summary>
         /// Enable or disable the main text and the state text.
         /// </summary>
-        /// <param name="enabled"></param>
-        public void EnableText(bool enabled)
+        /// <param name="enable"></param>
+        private void EnableText(bool enable)
         {
-            _mainText.gameObject.SetActive(enabled);
-            _stateText.gameObject.SetActive(enabled);
-            if (!enabled)
+            _mainText.gameObject.SetActive(enable);
+            _stateText.gameObject.SetActive(enable);
+            if (!enable)
             {
                 SetTextTransparency(_mainText, 0);
                 SetTextTransparency(_stateText, 0);
             }
+        }
+
+        private void StopAnimations()
+        {
+            Animating = false;
+            StopAllCoroutines();
         }
 
         /// <summary>
@@ -306,7 +353,7 @@ namespace Meta.Mouse
         /// </summary>
         private void Show()
         {
-            StopAllCoroutines();
+            StopAnimations();
             if (_onAnimationParameters.AudioClip != null)
             {
                 _audioSource.PlayOneShot(_onAnimationParameters.AudioClip);
@@ -319,7 +366,7 @@ namespace Meta.Mouse
         /// </summary>
         private void Hide()
         {
-            StopAllCoroutines();
+            StopAnimations();
             if (_offAnimationParameters.AudioClip != null)
             {
                 _audioSource.PlayOneShot(_offAnimationParameters.AudioClip);
@@ -333,8 +380,10 @@ namespace Meta.Mouse
         /// <returns></returns>
         private IEnumerator PlayShowAnimation()
         {
-            StartCoroutine(TransformTweens.ToScale(_cursor, _regularCursorScale, 1 / _onAnimationParameters.CursorScaleDuration, _onAnimationParameters.CursorScaleAnimationCurve.Curve, null));
+            Animating = true;
+            StartCoroutine(TransformTweens.ToScale(_cursor, _onAnimationParameters.CursorTargetScale, 1 / _onAnimationParameters.CursorScaleDuration, _onAnimationParameters.CursorScaleAnimationCurve.Curve, null));
             yield return StartCoroutine(ShowText(_onAnimationParameters));
+            Animating = false;
         }
 
         /// <summary>
@@ -343,8 +392,35 @@ namespace Meta.Mouse
         /// <returns></returns>
         private IEnumerator PlayHideAnimation()
         {
+            Animating = true;
             yield return StartCoroutine(ShowText(_offAnimationParameters));
-            StartCoroutine(TransformTweens.ToScale(_cursor, _hideScale, 1 / _offAnimationParameters.CursorScaleDuration, _offAnimationParameters.CursorScaleAnimationCurve.Curve, null));
+            yield return StartCoroutine(TransformTweens.ToScale(_cursor, _offAnimationParameters.CursorTargetScale, 1 / _offAnimationParameters.CursorScaleDuration, _offAnimationParameters.CursorScaleAnimationCurve.Curve, null));
+            Animating = false;
+        }
+
+        /// <summary>
+        /// Coroutine that plays the highlight animation to show the mouse
+        /// </summary>
+        /// <returns></returns>
+        private IEnumerator PlayHighlightAnimation()
+        {
+            Animating = true;
+            Vector3 currentScale = _cursor.localScale;
+            yield return StartCoroutine(TransformTweens.ToScale(_cursor, _highlightParameters.CursorTargetScale, 1 / _highlightParameters.CursorScaleDuration, _onAnimationParameters.CursorScaleAnimationCurve.Curve, null));
+            yield return new WaitForSeconds(_highlightParameters.TextStayDuration);
+            yield return StartCoroutine(TransformTweens.ToScale(_cursor, currentScale, 1 / _highlightParameters.CursorScaleDuration, _onAnimationParameters.CursorScaleAnimationCurve.Curve, null));
+            Animating = false;
+        }
+
+        /// <summary>
+        /// Coroutine that plays the highlight animation when the meta mouse is off.
+        /// </summary>
+        /// <returns></returns>
+        private IEnumerator PlayNoMouseHighlightAnimation()
+        {
+            Animating = true;
+            yield return StartCoroutine(ShowText(_highlightParameters));
+            Animating = false;
         }
 
         /// <summary>
@@ -357,6 +433,6 @@ namespace Meta.Mouse
             Color color = text.color;
             color.a = alpha;
             text.color = color;
-        }       
+        }
     }
 }

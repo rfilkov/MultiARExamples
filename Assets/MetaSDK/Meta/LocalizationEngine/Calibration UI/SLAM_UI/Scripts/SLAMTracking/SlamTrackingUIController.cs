@@ -1,4 +1,4 @@
-﻿// Copyright Â© 2018, Meta Company.  All rights reserved.
+﻿// Copyright © 2018, Meta Company.  All rights reserved.
 // 
 // Redistribution and use of this software (the "Software") in binary form, without modification, is 
 // permitted provided that the following conditions are met:
@@ -6,7 +6,7 @@
 // 1.      Redistributions of the unmodified Software in binary form must reproduce the above 
 //         copyright notice, this list of conditions and the following disclaimer in the 
 //         documentation and/or other materials provided with the distribution.
-// 2.      The name of Meta Company (â€œMetaâ€) may not be used to endorse or promote products derived 
+// 2.      The name of Meta Company (“Meta”) may not be used to endorse or promote products derived 
 //         from this Software without specific prior written permission from Meta.
 // 3.      LIMITATION TO META PLATFORM: Use of the Software is limited to use on or in connection 
 //         with Meta-branded devices or Meta-branded software development kits.  For example, a bona 
@@ -16,7 +16,7 @@
 //         into an application designed or offered for use on a non-Meta-branded device.
 // 
 // For the sake of clarity, the Software may not be redistributed under any circumstances in source 
-// code form, or in the form of modified binary code â€“ and nothing in this License shall be construed 
+// code form, or in the form of modified binary code – and nothing in this License shall be construed 
 // to permit such redistribution.
 // 
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDER "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, 
@@ -39,14 +39,37 @@ namespace Meta
         [SerializeField]
         private BaseSlamTrackingCanvasConfigurer _prefab;
         private BaseSlamTrackingCanvasConfigurer _prefabInstance;
+        private SlamLocalizer _slamLocalizer;
 
         /// <summary>
         /// Gets or sets the Prefab containg the UI to show
         /// </summary>
         public BaseSlamTrackingCanvasConfigurer Prefab
         {
-            get { return _prefab; }
-            set { _prefab = value; }
+            get
+            {
+                return _prefab;
+            }
+            set
+            {
+                _prefab = value;
+            }
+        }
+
+        /// <summary>
+        /// Subscribes to Slam Events on enable
+        /// </summary>
+        private void OnEnable()
+        {
+            SubscribeToSlamLocalizer(true);
+        }
+
+        /// <summary>
+        /// Unsubscribes to slam events on disable
+        /// </summary>
+        private void OnDisable()
+        {
+            SubscribeToSlamLocalizer(false);
         }
 
         /// <summary>
@@ -61,10 +84,29 @@ namespace Meta
                 Debug.LogError("Given Slam Localizer is null");
                 return false;
             }
+            _slamLocalizer = localizer;
+            SubscribeToSlamLocalizer(true);
 
-            localizer.onSlamTrackingLost.AddListener(OnSlamTrackingLost);
-            localizer.onSlamTrackingRelocalized.AddListener(OnSlamTrackingRecovered);
             return true;
+        }
+
+        private void SubscribeToSlamLocalizer(bool subscribe)
+        {
+            if (_slamLocalizer == null)
+            {
+                return;
+            }
+
+            if (subscribe)
+            {
+                _slamLocalizer.onSlamTrackingLost.AddListener(OnSlamTrackingLost);
+                _slamLocalizer.onSlamTrackingRelocalized.AddListener(OnSlamTrackingRecovered);
+            }
+            else
+            {
+                _slamLocalizer.onSlamTrackingLost.RemoveListener(OnSlamTrackingLost);
+                _slamLocalizer.onSlamTrackingRelocalized.RemoveListener(OnSlamTrackingRecovered);
+            }
         }
 
         /// <summary>
@@ -72,17 +114,19 @@ namespace Meta
         /// </summary>
         private void OnSlamTrackingLost()
         {
-            // Create UI
-            if (_prefabInstance == null)
+            if (_prefabInstance)
             {
-                if (_prefab == null)
-                {
-                    Debug.LogError("Prefab is null, cannot instantiate UI");
-                    return;
-                }
-                _prefabInstance = Instantiate(_prefab);
-                _prefabInstance.AutoConfigure();
+                Destroy(_prefabInstance.gameObject);
+                _prefabInstance = null;
             }
+
+            if (_prefab == null)
+            {
+                Debug.LogError("Prefab is null, cannot instantiate UI");
+                return;
+            }
+            _prefabInstance = Instantiate(_prefab);
+            _prefabInstance.AutoConfigure();
         }
 
         /// <summary>
@@ -101,11 +145,11 @@ namespace Meta
                     return;
                 }
 
+                var instanceRef = _prefabInstance;
                 // Hide and then destroy
                 messageController.Hide(() =>
                 {
-                    Destroy(_prefabInstance.gameObject);
-                    _prefabInstance = null;
+                    Destroy(instanceRef.gameObject);
                 });
             }
         }

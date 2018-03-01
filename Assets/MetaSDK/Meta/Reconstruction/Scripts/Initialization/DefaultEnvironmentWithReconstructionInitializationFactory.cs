@@ -1,4 +1,4 @@
-﻿// Copyright Â© 2018, Meta Company.  All rights reserved.
+﻿// Copyright © 2018, Meta Company.  All rights reserved.
 // 
 // Redistribution and use of this software (the "Software") in binary form, without modification, is 
 // permitted provided that the following conditions are met:
@@ -6,7 +6,7 @@
 // 1.      Redistributions of the unmodified Software in binary form must reproduce the above 
 //         copyright notice, this list of conditions and the following disclaimer in the 
 //         documentation and/or other materials provided with the distribution.
-// 2.      The name of Meta Company (â€œMetaâ€) may not be used to endorse or promote products derived 
+// 2.      The name of Meta Company (“Meta”) may not be used to endorse or promote products derived 
 //         from this Software without specific prior written permission from Meta.
 // 3.      LIMITATION TO META PLATFORM: Use of the Software is limited to use on or in connection 
 //         with Meta-branded devices or Meta-branded software development kits.  For example, a bona 
@@ -16,7 +16,7 @@
 //         into an application designed or offered for use on a non-Meta-branded device.
 // 
 // For the sake of clarity, the Software may not be redistributed under any circumstances in source 
-// code form, or in the form of modified binary code â€“ and nothing in this License shall be construed 
+// code form, or in the form of modified binary code – and nothing in this License shall be construed 
 // to permit such redistribution.
 // 
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDER "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, 
@@ -38,17 +38,17 @@ namespace Meta.Reconstruction
     {
         private readonly IMetaReconstruction _metaReconstruction;
         private readonly IEnvironmentProfileRepository _environmentProfileRepository;
-        private readonly ISlamLocalizer _slamLocalizer;
+        private readonly ISlamEventProvider _slamEventProvider;
         private readonly BaseEnvironmentScanController _scanControllerPrefab;
 
         /// <summary>
         /// Creates an instance of <see cref="DefaultEnvironmentWithReconstructionInitializationFactory"/> class.
         /// </summary>
         /// <param name="environmentProfileRepository">Repository to access to the environment profiles.</param>
-        /// <param name="slamLocalizer">Slam type localizer. If null, means that other localizer was selected.</param>
+        /// <param name="slamEventProvider">Slam type localizer. If null, means that other localizer was selected.</param>
         /// <param name="metaReconstruction">Object that manages the environment reconstruction.</param>
         /// <param name="scanControllerPrefab">Triggerer of the the environment reconstruction scanning process.</param>
-        public DefaultEnvironmentWithReconstructionInitializationFactory(IEnvironmentProfileRepository environmentProfileRepository, ISlamLocalizer slamLocalizer, IMetaReconstruction metaReconstruction, BaseEnvironmentScanController scanControllerPrefab)
+        public DefaultEnvironmentWithReconstructionInitializationFactory(IEnvironmentProfileRepository environmentProfileRepository, ISlamEventProvider slamEventProvider, IMetaReconstruction metaReconstruction, BaseEnvironmentScanController scanControllerPrefab)
         {
             if (environmentProfileRepository == null)
             {
@@ -66,7 +66,7 @@ namespace Meta.Reconstruction
             }
 
             _environmentProfileRepository = environmentProfileRepository;
-            _slamLocalizer = slamLocalizer;
+            _slamEventProvider = slamEventProvider;
             _scanControllerPrefab = scanControllerPrefab;
             _metaReconstruction = metaReconstruction;
         }
@@ -81,9 +81,9 @@ namespace Meta.Reconstruction
             switch (environmentSelectionResult)
             {
                 case EnvironmentSelectionResultTypeEvent.EnvironmentSelectionResultType.NewEnvironment:
-                    return new NewDefaultEnvironmentWithReconstructionInitialization(_environmentProfileRepository, _slamLocalizer, _metaReconstruction, _scanControllerPrefab);
+                    return new NewDefaultEnvironmentWithReconstructionInitialization(_environmentProfileRepository, _slamEventProvider, _metaReconstruction, _scanControllerPrefab);
                 case EnvironmentSelectionResultTypeEvent.EnvironmentSelectionResultType.SelectedEnvironment:
-                    return new SelectedEnvironmentWithReconstructionInitialization(_environmentProfileRepository, _slamLocalizer, _metaReconstruction);
+                    return new SelectedEnvironmentWithReconstructionInitialization(_environmentProfileRepository, _slamEventProvider, _metaReconstruction);
                 default:
                     throw new Exception(string.Format("EnvironmentSelectionResultType {0} is not supported.", environmentSelectionResult));
             }

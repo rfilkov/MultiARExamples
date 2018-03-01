@@ -1,4 +1,4 @@
-﻿// Copyright Â© 2018, Meta Company.  All rights reserved.
+﻿// Copyright © 2018, Meta Company.  All rights reserved.
 // 
 // Redistribution and use of this software (the "Software") in binary form, without modification, is 
 // permitted provided that the following conditions are met:
@@ -6,7 +6,7 @@
 // 1.      Redistributions of the unmodified Software in binary form must reproduce the above 
 //         copyright notice, this list of conditions and the following disclaimer in the 
 //         documentation and/or other materials provided with the distribution.
-// 2.      The name of Meta Company (â€œMetaâ€) may not be used to endorse or promote products derived 
+// 2.      The name of Meta Company (“Meta”) may not be used to endorse or promote products derived 
 //         from this Software without specific prior written permission from Meta.
 // 3.      LIMITATION TO META PLATFORM: Use of the Software is limited to use on or in connection 
 //         with Meta-branded devices or Meta-branded software development kits.  For example, a bona 
@@ -16,7 +16,7 @@
 //         into an application designed or offered for use on a non-Meta-branded device.
 // 
 // For the sake of clarity, the Software may not be redistributed under any circumstances in source 
-// code form, or in the form of modified binary code â€“ and nothing in this License shall be construed 
+// code form, or in the form of modified binary code – and nothing in this License shall be construed 
 // to permit such redistribution.
 // 
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDER "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, 
@@ -37,6 +37,7 @@ namespace Meta
     public class EventHandlers : IEventHandlers
     {
         private event Action _awakeEvent;
+        private event Action _readyEvent;
         private event Action _startEvent;
         private event Action _updateEvent;
         private event Action _fixedUpdateEvent;
@@ -61,6 +62,24 @@ namespace Meta
         public void UnSubscribeOnAwake(Action action)
         {
             _awakeEvent -= action;
+        }
+
+        /// <summary>
+        /// Subscribe to Meta Ready event
+        /// </summary>
+        /// <param name="action"></param>
+        public void SubscribeOnReady(Action action)
+        {
+            _readyEvent += action;
+        }
+
+        /// <summary>
+        /// Unsubscribe from Meta Ready event
+        /// </summary>
+        /// <param name="action"></param>
+        public void UnSubscribeOnReady(Action action)
+        {
+            _readyEvent -= action;
         }
 
         /// <summary>
@@ -181,6 +200,18 @@ namespace Meta
                 return;
             _awakeEvent.Invoke();
         }
+
+        /// <summary>
+        /// Raise the Ready event. This event is called when the
+        /// meta device is ready and configured.
+        /// </summary>
+        public void RaiseOnReady()
+        {
+            if (_readyEvent == null)
+                return;
+            _readyEvent.Invoke();
+        }
+
 
         /// <summary>
         /// Raise the Start event
