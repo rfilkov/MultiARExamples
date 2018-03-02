@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using GoogleARCore;
 
-public class ARCoreInteface : MonoBehaviour, ARPlatformInterface 
+public class ARCoreInteface : ARBaseInterface, ARPlatformInterface 
 {
 	[Tooltip("Reference to the ARCore-Device prefab.")]
 	public GameObject arCoreDevicePrefab;
@@ -321,6 +321,7 @@ public class ARCoreInteface : MonoBehaviour, ARPlatformInterface
 			hit.point = rayHit.point;
 			hit.normal = rayHit.normal;
 			hit.distance = rayHit.distance;
+			hit.rotation = Quaternion.FromToRotation(Vector3.up, rayHit.normal);
 
 			hit.psObject = rayHit;
 
@@ -360,6 +361,7 @@ public class ARCoreInteface : MonoBehaviour, ARPlatformInterface
 			hits[i].point = rayHit.point;
 			hits[i].normal = rayHit.normal;
 			hits[i].distance = rayHit.distance;
+			hits[i].rotation = Quaternion.FromToRotation(Vector3.up, rayHit.normal);
 
 			hits[i].psObject = rayHit;
 		}
@@ -401,6 +403,7 @@ public class ARCoreInteface : MonoBehaviour, ARPlatformInterface
 			hit.point = intHit.Pose.position;
 			hit.normal = intHit.Pose.rotation * Vector3.up;
 			hit.distance = intHit.Distance;
+			hit.rotation = intHit.Pose.rotation;
 
 			hit.psObject = intHit;
 
@@ -447,7 +450,7 @@ public class ARCoreInteface : MonoBehaviour, ARPlatformInterface
 		}
 		else
 		{
-			anchorId = AnchorGameObjectToWorld(gameObj, hit.point, Quaternion.identity);
+			anchorId = AnchorGameObjectToWorld(gameObj, hit.point, hit.rotation);
 		}
 
 		return anchorId;

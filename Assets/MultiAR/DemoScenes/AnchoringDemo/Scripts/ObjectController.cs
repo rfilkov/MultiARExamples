@@ -26,6 +26,9 @@ public class ObjectController : MonoBehaviour
 	[Tooltip("Whether the virtual model should rotate at the AR-camera or not.")]
 	public bool modelLookingAtCamera = true;
 
+	[Tooltip("Whether the virtual model should be vertical, or orthogonal to the surface.")]
+	public bool verticalModel = false;
+
 	[Tooltip("UI-Text to show information messages.")]
 	public Text infoText;
 
@@ -49,6 +52,11 @@ public class ObjectController : MonoBehaviour
 		// select the 1st toggle at start
 		if(toggle1)
 		{
+			if (model1) 
+			{
+				model1.position = new Vector3(0f, 0f, -10f);
+			}
+
 			toggle1.isOn = true;
 		}
 	}
@@ -86,8 +94,8 @@ public class ObjectController : MonoBehaviour
 						arManager.AnchorGameObjectToWorld(currentModel.gameObject, hit);
 					}
 
-					// set the new position
-					SetCurrentModelWorldPos(hit.point);
+					// set the new position of the model
+					SetModelWorldPos(hit.point, !verticalModel ? hit.rotation : Quaternion.identity);
 				}
 			}
 		}
@@ -147,22 +155,18 @@ public class ObjectController : MonoBehaviour
 	}
 
 	// sets the world position of the current model
-	private bool SetCurrentModelWorldPos(Vector3 vNewPos)
+	private bool SetModelWorldPos(Vector3 vNewPos, Quaternion qNewRot)
 	{
-		Camera arCamera = arManager.GetMainCamera();
-
-		if(currentModel && arCamera)
+		if(currentModel)
 		{
 			// set position and look at the camera
 			currentModel.position = vNewPos;
+			currentModel.rotation = qNewRot;
 
 			if (modelLookingAtCamera) 
 			{
-				currentModel.LookAt(arCamera.transform);
-
-				// avoid rotation around x
-				Vector3 objRotation = currentModel.rotation.eulerAngles;
-				currentModel.rotation = Quaternion.Euler(0f, objRotation.y, objRotation.z);
+				Camera arCamera = arManager.GetMainCamera();
+				MultiARInterop.TurnObjectToCamera(currentModel.gameObject, arCamera);
 			}
 
 			return true;

@@ -16,6 +16,9 @@ public class ObjectScaler : MonoBehaviour
 	[Tooltip("Whether the virtual model should rotate at the AR-camera or not.")]
 	public bool modelLookingAtCamera = true;
 
+	[Tooltip("Whether the virtual model should be vertical, or orthogonal to the surface.")]
+	public bool verticalModel = false;
+
 	[Tooltip("UI-Text to show information messages.")]
 	public UnityEngine.UI.Text infoText;
 
@@ -64,7 +67,7 @@ public class ObjectScaler : MonoBehaviour
 				if(arManager.RaycastToWorld(true, out hit))
 				{
 					// instantiate the object and anchor it to the world position
-					objectInstance = Instantiate(objectPrefab, hit.point, Quaternion.identity);
+					objectInstance = Instantiate(objectPrefab, hit.point, !verticalModel ? hit.rotation : Quaternion.identity);
 					arManager.AnchorGameObjectToWorld(objectInstance, hit);
 
 					// get object renderer & initial scale
@@ -72,13 +75,10 @@ public class ObjectScaler : MonoBehaviour
 					objectScale = objectInstance.transform.localScale;
 
 					// look at the camera
-					Camera arCamera = arManager.GetMainCamera();
-					if(arCamera && modelLookingAtCamera)
+					if(modelLookingAtCamera)
 					{
-						objectInstance.transform.LookAt(arCamera.transform);
-						// avoid rotation around x
-						Vector3 objRotation = objectInstance.transform.rotation.eulerAngles;
-						objectInstance.transform.rotation = Quaternion.Euler(0f, objRotation.y, objRotation.z);
+						Camera arCamera = arManager.GetMainCamera();
+						MultiARInterop.TurnObjectToCamera(objectInstance, arCamera);
 					}
 
 					if(infoText)

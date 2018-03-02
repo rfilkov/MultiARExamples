@@ -52,6 +52,7 @@ public class MultiARInterop
 		public Vector3 point;
 		public Vector3 normal;
 		public float distance;
+		public Quaternion rotation;
 
 		public object psObject;
 		//public Plane plane;
@@ -261,5 +262,24 @@ public class MultiARInterop
 
 		return null;
 	}
+
+
+	/// <summary>
+	/// Turns the object to look at the AR camera.
+	/// </summary>
+	/// <param name="obj">The object.</param>
+	/// <param name="cam">The AR camera.</param>
+	public static void TurnObjectToCamera(GameObject obj, Camera cam)
+	{
+		if (obj && cam) 
+		{
+			Plane hitPlane = new Plane(obj.transform.up, obj.transform.position);
+			Vector3 planePoint = hitPlane.ClosestPointOnPlane(cam.transform.position);
+			Vector3 objCamDir = (planePoint - obj.transform.position).normalized;
+
+			obj.transform.LookAt(objCamDir, obj.transform.up);
+		}
+	}
+
 
 }

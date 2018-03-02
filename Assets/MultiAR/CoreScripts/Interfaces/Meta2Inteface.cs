@@ -5,7 +5,7 @@ using UnityEngine;
 using Meta;
 using Meta.Reconstruction;
 
-public class Meta2Inteface : MonoBehaviour, ARPlatformInterface 
+public class Meta2Inteface : ARBaseInterface, ARPlatformInterface 
 {
 	[Tooltip("Reference to the Meta-Camera-Rig prefab.")]
 	public GameObject metaCameraRigPrefab;

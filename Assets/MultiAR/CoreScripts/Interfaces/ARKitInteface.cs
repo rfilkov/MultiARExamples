@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.XR.iOS;
 
-public class ARKitInteface : MonoBehaviour, ARPlatformInterface 
+public class ARKitInteface : ARBaseInterface, ARPlatformInterface 
 {
 	[Tooltip("Material used for camera background.")]
 	public Material yuvMaterial;

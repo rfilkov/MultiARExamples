@@ -6,7 +6,7 @@ using UnityEngine.XR;
 using UnityEngine.XR.WSA;
 using UnityEngine.XR.WSA.Input;
 
-public class WinMRInteface : MonoBehaviour, ARPlatformInterface 
+public class WinMRInteface : ARBaseInterface, ARPlatformInterface 
 {
 	[Tooltip("Graphics quality level.")]
 	public QualityLevel qualityLevel;

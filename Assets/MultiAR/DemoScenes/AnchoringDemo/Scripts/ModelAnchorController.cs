@@ -20,6 +20,9 @@ public class ModelAnchorController : MonoBehaviour
 	[Tooltip("Whether the virtual model should rotate at the AR-camera or not.")]
 	public bool modelLookingAtCamera = true;
 
+	[Tooltip("Whether the virtual model should be vertical, or orthogonal to the surface.")]
+	public bool verticalModel = false;
+
 	[Tooltip("UI-Text to show information messages.")]
 	public Text infoText;
 
@@ -37,11 +40,12 @@ public class ModelAnchorController : MonoBehaviour
 		// get reference to MultiARManager
 		arManager = MultiARManager.Instance;
 
-//		// select the model toggle at start
-//		if(modelActiveToggle)
-//		{
-//			modelActiveToggle.isOn = true;
-//		}
+		// enable the model toggle at start - make the model transform visible
+		if(modelTransform)
+		{
+			modelTransform.gameObject.SetActive(true);
+			modelTransform.position = new Vector3(0f, 0f, -10f);
+		}
 	}
 	
 	void Update () 
@@ -66,7 +70,7 @@ public class ModelAnchorController : MonoBehaviour
 					if(arManager.RaycastToWorld(true, out hit))
 					{
 						// set model's new position
-						SetModelWorldPos(hit.point);
+						SetModelWorldPos(hit.point, !verticalModel ? hit.rotation : Quaternion.identity);
 					}
 				}
 			}
@@ -95,23 +99,25 @@ public class ModelAnchorController : MonoBehaviour
 		}
 	}
 
-	// positions the controlled model in the world
-	private bool SetModelWorldPos(Vector3 vNewPos)
+	// sets the world position of the current model
+	private bool SetModelWorldPos(Vector3 vNewPos, Quaternion qNewRot)
 	{
-		Camera arCamera = arManager.GetMainCamera();
-
-		if(modelTransform && modelTransform.gameObject.activeSelf && arCamera)
+		if(modelTransform)
 		{
+			// activate model if needed
+			if(!modelTransform.gameObject.activeSelf)
+			{
+				modelTransform.gameObject.SetActive(true);
+			}
+
 			// set position and look at the camera
 			modelTransform.position = vNewPos;
+			modelTransform.rotation = qNewRot;
 
 			if (modelLookingAtCamera) 
 			{
-				modelTransform.LookAt(arCamera.transform);
-
-				// avoid rotation around x
-				Vector3 objRotation = modelTransform.rotation.eulerAngles;
-				modelTransform.rotation = Quaternion.Euler(0f, objRotation.y, objRotation.z);
+				Camera arCamera = arManager.GetMainCamera();
+				MultiARInterop.TurnObjectToCamera(modelTransform.gameObject, arCamera);
 			}
 
 			return true;
@@ -142,16 +148,10 @@ public class ModelAnchorController : MonoBehaviour
 
 		if(bOn)
 		{
-			// activate model if needed
-			if(!modelTransform.gameObject.activeSelf)
-			{
-				modelTransform.gameObject.SetActive(true);
-			}
-
 			if(anchorTransform && anchorTransform.gameObject.activeSelf)
 			{
 				// set model at anchor's position
-				SetModelWorldPos(anchorTransform.position);
+				SetModelWorldPos(anchorTransform.position, !verticalModel ? anchorTransform.rotation : Quaternion.identity);
 			}
 			else
 			{
@@ -161,7 +161,7 @@ public class ModelAnchorController : MonoBehaviour
 				if(arManager.RaycastToWorld(false, out hit))
 				{
 					// set model position
-					SetModelWorldPos(hit.point);
+					SetModelWorldPos(hit.point, !verticalModel ? hit.rotation : Quaternion.identity);
 				}
 			}
 

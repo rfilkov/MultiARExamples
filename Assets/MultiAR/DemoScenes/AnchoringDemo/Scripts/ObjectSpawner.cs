@@ -10,6 +10,10 @@ public class ObjectSpawner : MonoBehaviour
 	[Tooltip("Whether the virtual model should rotate at the AR-camera or not.")]
 	public bool modelLookingAtCamera = true;
 
+	[Tooltip("Whether the virtual model should be vertical, or orthogonal to the surface.")]
+	public bool verticalModel = false;
+
+
 	// reference to the MultiARManager
 	private MultiARManager arManager;
 
@@ -40,22 +44,20 @@ public class ObjectSpawner : MonoBehaviour
 				if(arManager.RaycastToWorld(true, out hit))
 				{
 					// instantiate the object and anchor it to the world position
-					GameObject spawnObj = Instantiate(objectPrefab, hit.point, Quaternion.identity);
+					GameObject spawnObj = Instantiate(objectPrefab, hit.point, !verticalModel ? hit.rotation : Quaternion.identity);
 					arManager.AnchorGameObjectToWorld(spawnObj, hit);
 
 					// look at the camera
-					Camera arCamera = arManager.GetMainCamera();
-					if(arCamera && modelLookingAtCamera)
+					if(modelLookingAtCamera)
 					{
-						spawnObj.transform.LookAt(arCamera.transform);
-						// avoid rotation around x
-						Vector3 objRotation = spawnObj.transform.rotation.eulerAngles;
-						spawnObj.transform.rotation = Quaternion.Euler(0f, objRotation.y, objRotation.z);
+						Camera arCamera = arManager.GetMainCamera();
+						MultiARInterop.TurnObjectToCamera(spawnObj, arCamera);
 					}
 				}
 			}
 		}
 
 	}
+
 
 }
