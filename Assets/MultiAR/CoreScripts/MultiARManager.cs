@@ -99,6 +99,16 @@ public class MultiARManager : MonoBehaviour
 		return isInitialized;
 	}
 
+
+	/// <summary>
+	/// Gets the selected AR interface.
+	/// </summary>
+	/// <returns>The AR interface.</returns>
+	public ARPlatformInterface GetARInterface()
+	{
+		return arInterface;
+	}
+
 	/// <summary>
 	/// Gets the AR data-holder.
 	/// </summary>

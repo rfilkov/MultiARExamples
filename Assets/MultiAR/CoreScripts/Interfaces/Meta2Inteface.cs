@@ -69,6 +69,7 @@ public class Meta2Inteface : ARBaseInterface, ARPlatformInterface
 	private Meta.HandInput.Hand handLeft, handRight;
 	private Meta.HandInput.CenterHandFeature palmLeft, palmRight;
 	private bool handLeftGrabbing = false, handRightGrabbing = false;
+	private bool handLeftClicked = false, handRightClicked = false;
 	private float handLeftTime = 0f, handRightTime = 0f;
 
 
@@ -306,6 +307,7 @@ public class Meta2Inteface : ARBaseInterface, ARPlatformInterface
 			hit.point = rayHit.point;
 			hit.normal = rayHit.normal;
 			hit.distance = rayHit.distance;
+			hit.rotation = Quaternion.FromToRotation(Vector3.up, rayHit.normal);
 
 			hit.psObject = rayHit;
 
@@ -345,6 +347,7 @@ public class Meta2Inteface : ARBaseInterface, ARPlatformInterface
 			hits[i].point = rayHit.point;
 			hits[i].normal = rayHit.normal;
 			hits[i].distance = rayHit.distance;
+			hits[i].rotation = Quaternion.FromToRotation(Vector3.up, rayHit.normal);
 
 			hits[i].psObject = rayHit;
 		}
@@ -388,6 +391,7 @@ public class Meta2Inteface : ARBaseInterface, ARPlatformInterface
 				hit.point = rayHit.point;
 				hit.normal = rayHit.normal;
 				hit.distance = rayHit.distance;
+				hit.rotation = Quaternion.FromToRotation(Vector3.up, rayHit.normal);
 
 				hit.psObject = rayHit;
 				//Debug.Log(string.Format("Hit {0} at position {1}.", rayHit.collider.gameObject, rayHit.point));
@@ -632,6 +636,8 @@ public class Meta2Inteface : ARBaseInterface, ARPlatformInterface
 
 		if (metaReconstruction) 
 		{
+			DontDestroyOnLoad(metaReconstruction.gameObject);
+
 			// start co-routine to init meta reconstruction
 			StartCoroutine(InitMetaReconstruction());
 
@@ -728,6 +734,7 @@ public class Meta2Inteface : ARBaseInterface, ARPlatformInterface
 			if (objRenderer) 
 			{
 				objRenderer.layer = MultiARInterop.GetSurfaceLayer();
+				DontDestroyOnLoad(objRenderer);
 
 				MultiARInterop.MultiARData arData = arManager.GetARData();
 				arData.surfaceRendererRoot = objRenderer;
@@ -999,16 +1006,22 @@ public class Meta2Inteface : ARBaseInterface, ARPlatformInterface
 			if (!handLeftGrabbing) 
 			{
 				handLeftGrabbing = true;
+				handLeftClicked = false;
 				handLeftTime = Time.time;
-
-				inputAction = MultiARInterop.InputAction.Click;
-				startMousePos = handLeft.Palm.Position;
-				inputTimestamp = lastFrameTimestamp;
 
 				if (palmLeft && !keepMetaHandsFunctionality) 
 				{
 					palmLeft.MoveStateMachine(Meta.HandInput.PalmStateCommand.Grab);
 				}
+			}
+
+			if (handLeftGrabbing && !handLeftClicked && (Time.time - handLeftTime) >= 0.25f) 
+			{
+				handLeftClicked = true;
+
+				inputAction = MultiARInterop.InputAction.Click;
+				startMousePos = handLeft.Palm.Position;
+				inputTimestamp = lastFrameTimestamp;
 
 				//Debug.Log("Left hand click");
 			}
@@ -1050,16 +1063,22 @@ public class Meta2Inteface : ARBaseInterface, ARPlatformInterface
 			if (!handRightGrabbing) 
 			{
 				handRightGrabbing = true;
+				handRightClicked = false;
 				handRightTime = Time.time;
-
-				inputAction = MultiARInterop.InputAction.Click;
-				startMousePos = handRight.Palm.Position;
-				inputTimestamp = lastFrameTimestamp;
 
 				if (palmRight && !keepMetaHandsFunctionality) 
 				{
 					palmRight.MoveStateMachine(Meta.HandInput.PalmStateCommand.Grab);
 				}
+			}
+
+			if (handRightGrabbing && !handRightClicked && (Time.time - handRightTime) >= 0.25f) 
+			{
+				handRightClicked = true;
+
+				inputAction = MultiARInterop.InputAction.Click;
+				startMousePos = handRight.Palm.Position;
+				inputTimestamp = lastFrameTimestamp;
 
 				//Debug.Log("Right hand click");
 			}

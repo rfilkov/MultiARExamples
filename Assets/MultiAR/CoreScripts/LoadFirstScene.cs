@@ -10,8 +10,10 @@ public class LoadFirstScene : MonoBehaviour
 	void Update() 
 	{
 		MultiARManager arManager = MultiARManager.Instance;
+		ARPlatformInterface arInterface = arManager ? arManager.GetARInterface() : null;
 		
-		if(!levelLoaded && arManager && arManager.IsInitialized())
+		if(!levelLoaded && arManager && arManager.IsInitialized() &&
+			arInterface != null && arInterface.IsInitialized())
 		{
 			Debug.Log("MultiARManager initialized. Loading 1st scene...");
 

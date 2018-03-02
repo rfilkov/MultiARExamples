@@ -43,35 +43,36 @@ public class CameraShooter : MonoBehaviour
 
 			if (action == MultiARInterop.InputAction.Click)
 			{
+				// gets the main camera
+				Camera arCamera = arManager.GetMainCamera();
+				if (!arCamera)
+					return;
+
 				// raycast scene objects (including overlay surfaces)
 				MultiARInterop.TrackableHit hit;
+				Vector3 targetPoint = Vector3.zero;
 
-				if(arManager.RaycastToScene(true, out hit))
+				if (arManager.RaycastToScene (true, out hit))
+					targetPoint = hit.point;
+				else
+					targetPoint = arCamera.transform.forward * 3f;  // emulate target in the line of sight
+
+				// instantiate the cannonball. schedule it for destroy in 3 seconds
+				GameObject cannonBall = Instantiate(ballPrefab, arCamera.transform.position, arCamera.transform.rotation);
+				cannonBall.name = ballPrefab.name + "-" + objectCounter;
+				objectCounter++;
+
+				if(destroyInSeconds > 0f)
 				{
-					// gets the main camera
-					Camera arCamera = arManager.GetMainCamera();
-					if (!arCamera)
-						return;
-
-					// instantiate the cannonball. schedule it for destroy in 3 seconds
-					GameObject cannonBall = Instantiate(ballPrefab, arCamera.transform.position, arCamera.transform.rotation);
-					cannonBall.name = ballPrefab.name + "-" + objectCounter;
-					objectCounter++;
-
-					if(destroyInSeconds > 0f)
-					{
-						Destroy(cannonBall, destroyInSeconds);
-					}
-
-					// set random ball material
-					SetBallMaterial(cannonBall);
-
-					// fire the cannonball
-					Vector3 targetPoint = hit.point;
-					targetPoint.y -= aimAboveDistance;
-
-					FireCannonball(cannonBall, arCamera.transform.position, targetPoint);
+					Destroy(cannonBall, destroyInSeconds);
 				}
+
+				// set random ball material
+				SetBallMaterial(cannonBall);
+
+				// fire the cannonball
+				targetPoint.y -= aimAboveDistance;
+				FireCannonball(cannonBall, arCamera.transform.position, targetPoint);
 			}
 		}
 
