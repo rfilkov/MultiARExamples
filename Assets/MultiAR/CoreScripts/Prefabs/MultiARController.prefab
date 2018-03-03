@@ -40,7 +40,6 @@ GameObject:
   - component: {fileID: 114504722886925034}
   - component: {fileID: 114787928919029918}
   - component: {fileID: 114120882542670782}
-  - component: {fileID: 114809287314297596}
   m_Layer: 0
   m_Name: MultiARController
   m_TagString: Untagged
@@ -240,22 +239,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   arCoreDevicePrefab: {fileID: 1772147192650458, guid: c10877f7cd5764de18d46d7b777d1faa,
     type: 2}
---- !u!114 &114809287314297596
-MonoBehaviour:
-  m_ObjectHideFlags: 1
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1541651302486692}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 518efc7ffd9650a43836a292c9ce44bd, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  metaCameraRigPrefab: {fileID: 1000011859835720, guid: 0f29804ebd89fa1409e93097cbff1a1d,
-    type: 2}
-  metaHandsPrefab: {fileID: 1000013163591650, guid: a4475e147b98e59469ab06ad348bd9e3,
-    type: 2}
-  initialRecoTime: 20
 --- !u!114 &114962951517112342
 MonoBehaviour:
   m_ObjectHideFlags: 1
