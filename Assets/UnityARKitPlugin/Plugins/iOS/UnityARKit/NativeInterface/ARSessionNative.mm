@@ -691,7 +691,7 @@ static CGAffineTransform s_CurAffineTransform;
             memcpy(s_UnityPixelBuffers.pUVPixelBytes, baseAddress, numBytes);
         }
         
-        CVPixelBufferUnlockBaseAddress(pixelBuffer, 0);
+        CVPixelBufferUnlockBaseAddress(pixelBuffer, kCVPixelBufferLock_ReadOnly);
     }
     
     id<MTLTexture> textureY = nil;
