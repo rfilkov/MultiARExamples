@@ -29,7 +29,7 @@ namespace GoogleARCoreInternal
     using GoogleARCore;
     using UnityEngine;
     using UnityEngine.Rendering;
-    using UnityEngine.SpatialTracking;
+    //using UnityEngine.SpatialTracking;
 
     /// <summary>
     /// Contains methods for managing communication to the Instant Preview 
@@ -198,7 +198,8 @@ namespace GoogleARCoreInternal
 
         private static void AddInstantPreviewTrackedPoseDriverWhenNeeded()
         {
-            foreach (var poseDriver in Component.FindObjectsOfType<TrackedPoseDriver>())
+#if !UNITY_WSA
+            foreach (var poseDriver in Component.FindObjectsOfType<UnityEngine.SpatialTracking.TrackedPoseDriver>())
             {
                 poseDriver.enabled = false;
                 var gameObject = poseDriver.gameObject;
@@ -209,6 +210,7 @@ namespace GoogleARCoreInternal
                     gameObject.AddComponent<InstantPreviewTrackedPoseDriver>();
                 }
             }
+#endif
         }
 
         private static string GetAdbPath()
@@ -260,6 +262,7 @@ namespace GoogleARCoreInternal
 
             Result result = new Result();
 
+#if !UNITY_WSA
             Thread checkAdbThread = new Thread((object obj) =>
             {
                 Result res = (Result)obj;
@@ -309,11 +312,13 @@ namespace GoogleARCoreInternal
             {
                 yield return 0;
             }
+#endif
 
             if (result.ShouldPromptForInstall)
             {
                 if (PromptToInstall())
                 {
+#if !UNITY_WSA
                     Thread installThread = new Thread(() =>
                     {
                         string output;
@@ -351,6 +356,7 @@ namespace GoogleARCoreInternal
                     {
                         yield return 0;
                     }
+#endif
                 }
                 else
                 {
@@ -360,6 +366,7 @@ namespace GoogleARCoreInternal
 
             if (!NativeApi.IsConnected())
             {
+#if !UNITY_WSA
                 new Thread(() =>
                 {
                     string output;
@@ -368,6 +375,7 @@ namespace GoogleARCoreInternal
                         "shell am start -n com.google.ar.core.instantpreview/.InstantPreviewActivity",
                         out output, out errors);
                 }).Start();
+#endif
             }
         }
 
@@ -386,6 +394,7 @@ namespace GoogleARCoreInternal
 
         private static void RunAdbCommand(string fileName, string arguments, out string output, out string errors)
         {
+#if !UNITY_WSA
             using (var process = new System.Diagnostics.Process())
             {
                 var startInfo = new System.Diagnostics.ProcessStartInfo(fileName, arguments);
@@ -410,6 +419,10 @@ namespace GoogleARCoreInternal
                 output = outputBuilder.ToString().Trim();
                 errors = errorBuilder.ToString().Trim();
             }
+#else
+			output = string.Empty;
+			errors = string.Empty;
+#endif
         }
 
         private static bool StartServer(string adbPath, out string version)

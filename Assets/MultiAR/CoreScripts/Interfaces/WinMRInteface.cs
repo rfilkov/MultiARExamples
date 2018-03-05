@@ -311,6 +311,7 @@ public class WinMRInteface : ARBaseInterface, ARPlatformInterface
 			hit.point = rayHit.point;
 			hit.normal = rayHit.normal;
 			hit.distance = rayHit.distance;
+			hit.rotation = Quaternion.FromToRotation(Vector3.up, rayHit.normal);
 
 			hit.psObject = rayHit;
 
@@ -350,6 +351,7 @@ public class WinMRInteface : ARBaseInterface, ARPlatformInterface
 			hits[i].point = rayHit.point;
 			hits[i].normal = rayHit.normal;
 			hits[i].distance = rayHit.distance;
+			hits[i].rotation = Quaternion.FromToRotation(Vector3.up, rayHit.normal);
 
 			hits[i].psObject = rayHit;
 		}
@@ -393,6 +395,7 @@ public class WinMRInteface : ARBaseInterface, ARPlatformInterface
 				hit.point = rayHit.point;
 				hit.normal = rayHit.normal;
 				hit.distance = rayHit.distance;
+				hit.rotation = Quaternion.FromToRotation(Vector3.up, rayHit.normal);
 
 				hit.psObject = rayHit;
 				//Debug.Log(string.Format("Hit {0} at position {1}.", rayHit.collider.gameObject, rayHit.point));
