@@ -404,11 +404,13 @@ public class ARKitInteface : ARBaseInterface, ARPlatformInterface
 		// prioritize result types
 		List<ARHitTestResultType> allowedResultTypes = new List<ARHitTestResultType>();
 		allowedResultTypes.Add(ARHitTestResultType.ARHitTestResultTypeExistingPlaneUsingExtent);
-		allowedResultTypes.Add(ARHitTestResultType.ARHitTestResultTypeHorizontalPlane);
+		//allowedResultTypes.Add(ARHitTestResultType.ARHitTestResultTypeExistingPlaneUsingGeometry);
 
 		if(arManager && !arManager.hitTrackedSurfacesOnly)
 		{
 			allowedResultTypes.Add(ARHitTestResultType.ARHitTestResultTypeExistingPlane);  // infinite planes
+			allowedResultTypes.Add(ARHitTestResultType.ARHitTestResultTypeEstimatedHorizontalPlane);
+			allowedResultTypes.Add(ARHitTestResultType.ARHitTestResultTypeEstimatedVerticalPlane);
 			allowedResultTypes.Add(ARHitTestResultType.ARHitTestResultTypeFeaturePoint);
 		}
 
@@ -615,6 +617,7 @@ public class ARKitInteface : ARBaseInterface, ARPlatformInterface
 
 		UnityARCameraManager camManager = camManagerObj.AddComponent<UnityARCameraManager>();
 		camManager.m_camera = currentCamera;
+		camManager.planeDetection = UnityARPlaneDetection.HorizontalAndVertical;
 
 		// get ar-data
 		MultiARInterop.MultiARData arData = arManager ? arManager.GetARData() : null;
