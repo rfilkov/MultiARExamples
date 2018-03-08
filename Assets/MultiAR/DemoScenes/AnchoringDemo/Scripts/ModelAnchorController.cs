@@ -117,7 +117,7 @@ public class ModelAnchorController : MonoBehaviour
 			if (modelLookingAtCamera) 
 			{
 				Camera arCamera = arManager.GetMainCamera();
-				MultiARInterop.TurnObjectToCamera(modelTransform.gameObject, arCamera);
+				MultiARInterop.TurnObjectToCamera(modelTransform.gameObject, arCamera, modelTransform.position, modelTransform.up);
 			}
 
 			return true;

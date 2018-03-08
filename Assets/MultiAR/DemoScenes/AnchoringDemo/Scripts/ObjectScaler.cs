@@ -78,7 +78,7 @@ public class ObjectScaler : MonoBehaviour
 					if(modelLookingAtCamera)
 					{
 						Camera arCamera = arManager.GetMainCamera();
-						MultiARInterop.TurnObjectToCamera(objectInstance, arCamera);
+						MultiARInterop.TurnObjectToCamera(objectInstance, arCamera, hit.point, hit.normal);
 					}
 
 					if(infoText)

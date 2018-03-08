@@ -4,11 +4,14 @@ using UnityEngine;
 
 public class PortalOpener : MonoBehaviour 
 {
-	[Tooltip("The object to be placed there, where the user's input hits surface.")]
-	public GameObject portalObj;
+	[Tooltip("The portal prefab.")]
+	public GameObject portalPrefab;
+
+	[Tooltip("Whether the portal should be vertical, or orthogonal to the surface.")]
+	public bool verticalPortal = false;
 
 	[Tooltip("Vertical offset of the object to the hit point.")]
-	public float verticalOffset = 0f;
+	public float portalVerticalOffset = 0f;
 
 	[Tooltip("Name of the portal opening animation.")]
 	public string portalOpenAnimation = string.Empty;
@@ -16,7 +19,9 @@ public class PortalOpener : MonoBehaviour
 
 	// reference to the MultiARManager
 	private MultiARManager arManager;
-	// referece to the portal animator
+
+	// referece to the portal object and animator
+	private GameObject portalObj;
 	private Animator animator;
 
 
@@ -24,34 +29,38 @@ public class PortalOpener : MonoBehaviour
 	{
 		// get reference to MultiARManager
 		arManager = MultiARManager.Instance;
-
-		// get reference to the portal animator
-		if (portalObj) 
-		{
-			animator = portalObj.GetComponent<Animator>();
-		}
 	}
 	
 	// Update is called once per frame
 	void Update () 
 	{
 		// check for tap
-		if (portalObj && arManager && arManager.IsInitialized() && arManager.IsInputAvailable(true))
+		if (portalPrefab && arManager && arManager.IsInitialized() && arManager.IsInputAvailable(true))
 		{
 			MultiARInterop.InputAction action = arManager.GetInputAction();
 
 			if (action == MultiARInterop.InputAction.Click)
 			{
-				// activate the object if needed
-				if (!portalObj.activeSelf) 
-				{
-					portalObj.SetActive(true);
-				}
-
-				// raycast world
+				// raycast to world
 				MultiARInterop.TrackableHit hit;
 				if(arManager.RaycastToWorld(true, out hit))
 				{
+					// create the portal object, if needed
+					if (!portalObj) 
+					{
+						portalObj = Instantiate(portalPrefab);
+					}
+
+					// set its position and rotation
+					portalObj.transform.position = hit.point;
+					portalObj.transform.rotation = !verticalPortal ? hit.rotation : Quaternion.identity;
+
+					// get reference to the portal animator
+					if (!animator) 
+					{
+						animator = portalObj.GetComponent<Animator>();
+					}
+
 					// remove object anchor, if it was anchored before
 					string anchorId = arManager.GetObjectAnchorId(portalObj);
 					if (anchorId != string.Empty) 
@@ -64,7 +73,8 @@ public class PortalOpener : MonoBehaviour
 
 					// apply the vertical offset
 					Vector3 objPos = portalObj.transform.position;
-					objPos.y += verticalOffset;
+					//objPos.y += verticalOffset;
+					objPos += portalObj.transform.up * portalVerticalOffset;
 					portalObj.transform.position = objPos;
 
 					// play portal-open animation

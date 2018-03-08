@@ -269,11 +269,11 @@ public class MultiARInterop
 	/// </summary>
 	/// <param name="obj">The object.</param>
 	/// <param name="cam">The AR camera.</param>
-	public static void TurnObjectToCamera(GameObject obj, Camera cam)
+	public static void TurnObjectToCamera(GameObject obj, Camera cam, Vector3 hitPoint, Vector3 hitNormal)
 	{
 		if (obj && cam) 
 		{
-			Plane hitPlane = new Plane(obj.transform.up, obj.transform.position);
+			Plane hitPlane = new Plane(hitNormal, hitPoint);
 			Vector3 planePoint = hitPlane.ClosestPointOnPlane(cam.transform.position);
 			Vector3 objCamDir = (planePoint - obj.transform.position).normalized;
 

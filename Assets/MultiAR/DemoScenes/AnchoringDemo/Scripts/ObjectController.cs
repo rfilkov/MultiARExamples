@@ -166,7 +166,7 @@ public class ObjectController : MonoBehaviour
 			if (modelLookingAtCamera) 
 			{
 				Camera arCamera = arManager.GetMainCamera();
-				MultiARInterop.TurnObjectToCamera(currentModel.gameObject, arCamera);
+				MultiARInterop.TurnObjectToCamera(currentModel.gameObject, arCamera, currentModel.position, currentModel.up);
 			}
 
 			return true;

@@ -51,7 +51,7 @@ public class ObjectSpawner : MonoBehaviour
 					if(modelLookingAtCamera)
 					{
 						Camera arCamera = arManager.GetMainCamera();
-						MultiARInterop.TurnObjectToCamera(spawnObj, arCamera);
+						MultiARInterop.TurnObjectToCamera(spawnObj, arCamera, hit.point, hit.normal);
 					}
 				}
 			}
