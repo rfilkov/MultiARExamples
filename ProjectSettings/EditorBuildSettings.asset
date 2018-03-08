@@ -30,11 +30,11 @@ EditorBuildSettings:
     path: Assets/MultiAR/DemoScenes/MultiSceneDemo/Scene2-SurfaceColliderDemo.unity
     guid: e59540518b3132c43ae8ff47b4ceb49a
   - enabled: 0
-    path: Assets/MultiAR/DemoScenes/OcclusionDemo/PortalOpenerDemo.unity
-    guid: d518d01554b96694ea27aa6235a60325
-  - enabled: 0
     path: Assets/MultiAR/DemoScenes/OcclusionDemo/SurfaceOcclusionDemo.unity
     guid: b574deb59bcc9814294c22ee8bbee403
+  - enabled: 0
+    path: Assets/MultiAR/DemoScenes/PortalDemo/PortalAnimationDemo.unity
+    guid: d518d01554b96694ea27aa6235a60325
   - enabled: 0
     path: Assets/MultiAR/DemoScenes/VisualizerDemo/SurfaceSaverDemo.unity
     guid: bd93350c687709c4886205c7540fa889
