@@ -133,6 +133,14 @@ public class MultiARInterop
 	}
 
 
+	/// <summary>
+	/// Shows the cursor.
+	/// </summary>
+	/// <param name="cursorTrans">Cursor transform.</param>
+	/// <param name="target">Target position.</param>
+	/// <param name="surfDistance">Distance from the surface.</param>
+	/// <param name="defDistance">By-default distance.</param>
+	/// <param name="smoothFactor">Smooth factor.</param>
 	public static void ShowCursor(Transform cursorTrans, TrackableHit target, float surfDistance, float defDistance, float smoothFactor)
 	{
 		// the forward vector is looking back

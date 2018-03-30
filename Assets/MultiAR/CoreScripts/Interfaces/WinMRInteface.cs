@@ -9,7 +9,11 @@ using UnityEngine.XR.WSA.Input;
 public class WinMRInteface : ARBaseInterface, ARPlatformInterface 
 {
 	[Tooltip("Graphics quality level.")]
-	public QualityLevel qualityLevel;
+	public QualityLevel qualityLevel = QualityLevel.Fastest;
+
+	[Tooltip("Controller used for interaction in MR (left- or right-hand controller).")]
+	public InteractionSourceHandedness controllerHandedness = InteractionSourceHandedness.Right;
+
 
 	//[Tooltip("The layer used by the surface collider. 1 means default.")]
 	//private int surfaceColliderLayer = 31;
@@ -61,8 +65,15 @@ public class WinMRInteface : ARBaseInterface, ARPlatformInterface
 	private Vector3 startMousePos = Vector3.zero;
 	private Vector3 inputNavCoordinates = Vector3.zero;
 	private double inputTimestamp = 0.0, startTimestamp = 0.0;
+
 	// gesture recognizer for HoloLens
 	private GestureRecognizer gestureRecognizer = null;
+
+	// interaction manager
+	private bool handDetected = false;
+	private bool isHandGripping = false;
+	private Vector3 handPosition = Vector3.zero;
+	private Vector3 handDirection = Vector3.zero;
 
 
 	/// <summary>
@@ -299,8 +310,7 @@ public class WinMRInteface : ARBaseInterface, ARPlatformInterface
 			return false;
 
 		// ray-cast
-		Transform camTransform = mainCamera.transform;
-		Ray camRay = new Ray(camTransform.position, camTransform.forward);
+		Ray camRay = GetCameraRay();
 
 		hit.rayPos = camRay.origin;
 		hit.rayDir = camRay.direction;
@@ -334,8 +344,7 @@ public class WinMRInteface : ARBaseInterface, ARPlatformInterface
 			return false;
 
 		// ray-cast
-		Transform camTransform = mainCamera.transform;
-		Ray camRay = new Ray(camTransform.position, camTransform.forward);
+		Ray camRay = GetCameraRay();
 
 		RaycastHit[] rayHits = Physics.RaycastAll(camRay, MultiARInterop.MAX_RAYCAST_DIST, Physics.DefaultRaycastLayers);
 		hits = new MultiARInterop.TrackableHit[rayHits.Length];
@@ -372,8 +381,7 @@ public class WinMRInteface : ARBaseInterface, ARPlatformInterface
 			return false;
 
 		// ray-cast
-		Transform camTransform = mainCamera.transform;
-		Ray camRay = new Ray(camTransform.position, camTransform.forward);
+		Ray camRay = GetCameraRay();
 
 		hit.rayPos = camRay.origin;
 		hit.rayDir = camRay.direction;
@@ -405,6 +413,25 @@ public class WinMRInteface : ARBaseInterface, ARPlatformInterface
 		}
 
 		return false;
+	}
+
+	// returns the current camera ray
+	private Ray GetCameraRay()
+	{
+		Ray camRay;
+		Transform camTransform = mainCamera.transform;
+		//camRay = new Ray(camTransform.position, camTransform.forward);
+
+		if (handDetected) 
+		{
+			camRay = new Ray(camTransform.position, handDirection);
+		}
+		else
+		{
+			camRay = new Ray(camTransform.position, camTransform.forward);
+		}
+
+		return camRay;
 	}
 
 	/// <summary>
@@ -641,11 +668,17 @@ public class WinMRInteface : ARBaseInterface, ARPlatformInterface
 			gestureRecognizer.StartCapturingGestures();
 			Debug.Log("Gesture recognizer inited and started.");
 		}
-		else
+		//else
 		{
-			InteractionManager.InteractionSourcePressed += InteractionManager_InteractionSourcePressed;
+			// init interaction manager
+//			InteractionManager.InteractionSourcePressed += InteractionManager_InteractionSourcePressed;
+//			InteractionManager.InteractionSourceUpdated += InteractionManager_InteractionSourceUpdated;
+//			InteractionManager.InteractionSourceReleased += InteractionManager_InteractionSourceReleased;
+
+			InteractionManager.InteractionSourceDetected += InteractionManager_InteractionSourceDetected;
+			InteractionManager.InteractionSourceLost += InteractionManager_InteractionSourceLost;
 			InteractionManager.InteractionSourceUpdated += InteractionManager_InteractionSourceUpdated;
-			InteractionManager.InteractionSourceReleased += InteractionManager_InteractionSourceReleased;
+
 			Debug.Log("Interaction manager inited.");
 		}
 
@@ -813,11 +846,16 @@ public class WinMRInteface : ARBaseInterface, ARPlatformInterface
 				gestureRecognizer.NavigationCanceled -= GestureRecognizer_NavigationCanceled;
 			}
 
-			if(isDisplayOpaque)
+			//if(isDisplayOpaque)
 			{
-				InteractionManager.InteractionSourcePressed -= InteractionManager_InteractionSourcePressed;
+				// stop interaction manager
+//				InteractionManager.InteractionSourcePressed -= InteractionManager_InteractionSourcePressed;
+//				InteractionManager.InteractionSourceUpdated -= InteractionManager_InteractionSourceUpdated;
+//				InteractionManager.InteractionSourceReleased -= InteractionManager_InteractionSourceReleased;
+
+				InteractionManager.InteractionSourceDetected -= InteractionManager_InteractionSourceDetected;
+				InteractionManager.InteractionSourceLost -= InteractionManager_InteractionSourceLost;
 				InteractionManager.InteractionSourceUpdated -= InteractionManager_InteractionSourceUpdated;
-				InteractionManager.InteractionSourceReleased -= InteractionManager_InteractionSourceReleased;
 			}
 
 			if(arManager)
@@ -942,40 +980,136 @@ public class WinMRInteface : ARBaseInterface, ARPlatformInterface
 		//Debug.Log("GestureRecognizer_NavigationCanceled");
 	}
 
-	void InteractionManager_InteractionSourcePressed (InteractionSourcePressedEventArgs obj)
+//	void InteractionManager_InteractionSourcePressed (InteractionSourcePressedEventArgs evt)
+//	{
+//		if(evt.state.source.kind == InteractionSourceKind.Controller && evt.pressType == InteractionSourcePressType.Select)
+//		{
+//			inputAction = MultiARInterop.InputAction.Click;
+//			inputNavCoordinates = Vector3.zero;
+//			startMousePos = handPosition;
+//			startTimestamp = inputTimestamp = lastFrameTimestamp;
+//
+//			isHandGripping = true;  // evt.state.anyPressed;
+//			GetHandPosAndDir(evt.state.sourcePose, evt.state.source.kind == InteractionSourceKind.Controller);
+//		}
+//	}
+
+//	void InteractionManager_InteractionSourceReleased (InteractionSourceReleasedEventArgs evt)
+//	{
+//		if(evt.state.source.kind == InteractionSourceKind.Controller && inputAction == MultiARInterop.InputAction.Grip)
+//		{
+//			inputAction = MultiARInterop.InputAction.Release;
+//			inputTimestamp = lastFrameTimestamp;
+//
+//			isHandGripping = false;  // evt.state.anyPressed;
+//			GetHandPosAndDir(evt.state.sourcePose, evt.state.source.kind == InteractionSourceKind.Controller);
+//		}
+//	}
+
+//	void InteractionManager_InteractionSourceUpdated (InteractionSourceUpdatedEventArgs obj)
+//	{
+//		if(obj.state.thumbstickPressed)
+//		{
+//			inputAction = MultiARInterop.InputAction.Grip;
+//			inputNavCoordinates = obj.state.thumbstickPosition;
+//			inputTimestamp = lastFrameTimestamp;
+//		}
+//	}
+
+	void InteractionManager_InteractionSourceDetected (InteractionSourceDetectedEventArgs evt)
 	{
-		if(obj.pressType == InteractionSourcePressType.Select)
+		if (evt.state.source.kind == InteractionSourceKind.Hand || 
+			(evt.state.source.kind == InteractionSourceKind.Controller && evt.state.source.handedness == controllerHandedness))
 		{
-			inputAction = MultiARInterop.InputAction.Click;
-			inputTimestamp = lastFrameTimestamp;
-		}
-		else if(obj.pressType == InteractionSourcePressType.Thumbstick)
-		{
-			inputAction = MultiARInterop.InputAction.Grip;
-			inputNavCoordinates = Vector3.zero;
-			inputTimestamp = lastFrameTimestamp;
+			handDetected = true;
+
+			isHandGripping = evt.state.anyPressed;
+			GetHandPosAndDir(evt.state.sourcePose, evt.state.source.kind == InteractionSourceKind.Controller);
 		}
 	}
 
-	void InteractionManager_InteractionSourceUpdated (InteractionSourceUpdatedEventArgs obj)
+	void InteractionManager_InteractionSourceLost (InteractionSourceLostEventArgs evt)
 	{
-		if(obj.state.thumbstickPressed)
+		if (evt.state.source.kind == InteractionSourceKind.Hand || 
+			(evt.state.source.kind == InteractionSourceKind.Controller && evt.state.source.handedness == controllerHandedness))
 		{
-			inputAction = MultiARInterop.InputAction.Grip;
-			inputNavCoordinates = obj.state.thumbstickPosition;
-			inputTimestamp = lastFrameTimestamp;
+			handDetected = false;
+			isHandGripping = false;
+
+			if ((lastFrameTimestamp - startTimestamp) >= 0.25f) // check for Grip
+			{
+				inputAction = MultiARInterop.InputAction.Release;
+				inputTimestamp = lastFrameTimestamp;
+				Debug.Log ("Release (int-source-lost), Pos: " + handPosition + ", Time: " + lastFrameTimestamp);
+			}
 		}
 	}
 
-	void InteractionManager_InteractionSourceReleased (InteractionSourceReleasedEventArgs obj)
+	void InteractionManager_InteractionSourceUpdated (InteractionSourceUpdatedEventArgs evt)
 	{
-		if(obj.pressType == InteractionSourcePressType.Thumbstick)
+		if (evt.state.source.kind == InteractionSourceKind.Hand || 
+			(evt.state.source.kind == InteractionSourceKind.Controller && evt.state.source.handedness == controllerHandedness))
 		{
-			inputAction = MultiARInterop.InputAction.Release;
-			inputTimestamp = lastFrameTimestamp;
+			GetHandPosAndDir(evt.state.sourcePose, evt.state.source.kind == InteractionSourceKind.Controller);
+
+			if (isHandGripping != evt.state.anyPressed) 
+			{
+				isHandGripping = evt.state.anyPressed;
+
+				if (evt.state.source.kind == InteractionSourceKind.Controller) 
+				{
+					if (isHandGripping) 
+					{
+						inputAction = MultiARInterop.InputAction.Click;
+						inputNavCoordinates = Vector3.zero;
+						startMousePos = mainCamera.transform.InverseTransformPoint(handPosition);
+						startTimestamp = inputTimestamp = lastFrameTimestamp;
+						Debug.Log("Click, Pos: " + handPosition + ", Time: " + lastFrameTimestamp);
+					} 
+					else 
+					{
+						if((lastFrameTimestamp - startTimestamp) >= 0.25f)  // check for Grip
+						{
+							inputAction = MultiARInterop.InputAction.Release;
+							inputTimestamp = lastFrameTimestamp;
+							Debug.Log ("Release, Pos: " + handPosition + ", Time: " + lastFrameTimestamp);
+						}
+					}
+				}
+			}
+
+			if (evt.state.source.kind == InteractionSourceKind.Controller && isHandGripping) 
+			{
+				if ((lastFrameTimestamp - startTimestamp) >= 0.25f) 
+				{
+					inputAction = MultiARInterop.InputAction.Grip;
+					Vector3 localHandPos = mainCamera.transform.InverseTransformPoint(handPosition);
+					inputNavCoordinates = (localHandPos - startMousePos) / 0.5f;
+					inputTimestamp = lastFrameTimestamp;
+					Debug.Log ("Grip, Pos: " + handPosition + ", Nav: " + inputNavCoordinates + ", Time: " + lastFrameTimestamp);
+				}
+			}
+
+//			if (evt.state.source.kind == InteractionSourceKind.Controller && !isHandGripping) 
+//			{
+//				Debug.Log ("Cursor, Pos: " + handPosition + ", Time: " + lastFrameTimestamp);
+//			}
+
 		}
 	}
 
+	// estimates hand position and direction from the source pose
+	private void GetHandPosAndDir(InteractionSourcePose sourcePose, bool bControllerInput)
+	{
+		sourcePose.TryGetPosition(out handPosition);
+		if(!bControllerInput)
+			handPosition.y += 0.05f;
+
+		if(bControllerInput)
+			sourcePose.TryGetForward(out handDirection);
+		else
+			handDirection = (handPosition - mainCamera.transform.position).normalized;
+	}
 
 	void Update()
 	{
@@ -983,7 +1117,7 @@ public class WinMRInteface : ARBaseInterface, ARPlatformInterface
 			return;
 
 		// frame timestamp
-		if(cameraTrackingState == PositionalLocatorState.Active)
+		//if(cameraTrackingState == PositionalLocatorState.Active)
 		{
 			// count frames only when the tracking is active
 			lastFrameTimestamp = GetCurrentTimestamp();

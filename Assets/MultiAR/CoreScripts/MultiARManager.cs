@@ -824,11 +824,13 @@ public class MultiARManager : MonoBehaviour
 		{
 			const int LOST_TRACKING_SLEEP_TIMEOUT = 15;
 			Screen.sleepTimeout = LOST_TRACKING_SLEEP_TIMEOUT;
-			return;
+			//return;
 		}
-
-		// don't fall asleep
-		Screen.sleepTimeout = SleepTimeout.NeverSleep;
+		else
+		{
+			// normal trackin
+			Screen.sleepTimeout = SleepTimeout.NeverSleep;
+		}
 
 		// display the point cloud
 		if(pointCloudPrefab && arData.pointCloudTimestamp > lastPointCloudTimestamp)
