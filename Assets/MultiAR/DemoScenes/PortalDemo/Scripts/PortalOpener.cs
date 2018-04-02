@@ -10,11 +10,18 @@ public class PortalOpener : MonoBehaviour
 	[Tooltip("Whether the portal should be vertical, or orthogonal to the surface.")]
 	public bool verticalPortal = false;
 
-	[Tooltip("Vertical offset of the object to the hit point.")]
-	public float portalVerticalOffset = 0f;
+	[Tooltip("Whether the portal should rotate at the AR-camera or not.")]
+	public bool portalLookingAtCamera = false;
 
-	[Tooltip("Name of the portal opening animation.")]
-	public string portalOpenAnimation = string.Empty;
+	[Tooltip("Vertical offset of the portal object to the hit point.")]
+	public float verticalOffset = 0f;
+
+	[Tooltip("Name of the animation to be played, when the portal is created.")]
+	public string playAnimation = string.Empty;
+
+	[Tooltip("Camera tigger box-collider dimensions. If left to zero, no box-collider will be created.")]
+	public Vector3 cameraBoxCollider = Vector3.zero;
+
 
 
 	// reference to the MultiARManager
@@ -55,10 +62,11 @@ public class PortalOpener : MonoBehaviour
 					portalObj.transform.position = hit.point;
 					portalObj.transform.rotation = !verticalPortal ? hit.rotation : Quaternion.identity;
 
-					// get reference to the portal animator
-					if (!animator) 
+					// look at the camera
+					if(portalLookingAtCamera)
 					{
-						animator = portalObj.GetComponent<Animator>();
+						Camera arCamera = arManager.GetMainCamera();
+						MultiARInterop.TurnObjectToCamera(portalObj, arCamera, hit.point, hit.normal);
 					}
 
 					// remove object anchor, if it was anchored before
@@ -72,16 +80,50 @@ public class PortalOpener : MonoBehaviour
 					arManager.AnchorGameObjectToWorld(portalObj, hit);
 
 					// apply the vertical offset
-					Vector3 objPos = portalObj.transform.position;
-					//objPos.y += verticalOffset;
-					objPos += portalObj.transform.up * portalVerticalOffset;
-					portalObj.transform.position = objPos;
+					if (verticalOffset != 0f) 
+					{
+						Vector3 objPos = portalObj.transform.position;
+						//objPos.y += verticalOffset;
+						objPos += portalObj.transform.up * verticalOffset;
+						portalObj.transform.position = objPos;
+					}
 
 					// play portal-open animation
-					if (animator && portalOpenAnimation != string.Empty) 
+					if (playAnimation != string.Empty) 
 					{
-						animator.Play(portalOpenAnimation, 0, 0f);
+						// get reference to the portal animator
+						if (!animator) 
+						{
+							animator = portalObj.GetComponent<Animator>();
+						}
+
+						if (animator) 
+						{
+							animator.Play(playAnimation, 0, 0f);
+						}
 					}
+
+					// create camera rigidbody (no gravity) & box-collider, if needed
+					if (cameraBoxCollider != Vector3.zero) 
+					{
+						Camera arCamera = arManager.GetMainCamera();
+
+						Rigidbody camRigidbody = arCamera.gameObject.GetComponent<Rigidbody>();
+						if (camRigidbody == null) 
+						{
+							camRigidbody = arCamera.gameObject.AddComponent<Rigidbody>();
+							camRigidbody.useGravity = false;
+						}
+
+						BoxCollider camBoxCollider = arCamera.gameObject.GetComponent<BoxCollider>();
+						if (camBoxCollider == null) 
+						{
+							camBoxCollider = arCamera.gameObject.AddComponent<BoxCollider>();
+							camBoxCollider.size = cameraBoxCollider;
+							camBoxCollider.isTrigger = true;
+						}
+					}
+
 				}
 			}
 

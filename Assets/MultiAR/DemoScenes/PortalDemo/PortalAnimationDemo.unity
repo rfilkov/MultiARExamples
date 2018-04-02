@@ -497,8 +497,10 @@ MonoBehaviour:
   portalPrefab: {fileID: 1892610386462008, guid: 79ed32348bf049f4eb31e289f9dc2286,
     type: 2}
   verticalPortal: 0
-  portalVerticalOffset: -0.4
-  portalOpenAnimation: Take 001
+  portalLookingAtCamera: 0
+  verticalOffset: -0.4
+  playAnimation: Take 001
+  cameraBoxCollider: {x: 0, y: 0, z: 0}
 --- !u!4 &1352599104
 Transform:
   m_ObjectHideFlags: 0

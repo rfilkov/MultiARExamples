@@ -2,11 +2,13 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class PortalController : MonoBehaviour 
+public class PortalWindowController : MonoBehaviour 
 {
-
+	[Tooltip("Materials used by objects inside and outside the portal.")]
 	public Material[] materials;
-	public MeshRenderer meshRenderer;
+
+	// reference to the portal-window mesh renderer
+	private MeshRenderer meshRenderer = null;
 
 	private bool isInside = false;
 	private bool isOutside = false;
@@ -14,6 +16,8 @@ public class PortalController : MonoBehaviour
 
 	void Start () 
 	{
+		meshRenderer = GetComponent<MeshRenderer>();
+
 		// the user is always outside at start
 		isOutside = true;
 		OutsidePortal();
