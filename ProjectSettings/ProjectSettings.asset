@@ -160,6 +160,7 @@ PlayerSettings:
   applicationIdentifier:
     Android: com.rfsoft.myarapp
     Standalone: com.rfsol.myarapp
+    iOS: com.rfsoft.myarapp
   buildNumber: {}
   AndroidBundleVersionCode: 1
   AndroidMinSdkVersion: 24
@@ -303,8 +304,8 @@ PlayerSettings:
   enableInternalProfiler: 0
   logObjCUncaughtExceptions: 1
   enableCrashReportAPI: 0
-  cameraUsageDescription: 
-  locationUsageDescription: 
+  cameraUsageDescription: My AR-App
+  locationUsageDescription: My AR-App
   microphoneUsageDescription: 
   switchNetLibKey: 
   switchSocketMemoryPoolSize: 6144

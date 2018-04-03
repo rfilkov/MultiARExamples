@@ -283,9 +283,9 @@ public class MultiARInterop
 		{
 			Plane hitPlane = new Plane(hitNormal, hitPoint);
 			Vector3 planePoint = hitPlane.ClosestPointOnPlane(cam.transform.position);
-			Vector3 objCamDir = (planePoint - obj.transform.position).normalized;
+			Vector3 planeCamDir = (planePoint - hitPoint).normalized;
 
-			obj.transform.LookAt(objCamDir, obj.transform.up);
+			obj.transform.LookAt(planeCamDir, hitNormal);
 		}
 	}
 

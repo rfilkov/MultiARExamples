@@ -222,19 +222,22 @@ public class ARKitInteface : ARBaseInterface, ARPlatformInterface
 
 			if(bGetPoints)
 			{
-				List<Vector3> meshVertices = new List<Vector3>();
+//				List<Vector3> meshVertices = new List<Vector3>();
+//
+//				Vector3 planeHalf = planeAnchor.extent * 0.5f;
+//				meshVertices.Add(new Vector3(-planeHalf.x, planeHalf.y, planeHalf.z));
+//				meshVertices.Add(new Vector3(planeHalf.x, planeHalf.y, planeHalf.z));
+//				meshVertices.Add(new Vector3(planeHalf.x, planeHalf.y, -planeHalf.z));
+//				meshVertices.Add(new Vector3(-planeHalf.x, planeHalf.y, -planeHalf.z));
+//
+//				trackedPlanes[i].points = meshVertices.ToArray();
+//
+//				// get mesh indices
+//				List<int> meshIndices = MultiARInterop.GetMeshIndices(meshVertices.Count);
+//				trackedPlanes[i].triangles = meshIndices.ToArray();
 
-				Vector3 planeHalf = planeAnchor.extent * 0.5f;
-				meshVertices.Add(new Vector3(-planeHalf.x, planeHalf.y, planeHalf.z));
-				meshVertices.Add(new Vector3(planeHalf.x, planeHalf.y, planeHalf.z));
-				meshVertices.Add(new Vector3(planeHalf.x, planeHalf.y, -planeHalf.z));
-				meshVertices.Add(new Vector3(-planeHalf.x, planeHalf.y, -planeHalf.z));
-
-				trackedPlanes[i].points = meshVertices.ToArray();
-
-				// get mesh indices
-				List<int> meshIndices = MultiARInterop.GetMeshIndices(meshVertices.Count);
-				trackedPlanes[i].triangles = meshIndices.ToArray();
+				trackedPlanes[i].points = planeAnchor.planeGeometry.vertices;
+				trackedPlanes[i].triangles = planeAnchor.planeGeometry.triangleIndices;
 			}
 
 			i++;
@@ -331,6 +334,7 @@ public class ARKitInteface : ARBaseInterface, ARPlatformInterface
 			hit.point = rayHit.point;
 			hit.normal = rayHit.normal;
 			hit.distance = rayHit.distance;
+			hit.rotation = Quaternion.FromToRotation(Vector3.up, rayHit.normal);
 
 			hit.psObject = rayHit;
 
@@ -370,6 +374,7 @@ public class ARKitInteface : ARBaseInterface, ARPlatformInterface
 			hits[i].point = rayHit.point;
 			hits[i].normal = rayHit.normal;
 			hits[i].distance = rayHit.distance;
+			hits[i].rotation = Quaternion.FromToRotation(Vector3.up, rayHit.normal);
 
 			hits[i].psObject = rayHit;
 		}
@@ -427,6 +432,7 @@ public class ARKitInteface : ARBaseInterface, ARPlatformInterface
 						hit.point = UnityARMatrixOps.GetPosition(hitResult.worldTransform);
 						hit.normal = UnityARMatrixOps.GetRotation(hitResult.worldTransform) * Vector3.up;
 						hit.distance = (float)hitResult.distance;
+						hit.rotation = UnityARMatrixOps.GetRotation(hitResult.worldTransform);
 						//hit.anchorId = hitResult.anchorIdentifier;
 
 						return true;
@@ -617,6 +623,8 @@ public class ARKitInteface : ARBaseInterface, ARPlatformInterface
 
 		UnityARCameraManager camManager = camManagerObj.AddComponent<UnityARCameraManager>();
 		camManager.m_camera = currentCamera;
+
+		camManager.startAlignment = UnityARAlignment.UnityARAlignmentGravityAndHeading;
 		camManager.planeDetection = UnityARPlaneDetection.HorizontalAndVertical;
 
 		// get ar-data
@@ -802,14 +810,17 @@ public class ARKitInteface : ARBaseInterface, ARPlatformInterface
 		centerPos = surfaceRot * centerPos;
 		surfacePos += centerPos;
 
-		Vector3 planeHalf = arPlaneAnchor.extent * 0.5f;
-		meshVertices.Add(new Vector3(-planeHalf.x, planeHalf.y, planeHalf.z));
-		meshVertices.Add(new Vector3(planeHalf.x, planeHalf.y, planeHalf.z));
-		meshVertices.Add(new Vector3(planeHalf.x, planeHalf.y, -planeHalf.z));
-		meshVertices.Add(new Vector3(-planeHalf.x, planeHalf.y, -planeHalf.z));
+//		Vector3 planeHalf = arPlaneAnchor.extent * 0.5f;
+//		meshVertices.Add(new Vector3(-planeHalf.x, planeHalf.y, planeHalf.z));
+//		meshVertices.Add(new Vector3(planeHalf.x, planeHalf.y, planeHalf.z));
+//		meshVertices.Add(new Vector3(planeHalf.x, planeHalf.y, -planeHalf.z));
+//		meshVertices.Add(new Vector3(-planeHalf.x, planeHalf.y, -planeHalf.z));
+//
+//		// estimate mesh indices
+//		List<int> meshIndices = MultiARInterop.GetMeshIndices(meshVertices.Count);
 
-		// estimate mesh indices
-		List<int> meshIndices = MultiARInterop.GetMeshIndices(meshVertices.Count);
+		meshVertices.AddRange(arPlaneAnchor.planeGeometry.vertices);
+		List<int> meshIndices = new List<int>(arPlaneAnchor.planeGeometry.triangleIndices);
 
 		// update the surface mesh
 		overlaySurface.UpdateSurfaceMesh(surfacePos, surfaceRot, meshVertices, meshIndices);

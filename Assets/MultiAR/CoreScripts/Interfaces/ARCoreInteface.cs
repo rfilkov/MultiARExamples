@@ -202,11 +202,10 @@ public class ARCoreInteface : ARBaseInterface, ARPlatformInterface
 
 			trackedPlanes[i].position = surface.CenterPose.position;
 			trackedPlanes[i].rotation = surface.CenterPose.rotation;
+			trackedPlanes[i].bounds = new Vector3(surface.ExtentX, 0f, surface.ExtentZ);
 
 			if(bGetPoints)
 			{
-				trackedPlanes[i].bounds = new Vector3(surface.ExtentX * 2f, 0f, surface.ExtentZ * 2f);
-
 				List<Vector3> alPoints = new List<Vector3>();
 				surface.GetBoundaryPolygon(alPoints);
 
@@ -652,7 +651,7 @@ public class ARCoreInteface : ARBaseInterface, ARPlatformInterface
 
 		// estimate the tracking state
 		SessionStatus status = Session.Status;
-		if (status.IsError () || status.IsNotInitialized ()) 
+		if (status.IsError () || status.IsNotInitialized()) 
 		{
 			cameraTrackingState = TrackingState.Stopped;
 			return;
