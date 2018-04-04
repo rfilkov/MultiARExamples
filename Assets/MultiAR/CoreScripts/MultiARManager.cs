@@ -691,6 +691,32 @@ public class MultiARManager : MonoBehaviour
 	}
 
 
+	/// <summary>
+	/// Pauses the AR session.
+	/// </summary>
+	/// <returns><c>true</c>, if session was paused, <c>false</c> if pausing AR session is not supported.</returns>
+	public bool PauseSession()
+	{
+		if(arInterface != null)
+		{
+			return arInterface.PauseSession();
+		}
+
+		return false;
+	}
+
+	/// <summary>
+	/// Resumes the AR session, if paused.
+	/// </summary>
+	public void ResumeSession()
+	{
+		if(arInterface != null)
+		{
+			arInterface.ResumeSession();
+		}
+
+	}
+
 	// -- // -- // -- // -- // -- // -- // -- // -- // -- // -- //
 
 	void Awake()

@@ -168,13 +168,13 @@ public interface ARPlatformInterface
 	bool RemoveGameObjectAnchor(string anchorId, bool keepObjActive);
 
 	/// <summary>
-	/// Pauses the session.
+	/// Pauses the AR session.
 	/// </summary>
-	/// <returns><c>true</c>, if session was paused, <c>false</c> if pausing session is not supported.</returns>
+	/// <returns><c>true</c>, if session was paused, <c>false</c> if pausing AR session is not supported.</returns>
 	bool PauseSession();
 
 	/// <summary>
-	/// Resumes the session after it was paused.
+	/// Resumes the AR session, if paused.
 	/// </summary>
 	void ResumeSession();
 

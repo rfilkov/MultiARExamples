@@ -63,6 +63,9 @@ public class ARCoreInteface : ARBaseInterface, ARPlatformInterface
 	// is ARCore quitting flag
 	private bool m_IsQuitting = false;
 
+	// reference to the instantiated ar-core-device prefab
+	private GameObject arCoreDeviceObj = null;
+
 
 	/// <summary>
 	/// Gets the AR platform supported by the interface.
@@ -545,6 +548,36 @@ public class ARCoreInteface : ARBaseInterface, ARPlatformInterface
 		return false;
 	}
 
+	public bool PauseSession()
+	{
+		if (arCoreDeviceObj) 
+		{
+			ARCoreSession arCoreSession = arCoreDeviceObj.GetComponent<ARCoreSession>();
+
+			if (arCoreSession) 
+			{
+				arCoreSession.enabled = false;
+			}
+
+			return true;
+		}
+
+		return false;
+	}
+
+	public void ResumeSession()
+	{
+		if (arCoreDeviceObj) 
+		{
+			ARCoreSession arCoreSession = arCoreDeviceObj.GetComponent<ARCoreSession>();
+
+			if (arCoreSession) 
+			{
+				arCoreSession.enabled = true;
+			}
+		}
+	}
+
 	// -- // -- // -- // -- // -- // -- // -- // -- // -- // -- //
 
 	public void Start()
@@ -566,7 +599,7 @@ public class ARCoreInteface : ARBaseInterface, ARPlatformInterface
 		}
 
 		// create ARCore-Device in the scene
-		GameObject arCoreDeviceObj = Instantiate(arCoreDevicePrefab, Vector3.zero, Quaternion.identity);
+		arCoreDeviceObj = Instantiate(arCoreDevicePrefab, Vector3.zero, Quaternion.identity);
 		arCoreDeviceObj.name = "ARCore Device";
 		DontDestroyOnLoad(arCoreDeviceObj);
 

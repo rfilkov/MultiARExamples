@@ -29,7 +29,7 @@ namespace GoogleARCoreInternal
     using GoogleARCore;
     using UnityEngine;
     using UnityEngine.Rendering;
-    //using UnityEngine.SpatialTracking;
+    using UnityEngine.SpatialTracking;
 
     /// <summary>
     /// Contains methods for managing communication to the Instant Preview 
@@ -52,6 +52,10 @@ namespace GoogleARCoreInternal
             "camera texture resolution is {0}, {1}.";
 
         private static readonly WaitForEndOfFrame k_WaitForEndOfFrame = new WaitForEndOfFrame();
+
+        private static bool s_PauseWarned = false;
+        private static bool s_DisabledLightEstimationWarned = false;
+        private static bool s_DisabledPlaneFindingWarned = false;
 
         /// <summary>
         /// Coroutine method that communicates to the Instant Preview plugin 
@@ -136,38 +140,79 @@ namespace GoogleARCoreInternal
             return true;
         }
 
+        /// <summary>
+        /// Handles Instant Preview logic when ARCore's EarlyUpdate method is called.
+        /// </summary>
+        /// <param name="session">Relevant ARCoreSession object being updated.</param>
+        public static void OnEarlyUpdate(ARCoreSession session)
+        {
+            if (Application.isEditor || session == null)
+            {
+                return;
+            }
+
+            if (!s_PauseWarned && !session.enabled)
+            {
+                Debug.LogWarning("Disabling ARCore session is not available in editor.");
+                s_PauseWarned = true;
+            }
+
+            var config = session.SessionConfig;
+            if (config == null)
+            {
+                return;
+            }
+
+            if (!s_DisabledLightEstimationWarned && !config.EnableLightEstimation)
+            {
+                Debug.LogWarning("ARCore light estimation cannot be disabled in editor.");
+                s_DisabledLightEstimationWarned = true;
+            }
+
+            if (!s_DisabledPlaneFindingWarned && !config.EnablePlaneFinding)
+            {
+                Debug.LogWarning("ARCore plane finding cannot be disabled in editor.");
+                s_DisabledPlaneFindingWarned = true;
+            }
+        }
+
         private static IEnumerator UpdateLoop()
         {
+            var renderEventFunc = NativeApi.GetRenderEventFunc();
+            var shouldConvertToBgra = SystemInfo.graphicsDeviceType == GraphicsDeviceType.Direct3D11;
+            var loggedAspectRatioWarning = false;
+
+            // Waits until the end of the first frame until capturing the screen size,
+            // because it might be incorrect when first querying it.
+            yield return k_WaitForEndOfFrame;
+
             // Creates a target texture to capture the preview window onto.
             // Some video encoders prefer the dimensions to be a multiple of 16.
             var targetWidth = RoundUpToNearestMultipleOf16(Screen.width);
             var targetHeight = RoundUpToNearestMultipleOf16(Screen.height);
             var screenTexture = new RenderTexture(targetWidth, targetHeight, 0);
-
-            var renderEventFunc = NativeApi.GetRenderEventFunc();
-            var shouldConvertToBrgra = SystemInfo.graphicsDeviceType == GraphicsDeviceType.Direct3D11;
             var targetTexture = screenTexture;
             RenderTexture bgrTexture = null;
-            if (shouldConvertToBrgra)
+
+            if (shouldConvertToBgra)
             {
                 bgrTexture = new RenderTexture(screenTexture.width, screenTexture.height, 0, RenderTextureFormat.BGRA32);
                 targetTexture = bgrTexture;
             }
-
-            var loggedAspectRatioWarning = false;
 
             // Begins update loop. The coroutine will cease when the 
             // ARCoreSession component it's called from is destroyed.
             for (;;)
             {
                 yield return k_WaitForEndOfFrame;
+
                 NativeApi.Update();
                 InstantPreviewInput.Update();
                 AddInstantPreviewTrackedPoseDriverWhenNeeded();
 
                 Graphics.Blit(null, screenTexture);
 
-                if (shouldConvertToBrgra)
+                if (shouldConvertToBgra)
                 {
                     Graphics.Blit(screenTexture, bgrTexture);
                 }
@@ -192,14 +237,13 @@ namespace GoogleARCoreInternal
                 }
 
                 NativeApi.SendFrame(targetTexture.GetNativeTexturePtr());
-                GL.IssuePluginEvent(renderEventFunc, 69);
+                GL.IssuePluginEvent(renderEventFunc, 1);
             }
         }
 
         private static void AddInstantPreviewTrackedPoseDriverWhenNeeded()
         {
-#if !UNITY_WSA
-            foreach (var poseDriver in Component.FindObjectsOfType<UnityEngine.SpatialTracking.TrackedPoseDriver>())
+            foreach (var poseDriver in Component.FindObjectsOfType<TrackedPoseDriver>())
             {
                 poseDriver.enabled = false;
                 var gameObject = poseDriver.gameObject;
@@ -210,7 +254,6 @@ namespace GoogleARCoreInternal
                     gameObject.AddComponent<InstantPreviewTrackedPoseDriver>();
                 }
             }
-#endif
         }
 
         private static string GetAdbPath()
@@ -262,7 +305,6 @@ namespace GoogleARCoreInternal
 
             Result result = new Result();
 
-#if !UNITY_WSA
             Thread checkAdbThread = new Thread((object obj) =>
             {
                 Result res = (Result)obj;
@@ -312,13 +354,11 @@ namespace GoogleARCoreInternal
             {
                 yield return 0;
             }
-#endif
 
             if (result.ShouldPromptForInstall)
             {
                 if (PromptToInstall())
                 {
-#if !UNITY_WSA
                     Thread installThread = new Thread(() =>
                     {
                         string output;
@@ -356,7 +396,6 @@ namespace GoogleARCoreInternal
                     {
                         yield return 0;
                     }
-#endif
                 }
                 else
                 {
@@ -366,16 +405,15 @@ namespace GoogleARCoreInternal
 
             if (!NativeApi.IsConnected())
             {
-#if !UNITY_WSA
+                string activityName = Screen.width < Screen.height ? "InstantPreviewActivity" : "InstantPreviewLandscapeActivity";
                 new Thread(() =>
                 {
                     string output;
                     string errors;
                     RunAdbCommand(adbPath,
-                        "shell am start -n com.google.ar.core.instantpreview/.InstantPreviewActivity",
+                        "shell am start -n com.google.ar.core.instantpreview/." + activityName,
                         out output, out errors);
                 }).Start();
-#endif
             }
         }
 
@@ -394,7 +432,6 @@ namespace GoogleARCoreInternal
 
         private static void RunAdbCommand(string fileName, string arguments, out string output, out string errors)
         {
-#if !UNITY_WSA
             using (var process = new System.Diagnostics.Process())
             {
                 var startInfo = new System.Diagnostics.ProcessStartInfo(fileName, arguments);
@@ -419,10 +456,6 @@ namespace GoogleARCoreInternal
                 output = outputBuilder.ToString().Trim();
                 errors = errorBuilder.ToString().Trim();
             }
-#else
-			output = string.Empty;
-			errors = string.Empty;
-#endif
         }
 
         private static bool StartServer(string adbPath, out string version)
