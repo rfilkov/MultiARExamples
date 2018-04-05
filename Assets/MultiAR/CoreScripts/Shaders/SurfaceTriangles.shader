@@ -117,14 +117,14 @@ Shader "Custom/SurfaceTriangles" {
 			float border = fmod(_Time.y * _Speed, 5.0);
 
 			float3 c1 = largeTrianglesColor(pos);
-			float3 c2 = smallTrianglesColor(pos);
+			//float3 c2 = smallTrianglesColor(pos);
 
 			// Small rim
 			float3 c = float3(1.0, 1.0, 1.0) * smoothstep(border - 0.2, border, d);
 			// Large Triangles to all
 			c += c1;
 			// Small triangle slightly after front
-			c += c2 * smoothstep(border - 0.4, border - 0.6, d);
+			//c += c2 * smoothstep(border - 0.4, border - 0.6, d);
 			// Cutoff front
 			c *= smoothstep(border, border - 0.05, d);
 			// Cutoff back

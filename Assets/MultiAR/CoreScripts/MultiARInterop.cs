@@ -273,20 +273,33 @@ public class MultiARInterop
 
 
 	/// <summary>
-	/// Turns the object to look at the AR camera.
+	/// Turns the object at the given hit-point to look at the camera.
 	/// </summary>
-	/// <param name="obj">The object.</param>
-	/// <param name="cam">The AR camera.</param>
-	public static void TurnObjectToCamera(GameObject obj, Camera cam, Vector3 hitPoint, Vector3 hitNormal)
+	/// <returns>The object rotation.</returns>
+	/// <param name="obj">Object (may be null, if only the rotation is needed).</param>
+	/// <param name="cam">Camera.</param>
+	/// <param name="hitPoint">Hit point.</param>
+	/// <param name="hitNormal">Hit normal.</param>
+	public static Quaternion TurnObjectToCamera(GameObject obj, Camera cam, Vector3 hitPoint, Vector3 hitNormal)
 	{
-		if (obj && cam) 
+		Quaternion objRotation = Quaternion.identity;
+
+		if (cam) 
 		{
 			Plane hitPlane = new Plane(hitNormal, hitPoint);
+
 			Vector3 planePoint = hitPlane.ClosestPointOnPlane(cam.transform.position);
 			Vector3 planeCamDir = (planePoint - hitPoint).normalized;
 
-			obj.transform.LookAt(planeCamDir, hitNormal);
+			objRotation = Quaternion.LookRotation(planeCamDir, hitNormal);
 		}
+
+		if (obj) 
+		{
+			obj.transform.rotation = objRotation;
+		}
+
+		return objRotation;
 	}
 
 

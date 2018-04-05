@@ -36,6 +36,9 @@ EditorBuildSettings:
     path: Assets/MultiAR/DemoScenes/PortalDemo/PortalAnimationDemo.unity
     guid: d518d01554b96694ea27aa6235a60325
   - enabled: 0
+    path: Assets/MultiAR/DemoScenes/PortalDemo/PortalDoorDemo.unity
+    guid: f60ab492138c26c4094fe5a2bfe8a4b4
+  - enabled: 0
     path: Assets/MultiAR/DemoScenes/VisualizerDemo/SurfaceSaverDemo.unity
     guid: bd93350c687709c4886205c7540fa889
   - enabled: 0
