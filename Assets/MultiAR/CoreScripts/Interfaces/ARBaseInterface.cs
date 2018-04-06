@@ -5,12 +5,12 @@ using UnityEngine;
 public class ARBaseInterface : MonoBehaviour  
 {
 
-	public bool PauseSession()
+	public virtual bool PauseSession()
 	{
 		return false;
 	}
 
-	public void ResumeSession()
+	public virtual void ResumeSession()
 	{
 	}
 

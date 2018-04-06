@@ -49,6 +49,9 @@ public class ARKitInteface : ARBaseInterface, ARPlatformInterface
 	private Vector3 inputNavCoordinates = Vector3.zero;
 	private double inputTimestamp = 0.0, startTimestamp = 0.0;
 
+	// whether the session is currently paused
+	private bool isSessionPaused = false;
+
 
 	/// <summary>
 	/// Gets the AR platform supported by the interface.
@@ -539,6 +542,35 @@ public class ARKitInteface : ARBaseInterface, ARPlatformInterface
 		return false;
 	}
 
+	public override bool PauseSession()
+	{
+		if (!isSessionPaused) 
+		{
+			isSessionPaused = true;
+			UnityARSessionNativeInterface.GetARSessionNativeInterface().Pause();
+		}
+
+		return true;
+	}
+
+	public override void ResumeSession()
+	{
+		if (isSessionPaused) 
+		{
+			isSessionPaused = false;
+
+			ARKitWorldTrackingSessionConfiguration config = new ARKitWorldTrackingSessionConfiguration();
+			config.alignment = UnityARAlignment.UnityARAlignmentGravityAndHeading;
+			config.planeDetection = UnityARPlaneDetection.HorizontalAndVertical;
+
+			config.getPointCloudData = true;
+			config.enableLightEstimation = true;
+			config.enableAutoFocus = true;
+
+			UnityARSessionNativeInterface.GetARSessionNativeInterface().RunWithConfig(config);
+		}
+	}
+
 	// -- // -- // -- // -- // -- // -- // -- // -- // -- // -- //
 
 	void Start()
@@ -626,6 +658,9 @@ public class ARKitInteface : ARBaseInterface, ARPlatformInterface
 
 		camManager.startAlignment = UnityARAlignment.UnityARAlignmentGravityAndHeading;
 		camManager.planeDetection = UnityARPlaneDetection.HorizontalAndVertical;
+
+		// allow relocalization after session interruption
+		UnityARSessionNativeInterface.ARSessionShouldAttemptRelocalization = true;
 
 		// get ar-data
 		MultiARInterop.MultiARData arData = arManager ? arManager.GetARData() : null;

@@ -548,7 +548,7 @@ public class ARCoreInteface : ARBaseInterface, ARPlatformInterface
 		return false;
 	}
 
-	public bool PauseSession()
+	public override bool PauseSession()
 	{
 		if (arCoreDeviceObj) 
 		{
@@ -565,7 +565,7 @@ public class ARCoreInteface : ARBaseInterface, ARPlatformInterface
 		return false;
 	}
 
-	public void ResumeSession()
+	public override void ResumeSession()
 	{
 		if (arCoreDeviceObj) 
 		{
