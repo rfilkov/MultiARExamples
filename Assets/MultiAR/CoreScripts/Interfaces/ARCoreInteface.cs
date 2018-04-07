@@ -700,7 +700,13 @@ public class ARCoreInteface : ARBaseInterface, ARPlatformInterface
 			
 		// get frame timestamp and light intensity
 		lastFrameTimestamp = GetCurrentTimestamp();
-		currentLightIntensity = Frame.LightEstimate.PixelIntensity;
+
+		if (Frame.LightEstimate.State == LightEstimateState.Valid)
+		{
+			// Normalize pixel intensity by middle gray in gamma space.
+			const float middleGray = 0.466f;
+			currentLightIntensity = Frame.LightEstimate.PixelIntensity / middleGray;
+		}
 
 		// get point cloud, if needed
 		MultiARInterop.MultiARData arData = arManager.GetARData();

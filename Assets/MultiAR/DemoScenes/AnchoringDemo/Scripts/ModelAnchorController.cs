@@ -34,6 +34,9 @@ public class ModelAnchorController : MonoBehaviour
 	// internal action or not
 	private bool bIntAction = false;
 
+	// whether the session is paused
+	private bool bSessionPaused = false;
+
 
 	void Start () 
 	{
@@ -89,11 +92,20 @@ public class ModelAnchorController : MonoBehaviour
 		// update the info-text
 		if(infoText)
 		{
-			string sMsg = (modelTransform && modelTransform.gameObject.activeSelf ? 
-				"Model at " + modelTransform.transform.position + ", " : "No model, ");
-			sMsg += (anchorTransform && anchorTransform.gameObject.activeSelf ? 
-				"Anchor at " + anchorTransform.transform.position : "No anchor");
-			sMsg += !string.IsNullOrEmpty(anchorId) ? "\nAnchorId: " + anchorId : string.Empty;
+			string sMsg = string.Empty;
+
+			if (!bSessionPaused) 
+			{
+				sMsg = (modelTransform && modelTransform.gameObject.activeSelf ? 
+					"Model at " + modelTransform.transform.position + ", " : "No model, ");
+				sMsg += (anchorTransform && anchorTransform.gameObject.activeSelf ? 
+					"Anchor at " + anchorTransform.transform.position : "No anchor");
+				sMsg += !string.IsNullOrEmpty(anchorId) ? "\nAnchorId: " + anchorId : string.Empty;
+			}
+			else
+			{
+				sMsg = "AR-Session is paused.";
+			}
 
 			infoText.text = sMsg;
 		}
@@ -140,7 +152,7 @@ public class ModelAnchorController : MonoBehaviour
 		}
 	}
 
-	// invoked by the model toggle
+	// invoked by the model-toggle
 	public void ModelToggleSelected(bool bOn)
 	{
 		if(bIntAction || !modelTransform || !arManager)
@@ -187,7 +199,7 @@ public class ModelAnchorController : MonoBehaviour
 		}
 	}
 
-	// invoked by the anchor
+	// invoked by the anchor-toggle
 	public void AnchorToggleSelected(bool bOn)
 	{
 		if(bIntAction || !anchorTransform || !arManager)
@@ -244,6 +256,26 @@ public class ModelAnchorController : MonoBehaviour
 			if(anchorTransform.gameObject.activeSelf)
 			{
 				anchorTransform.gameObject.SetActive(false);
+			}
+		}
+	}
+
+	// invoked by the pause-toggle
+	public void PauseToggleSelected(bool bOn)
+	{
+		if (!arManager)
+			return;
+
+		if (bOn) 
+		{
+			bSessionPaused = arManager.PauseSession ();
+		}
+		else
+		{
+			if (bSessionPaused) 
+			{
+				arManager.ResumeSession();
+				bSessionPaused = false;
 			}
 		}
 	}

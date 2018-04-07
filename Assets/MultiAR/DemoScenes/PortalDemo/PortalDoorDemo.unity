@@ -500,7 +500,7 @@ MonoBehaviour:
   portalLookingAtCamera: 1
   verticalOffset: 0
   playAnimation: 
-  cameraBoxCollider: {x: 0.5, y: 1, z: 1}
+  cameraBoxCollider: {x: 0.5, y: 0.5, z: 2}
 --- !u!4 &1352599104
 Transform:
   m_ObjectHideFlags: 0
