@@ -19,7 +19,6 @@ public class PortalWindowController : MonoBehaviour
 		meshRenderer = GetComponent<MeshRenderer>();
 
 		// the user is always outside at start
-		isOutside = true;
 		OutsidePortal();
 	}
 
@@ -28,15 +27,13 @@ public class PortalWindowController : MonoBehaviour
 	void OnTriggerStay(Collider col)
 	{
 		Camera mainCamera = MultiARManager.Instance.GetMainCamera();
-		Vector3 playerPos = mainCamera.transform.position + (mainCamera.transform.forward * mainCamera.nearClipPlane * 4f);
+		Vector3 playerPos = mainCamera.transform.position + (mainCamera.transform.forward * 0.05f);
 
-		if (transform.InverseTransformPoint(playerPos).z <= 0f) 
+		if (transform.InverseTransformPoint(playerPos).z >= 0f) 
 		{
 			// go inside
 			if (isOutside) 
 			{
-				isOutside = false;
-				isInside = true;
 				InsidePortal();
 			}
 		} 
@@ -45,8 +42,6 @@ public class PortalWindowController : MonoBehaviour
 			// go outside
 			if (isInside) 
 			{
-				isInside = false;
-				isOutside = true;
 				OutsidePortal();
 			}
 		}
@@ -56,6 +51,11 @@ public class PortalWindowController : MonoBehaviour
 	// the user is outside the portal
 	void OutsidePortal()
 	{
+		Debug.Log("Outside portal.");
+
+		isInside = false;
+		isOutside = true;
+
 		StartCoroutine(DelayChangeMat(3));
 	}
 
@@ -63,11 +63,16 @@ public class PortalWindowController : MonoBehaviour
 	// the user is inside the portal
 	void InsidePortal()
 	{
+		Debug.Log("Inside portal.");
+
+		isOutside = false;
+		isInside = true;
+
 		StartCoroutine(DelayChangeMat(6));
 	}
 
 
-	// changes stencil number of all materials
+	// changes stencil-parameter of all specified materials
 	IEnumerator DelayChangeMat(int stencilNum)
 	{
 
