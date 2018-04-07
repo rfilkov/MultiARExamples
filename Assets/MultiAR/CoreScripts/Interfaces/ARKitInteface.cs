@@ -567,7 +567,7 @@ public class ARKitInteface : ARBaseInterface, ARPlatformInterface
 			config.enableLightEstimation = true;
 			config.enableAutoFocus = true;
 
-			UnityARSessionRunOption runOptions = /** UnityARSessionRunOption.ARSessionRunOptionRemoveExistingAnchors | */
+			UnityARSessionRunOption runOptions = UnityARSessionRunOption.ARSessionRunOptionRemoveExistingAnchors | 
 				UnityARSessionRunOption.ARSessionRunOptionResetTracking;
 			UnityARSessionNativeInterface.GetARSessionNativeInterface().RunWithConfigAndOptions(config, runOptions);
 		}
