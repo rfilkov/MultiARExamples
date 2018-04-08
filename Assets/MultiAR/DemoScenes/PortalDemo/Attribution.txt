@@ -1,3 +1,4 @@
-The PortalAnimationDemo-scene is based on the blog article "ARKit and Unity" by Gina Adamova, published on August 4, 2017 (https://blog.jayway.com/2017/08/04/arkit-and-unity/).  
-That portion of the software is copyright (c) 2017 by Gina Adamova.
+PortalAnimationDemo-scene is based on the blog article "ARKit and Unity" by Gina Adamova, published on August 4, 2017 - https://blog.jayway.com/2017/08/04/arkit-and-unity/ That portion of the software is copyright (c) 2017-2018 by Gina Adamova.
+
+PortalDoorDemo-scene is based on the video tutorial "How to Augmented Reality AR Tutorial: ARKit Portal to the Upside Down" by Matthew Hallberg, published on February 5, 2018 -  https://www.youtube.com/watch?v=Z5AmqMuNi08 That portion of the software is copyright (c) 2018 by Matthew Hallberg.
 

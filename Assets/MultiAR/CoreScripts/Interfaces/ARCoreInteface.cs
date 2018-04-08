@@ -3,6 +3,12 @@ using System.Collections.Generic;
 using UnityEngine;
 using GoogleARCore;
 
+// Handle InstantPreview input in the Editor
+#if UNITY_EDITOR
+using Input = GoogleARCore.InstantPreviewInput;
+#endif
+
+
 public class ARCoreInteface : ARBaseInterface, ARPlatformInterface 
 {
 	[Tooltip("Reference to the ARCore-Device prefab.")]

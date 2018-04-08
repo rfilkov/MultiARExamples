@@ -15,9 +15,6 @@ EditorBuildSettings:
     path: Assets/MultiAR/DemoScenes/AnchoringDemo/ObjectScalerDemo.unity
     guid: d061ae136d41def42a7de5280fb26131
   - enabled: 0
-    path: Assets/MultiAR/DemoScenes/AnchoringDemo/ObjectSpawnerDemo.unity
-    guid: 759cf221615bf61408e8f2b4db46803b
-  - enabled: 0
     path: Assets/MultiAR/DemoScenes/ColliderDemo/SurfaceColliderDemo.unity
     guid: c754faf957eb3284f84fe7818b2ebe4d
   - enabled: 1

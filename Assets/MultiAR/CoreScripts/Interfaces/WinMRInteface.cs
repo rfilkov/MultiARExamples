@@ -11,6 +11,9 @@ public class WinMRInteface : ARBaseInterface, ARPlatformInterface
 	[Tooltip("Graphics quality level.")]
 	public QualityLevel qualityLevel = QualityLevel.Fastest;
 
+	[Tooltip("Material to be used for surface visualization on MR (opaque) headsets.")]
+	public Material vrSurfaceMaterial = null;
+
 	[Tooltip("Controller used for interaction in MR (left- or right-hand controller).")]
 	public InteractionSourceHandedness controllerHandedness = InteractionSourceHandedness.Right;
 
@@ -709,9 +712,13 @@ public class WinMRInteface : ARBaseInterface, ARPlatformInterface
 			}
 			else
 			{
+				// use special surface material on opaque displays
+				Material visualMaterial = arManager.GetSurfaceMaterial();
+				if(arManager.useOverlaySurface == MultiARManager.SurfaceRenderEnum.Visualization && vrSurfaceMaterial)
+					visualMaterial = vrSurfaceMaterial;
+
 				// mr headsets
-				CreateBoundaryPlane(objRenderer.transform, arManager.GetSurfaceMaterial(), 
-					arManager.surfaceCollider, arManager.colliderMaterial);
+				CreateBoundaryPlane(objRenderer.transform, visualMaterial, arManager.surfaceCollider, arManager.colliderMaterial);
 
 				boundaryMgr = objRenderer.AddComponent<HoloToolkit.Unity.Boundary.BoundaryManager>();
 				boundaryMgr.FloorQuad = boundaryPlane;

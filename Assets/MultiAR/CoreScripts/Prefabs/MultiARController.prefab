@@ -214,6 +214,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   qualityLevel: 0
+  vrSurfaceMaterial: {fileID: 2100000, guid: 56bb06e31a624e1498803d30bbd04b7d, type: 2}
+  controllerHandedness: 2
 --- !u!114 &114504722886925034
 MonoBehaviour:
   m_ObjectHideFlags: 1
