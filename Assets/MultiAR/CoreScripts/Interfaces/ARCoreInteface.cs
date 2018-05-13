@@ -50,7 +50,7 @@ public class ARCoreInteface : ARBaseInterface, ARPlatformInterface
 //	private List<TrackedPlane> newTrackedPlanes = new List<TrackedPlane>();
 
 	// all detected planes
-	private List<TrackedPlane> allTrackedPlanes = new List<TrackedPlane>();
+	private List<DetectedPlane> allTrackedPlanes = new List<DetectedPlane>();
 
 	// regarding overlay surfaces
 	private List<string> alSurfacesToDelete = new List<string>();
@@ -206,7 +206,7 @@ public class ARCoreInteface : ARBaseInterface, ARPlatformInterface
 
 		for(int i = 0; i < allTrackedPlanes.Count; i++)
 		{
-			TrackedPlane surface = allTrackedPlanes[i];
+			DetectedPlane surface = allTrackedPlanes[i];
 			trackedPlanes[i] = new MultiARInterop.TrackedSurface();
 
 			trackedPlanes[i].position = surface.CenterPose.position;
@@ -439,7 +439,7 @@ public class ARCoreInteface : ARBaseInterface, ARPlatformInterface
 			if (anchor == null)
 				return string.Empty;
 			
-			anchorId = anchor.m_AnchorNativeHandle.ToString();
+			anchorId = anchor.m_NativeHandle.ToString();
 			DontDestroyOnLoad(anchor.gameObject);  // don't destroy it accross scenes
 
 			if(gameObj)
@@ -486,7 +486,7 @@ public class ARCoreInteface : ARBaseInterface, ARPlatformInterface
 			if (anchor == null)
 				return string.Empty;
 
-			string anchorId = anchor.m_AnchorNativeHandle.ToString();
+			string anchorId = anchor.m_NativeHandle.ToString();
 			DontDestroyOnLoad(anchor.gameObject);  // don't destroy it accross scenes
 
 			if(gameObj)
@@ -752,7 +752,7 @@ public class ARCoreInteface : ARBaseInterface, ARPlatformInterface
 //		}
 
 		// get all tracked planes
-		Session.GetTrackables<TrackedPlane>(allTrackedPlanes, TrackableQueryFilter.All);
+		Session.GetTrackables<DetectedPlane>(allTrackedPlanes, TrackableQueryFilter.All);
 
 		// create overlay surfaces as needed
 		if(arManager.useOverlaySurface != MultiARManager.SurfaceRenderEnum.None)
@@ -862,7 +862,7 @@ public class ARCoreInteface : ARBaseInterface, ARPlatformInterface
 
 
 	// Updates overlay surface mesh. Returns true on success, false if the surface needs to be deleted
-	private bool UpdateOverlaySurface(OverlaySurfaceUpdater overlaySurface, TrackedPlane trackedSurface)
+	private bool UpdateOverlaySurface(OverlaySurfaceUpdater overlaySurface, DetectedPlane trackedSurface)
 	{
 		// check for validity
 		if (overlaySurface == null || trackedSurface == null)
