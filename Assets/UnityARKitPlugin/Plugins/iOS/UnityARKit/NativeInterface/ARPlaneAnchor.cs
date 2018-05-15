@@ -48,17 +48,7 @@ namespace UnityEngine.XR.iOS
          */
 		public UnityARPlaneGeometry planeGeometry;
 
-		public string identifierStr 
-		{ 
-			get
-			{ 
-#if !UNITY_WSA
-				return Marshal.PtrToStringAuto(this.ptrIdentifier); 
-#else
-				return null;
-#endif
-			} 
-		}
+		public string identifierStr { get { return Marshal.PtrToStringAuto(this.ptrIdentifier); } }
 
 	}
 

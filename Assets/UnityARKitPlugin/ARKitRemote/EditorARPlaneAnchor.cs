@@ -1,7 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using Utils;
+using UnityEngine.XR.iOS.Utils;
 using System.Text;
 
 namespace UnityEngine.XR.iOS 
