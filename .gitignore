@@ -11,3 +11,7 @@
 /UWP/
 /MultiARExamples.sln
 /MultiARExamples.userprefs
+/Assets/GoogleARCore/Resources.meta
+/Assets/GoogleARCore/Resources/RuntimeSettings.meta
+/Assets/GoogleARCore/Resources/RuntimeSettings/CloudServicesApiKey.txt
+/Assets/GoogleARCore/Resources/RuntimeSettings/CloudServicesApiKey.txt.meta
