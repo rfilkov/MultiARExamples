@@ -42,7 +42,8 @@ namespace GoogleARCoreInternal
         public const string MediaNdk = "mediandk";
         public const string NdkCameraApi = "camera2ndk";
         public const bool isBehaveAsIfOnAndroid = true;
-#elif UNITY_IOS
+//#elif UNITY_IOS
+#else
         public const string ARCoreNativeApi = "__Internal";
         public const string ARCoreShimApi = "NOT_AVAILABLE";
         public const string ARPrestoApi = "NOT_AVAILABLE";

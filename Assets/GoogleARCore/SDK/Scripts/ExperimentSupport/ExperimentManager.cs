@@ -38,6 +38,7 @@ namespace GoogleARCoreInternal
             // state. Find and hook them up.
             m_Experiments = new List<ExperimentBase>();
 
+#if !UNITY_WSA
             var implementingTypes = AppDomain.CurrentDomain.GetAssemblies()
                 .SelectMany(s => s.GetTypes())
                 .Where(p => typeof(ExperimentBase).IsAssignableFrom(p));
@@ -51,6 +52,7 @@ namespace GoogleARCoreInternal
 
                 m_Experiments.Add(Activator.CreateInstance(type) as ExperimentBase);
             }
+#endif
         }
 
         private delegate void OnBeforeSetConfigurationCallback(IntPtr sessionHandhle, IntPtr configHandle);

@@ -36,6 +36,7 @@ namespace GoogleARCoreInternal
         /// <param name="error">Filled out with the result as printed to stderr.</param>
         public static void RunCommand(string fileName, string arguments, out string output, out string error)
         {
+#if !UNITY_WSA
             using (var process = new System.Diagnostics.Process())
             {
                 var startInfo = new System.Diagnostics.ProcessStartInfo(fileName, arguments);
@@ -60,6 +61,10 @@ namespace GoogleARCoreInternal
                 output = outputBuilder.ToString().Trim();
                 error = errorBuilder.ToString().Trim();
             }
+#else
+			output = string.Empty;
+			error = string.Empty;
+#endif
         }
     }
 }
