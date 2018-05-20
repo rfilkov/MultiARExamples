@@ -242,8 +242,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 88008a4675578294489f862ce52abe3e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  gameName: ArGame
   broadcastPort: 8889
-  serverHost: 0.0.0.0
+  serverHost: 192.168.0.107
   serverPort: 8888
   reconnectAfter: 2
   statusText: {fileID: 1092880655}

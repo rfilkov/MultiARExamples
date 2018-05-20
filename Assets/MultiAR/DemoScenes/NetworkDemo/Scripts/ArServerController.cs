@@ -17,11 +17,11 @@ public class ArServerController : MonoBehaviour
 	[Tooltip("Port used for server broadcast discovery.")]
 	public int broadcastPort = 8889;
 
-//	[Tooltip("Maximum number of allowed connections.")]
-//	public int maxConnections = 5;
-//
-//	[Tooltip("Whether the server should run as websocket host or not.")]
-//	public bool websocketHost = false;
+	[Tooltip("Maximum number of allowed connections.")]
+	public int maxConnections = 8;
+
+	[Tooltip("Whether the server should use websockets or not.")]
+	public bool useWebSockets = false;
 
 	[Tooltip("UI-Text to display connection status messages.")]
 	public Text connStatusText;
@@ -56,8 +56,18 @@ public class ArServerController : MonoBehaviour
 	{
 		try 
 		{
+			LogFilter.currentLogLevel = 0; // dev // LogFilter.Debug;
+
+			// configure the server
+			var config = new ConnectionConfig();
+			config.AddChannel(QosType.Reliable);
+			config.AddChannel(QosType.Unreliable);
+			NetworkServer.Configure(config, maxConnections);
+			NetworkServer.useWebSockets = useWebSockets;
+
 			// start the server and register handlers
-			NetworkServer.Listen(listenOnPort);
+			string serverHost = Network.player.ipAddress;
+			NetworkServer.Listen(serverHost, listenOnPort);
 
 			NetworkServer.RegisterHandler(MsgType.Error, OnNetworkError);
 			NetworkServer.RegisterHandler(MsgType.Connect, OnClientConnect);
@@ -81,9 +91,12 @@ public class ArServerController : MonoBehaviour
 				netDiscovery.StartAsServer();
 			}
 
+			string sMessage = gameName + "-Server started on " + serverHost + ":" + listenOnPort;
+			Debug.Log(sMessage);
+
 			if(serverStatusText)
 			{
-				serverStatusText.text = gameName + "-Server started on " + Network.player.ipAddress + ":" + listenOnPort;
+				serverStatusText.text = sMessage;
 			}
 		} 
 		catch (System.Exception ex) 

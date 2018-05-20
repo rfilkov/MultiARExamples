@@ -44,6 +44,7 @@ public class ArClientController : MonoBehaviour
 	{
 		try 
 		{
+			LogFilter.currentLogLevel = LogFilter.Debug;
 			netClient = new NetworkClient();
 
 			netClient.RegisterHandler(MsgType.Error, OnNetworkError);
@@ -65,7 +66,8 @@ public class ArClientController : MonoBehaviour
 				netDiscovery.arClient = this;
 				netDiscovery.broadcastPort = broadcastPort;
 				netDiscovery.broadcastKey = serverPort;
-				//netDiscovery.broadcastData = gameName;
+				netDiscovery.broadcastData = gameName;
+				netDiscovery.showGUI = false;
 
 				netDiscovery.Initialize();
 				netDiscovery.StartAsClient();
@@ -85,6 +87,10 @@ public class ArClientController : MonoBehaviour
 
 	void OnDestroy()
 	{
+		clientConnected = false;
+		disconnectedAt = Time.realtimeSinceStartup;
+		dataReceivedAt = 0f;
+
 		if (netDiscovery && netDiscovery.running) 
 		{
 			netDiscovery.StopBroadcast();
