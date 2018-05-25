@@ -16,6 +16,9 @@ public class TestNetServer : MonoBehaviour
 	static ErrorMessage s_ErrorMessage = new ErrorMessage();
 
 
+	private NetworkServerSimple networkServer = null;
+
+
 	void Start () 
 	{
 		StartServer(null, -1);
@@ -27,10 +30,13 @@ public class TestNetServer : MonoBehaviour
 	}
 
 
-//	void Update () 
-//	{
-//		
-//	}
+	void Update () 
+	{
+		if (networkServer != null) 
+		{
+			networkServer.Update();
+		}
+	}
 
 
 	bool StartServer(ConnectionConfig config, int maxConnections)
@@ -43,8 +49,10 @@ public class TestNetServer : MonoBehaviour
 		//if (m_RunInBackground)
 			Application.runInBackground = true;
 
-		NetworkCRC.scriptCRCCheck = true;
-		NetworkServer.useWebSockets = false;
+		networkServer = new NetworkServerSimple();
+
+//		NetworkCRC.scriptCRCCheck = true;
+		networkServer.useWebSockets = false;
 
 //		if (m_GlobalConfig != null)
 //		{
@@ -64,7 +72,7 @@ public class TestNetServer : MonoBehaviour
 
 		if (config != null)
 		{
-			NetworkServer.Configure(config, maxConnections);
+			networkServer.Configure(config, maxConnections);
 		}
 
 //		if (info != null)
@@ -87,7 +95,7 @@ public class TestNetServer : MonoBehaviour
 //			}
 //			else
 			{
-				if (!NetworkServer.Listen(8888))
+				if (!networkServer.Listen(8888))
 				{
 					if (LogFilter.logError) { Debug.LogError("StartServer listen failed."); }
 					return false;
@@ -98,7 +106,7 @@ public class TestNetServer : MonoBehaviour
 		// this must be after Listen(), since that registers the default message handlers
 		RegisterServerMessages();
 
-		if (LogFilter.logDebug) { Debug.Log("NetworkManager StartServer port:" + NetworkServer.listenPort); }
+		if (LogFilter.logDebug) { Debug.Log("NetworkManager StartServer port:" + networkServer.listenPort); }
 		isNetworkActive = true;
 
 //		// Only change scene if the requested online scene is not blank, and is not already loaded
@@ -108,23 +116,27 @@ public class TestNetServer : MonoBehaviour
 //			ServerChangeScene(m_OnlineScene);
 //		}
 //		else
-		{
-			NetworkServer.SpawnObjects();
-		}
+//		{
+//			NetworkServer.SpawnObjects();
+//		}
 		return true;
 	}
 
 
 	public void StopServer()
 	{
-		if (!NetworkServer.active)
+		if (networkServer == null)
 			return;
 
 //		OnStopServer();
 
 		if (LogFilter.logDebug) { Debug.Log("NetworkManager StopServer"); }
 		isNetworkActive = false;
-		NetworkServer.Shutdown();
+
+		//NetworkServer.Shutdown();
+		networkServer.DisconnectAllConnections();
+		networkServer.Stop();
+
 //		StopMatchMaker();
 //		if (!string.IsNullOrEmpty(m_OfflineScene))
 //		{
@@ -145,12 +157,12 @@ public class TestNetServer : MonoBehaviour
 
 	internal void RegisterServerMessages()
 	{
-		NetworkServer.RegisterHandler(MsgType.Connect, OnServerConnectInternal);
-		NetworkServer.RegisterHandler(MsgType.Disconnect, OnServerDisconnectInternal);
-		NetworkServer.RegisterHandler(MsgType.Ready, OnServerReadyMessageInternal);
-		NetworkServer.RegisterHandler(MsgType.AddPlayer, OnServerAddPlayerMessageInternal);
-		NetworkServer.RegisterHandler(MsgType.RemovePlayer, OnServerRemovePlayerMessageInternal);
-		NetworkServer.RegisterHandler(MsgType.Error, OnServerErrorInternal);
+		networkServer.RegisterHandler(MsgType.Connect, OnServerConnectInternal);
+		networkServer.RegisterHandler(MsgType.Disconnect, OnServerDisconnectInternal);
+		networkServer.RegisterHandler(MsgType.Ready, OnServerReadyMessageInternal);
+		networkServer.RegisterHandler(MsgType.AddPlayer, OnServerAddPlayerMessageInternal);
+		networkServer.RegisterHandler(MsgType.RemovePlayer, OnServerRemovePlayerMessageInternal);
+		networkServer.RegisterHandler(MsgType.Error, OnServerErrorInternal);
 	}
 
 

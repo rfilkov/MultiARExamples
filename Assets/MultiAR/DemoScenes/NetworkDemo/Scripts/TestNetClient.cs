@@ -12,7 +12,7 @@ public class TestNetClient : MonoBehaviour
 	public string m_NetworkAddress = "localhost";
 
 	public bool isNetworkActive;
-	public NetworkClient client;
+	public MyNetClient client;
 
 	private ErrorMessage s_ErrorMessage = new ErrorMessage();
 
@@ -29,10 +29,13 @@ public class TestNetClient : MonoBehaviour
 	}
 
 
-//	void Update () 
-//	{
-//		
-//	}
+	void Update () 
+	{
+		if (client != null) 
+		{
+			client.UpdateNetClient();
+		}
+	}
 
 
 
@@ -53,7 +56,7 @@ public class TestNetClient : MonoBehaviour
 //			NetworkTransport.Init(m_GlobalConfig);
 //		}
 
-		client = new NetworkClient();
+		client = new MyNetClient();
 		client.hostPort = hostPort;
 
 		if (config != null)
@@ -106,6 +109,7 @@ public class TestNetClient : MonoBehaviour
 //			else
 			{
 				client.Connect(m_NetworkAddress, m_NetworkPort);
+				client.PrepareNetClient();
 			}
 		}
 
