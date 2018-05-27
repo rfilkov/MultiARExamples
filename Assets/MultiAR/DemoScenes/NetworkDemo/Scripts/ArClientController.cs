@@ -52,6 +52,7 @@ public class ArClientController : MonoBehaviour
 			netClient.RegisterHandler(MsgType.Disconnect, OnClientDisconnect);
 
 			netClient.RegisterHandler(NetMsgType.GetGameAnchorResponse, OnGetGameAnchorResponse);
+			netClient.RegisterHandler(NetMsgType.CheckHostAnchorResponse, OnCheckHostAnchorResponse);
 
 			if(serverHost != "0.0.0.0" && !string.IsNullOrEmpty(serverHost))
 			{
@@ -119,6 +120,11 @@ public class ArClientController : MonoBehaviour
 	{
 		if (netClient != null && serverHost != "0.0.0.0" && !string.IsNullOrEmpty(serverHost)) 
 		{
+			var config = new ConnectionConfig();
+			config.AddChannel(QosType.ReliableSequenced);
+			config.AddChannel(QosType.Unreliable);
+
+			netClient.Configure(config, 1);
 			netClient.Connect(serverHost, serverPort);
 		}
 	}
@@ -130,7 +136,7 @@ public class ArClientController : MonoBehaviour
 		var errorMsg = netMsg.ReadMessage<ErrorMessage>();
 		int connId = netMsg.conn.connectionId;
 
-		string sErrorMessage = "NetError " + connId + " detected: " + (NetworkError)errorMsg.errorCode;
+		string sErrorMessage = "NetError " + connId + ": " + (NetworkError)errorMsg.errorCode;
 		Debug.LogError(sErrorMessage);
 
 		if(statusText)
@@ -177,16 +183,42 @@ public class ArClientController : MonoBehaviour
 	private void OnGetGameAnchorResponse(NetworkMessage netMsg)
 	{
 		var response = netMsg.ReadMessage<GetGameAnchorResponseMsg>();
+		int connId = netMsg.conn.connectionId;
 
 		if (response.found) 
 		{
-			int connId = netMsg.conn.connectionId;
-			LogMessage("GetGameAnchor " + connId + ", anchorId: " + response.anchorId);
+			LogMessage("GetGameAnchor " + connId + " found: " + response.anchorId);
 
 			if (gameAnchorFoundCallback != null) 
 			{
 				gameAnchorFoundCallback(response.anchorId, response.apiKey);
 			}
+		}
+		else
+		{
+			LogMessage("GetGameAnchor " + connId + ": not found.");
+
+			// send Check-host-anchor
+			CheckHostAnchorRequestMsg request = new CheckHostAnchorRequestMsg
+			{
+				gameName = this.gameName
+			};
+
+			netClient.Send(NetMsgType.CheckHostAnchorRequest, request);
+		}
+	}
+
+
+	private void OnCheckHostAnchorResponse(NetworkMessage netMsg)
+	{
+		var response = netMsg.ReadMessage<CheckHostAnchorResponseMsg>();
+
+		int connId = netMsg.conn.connectionId;
+		LogMessage("CheckHostAnchor " + connId + " granted: " + response.granted);
+
+		if (response.granted) 
+		{
+			
 		}
 	}
 

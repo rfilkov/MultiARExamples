@@ -37,10 +37,12 @@ public class MyNetClient : NetworkClient
 		if (m_HostTopology == null)
 		{
 			var config = new ConnectionConfig();
-			config.AddChannel(QosType.ReliableSequenced);
-			config.AddChannel(QosType.Unreliable);
+			//config.AddChannel(QosType.ReliableSequenced);
+			//config.AddChannel(QosType.Unreliable);
+			config.AddChannel(QosType.StateUpdate);
+
 			config.UsePlatformSpecificProtocols = false;
-			m_HostTopology = new HostTopology(config, 8);
+			m_HostTopology = new HostTopology(config, 1);
 		}
 
 		m_ClientId = NetworkTransport.AddHost(m_HostTopology, m_HostPort);

@@ -8,8 +8,9 @@ using UnityEngine.Networking.NetworkSystem;
 public class TestNetClient : MonoBehaviour 
 {
 
-	public int m_NetworkPort = 8888;
 	public string m_NetworkAddress = "localhost";
+	public int m_NetworkPort = 8888;
+	public int m_HostPort = 8887;
 
 	public bool isNetworkActive;
 	public MyNetClient client;
@@ -19,7 +20,7 @@ public class TestNetClient : MonoBehaviour
 
 	void Start () 
 	{
-		StartClient(null, 0);
+		StartClient(null, m_HostPort);
 	}
 	
 
@@ -158,9 +159,9 @@ public class TestNetClient : MonoBehaviour
 	{
 		client.RegisterHandler(MsgType.Connect, OnClientConnectInternal);
 		client.RegisterHandler(MsgType.Disconnect, OnClientDisconnectInternal);
-		client.RegisterHandler(MsgType.NotReady, OnClientNotReadyMessageInternal);
+//		client.RegisterHandler(MsgType.NotReady, OnClientNotReadyMessageInternal);
 		client.RegisterHandler(MsgType.Error, OnClientErrorInternal);
-		client.RegisterHandler(MsgType.Scene, OnClientSceneInternal);
+//		client.RegisterHandler(MsgType.Scene, OnClientSceneInternal);
 
 //		if (m_PlayerPrefab != null)
 //		{
@@ -183,7 +184,7 @@ public class TestNetClient : MonoBehaviour
 	{
 		if (LogFilter.logDebug) { Debug.Log("NetworkManager:OnClientConnectInternal"); }
 
-		netMsg.conn.SetMaxDelay(0.01f);
+//		netMsg.conn.SetMaxDelay(0.01f);
 
 //		string loadedSceneName = SceneManager.GetSceneAt(0).name;
 //		if (string.IsNullOrEmpty(m_OnlineScene) || (m_OnlineScene == m_OfflineScene) || (loadedSceneName == m_OnlineScene))
@@ -238,7 +239,7 @@ public class TestNetClient : MonoBehaviour
 	{
 		if (LogFilter.logDebug) { Debug.Log("NetworkManager:OnClientSceneInternal"); }
 
-		string newSceneName = netMsg.reader.ReadString();
+//		string newSceneName = netMsg.reader.ReadString();
 
 //		if (IsClientConnected() && !NetworkServer.active)
 //		{
