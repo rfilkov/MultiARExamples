@@ -60,18 +60,19 @@ public class ArServerController : MonoBehaviour
 
 			// configure the server
 			var config = new ConnectionConfig();
-			config.AddChannel(QosType.Reliable);
+			config.AddChannel(QosType.ReliableSequenced);
 			config.AddChannel(QosType.Unreliable);
+
 			NetworkServer.Configure(config, maxConnections);
 			NetworkServer.useWebSockets = useWebSockets;
 
 			// start the server and register handlers
 			string serverHost = Network.player.ipAddress;
-			NetworkServer.Listen(serverHost, listenOnPort);
+			NetworkServer.Listen(listenOnPort);
 
 			NetworkServer.RegisterHandler(MsgType.Error, OnNetworkError);
-			NetworkServer.RegisterHandler(MsgType.Connect, OnClientConnect);
-			NetworkServer.RegisterHandler(MsgType.Disconnect, OnClientDisconnect);
+			NetworkServer.RegisterHandler(MsgType.Connect, OnServerConnect);
+			NetworkServer.RegisterHandler(MsgType.Disconnect, OnServerDisconnect);
 
 			NetworkServer.RegisterHandler(NetMsgType.GetGameAnchorRequest, OnGetGameAnchorRequest);
 			NetworkServer.RegisterHandler(NetMsgType.CheckHostAnchorRequest, OnCheckHostAnchorRequest);
@@ -143,7 +144,7 @@ public class ArServerController : MonoBehaviour
 
 
 	// handles Connect-message
-	private void OnClientConnect(NetworkMessage netMsg)
+	private void OnServerConnect(NetworkMessage netMsg)
 	{
 		int connId = netMsg.conn.connectionId;
 		bool connFound = dictClientTrans.ContainsKey(connId);
@@ -160,7 +161,7 @@ public class ArServerController : MonoBehaviour
 
 
 	// handles Disconnect-message
-	private void OnClientDisconnect(NetworkMessage netMsg)
+	private void OnServerDisconnect(NetworkMessage netMsg)
 	{
 		int connId = netMsg.conn.connectionId;
 

@@ -59,13 +59,21 @@ public class TestNetClient : MonoBehaviour
 		client = new MyNetClient();
 		client.hostPort = hostPort;
 
-		if (config != null)
-		{
-			if ((config.UsePlatformSpecificProtocols) && (UnityEngine.Application.platform != RuntimePlatform.PS4) && (UnityEngine.Application.platform != RuntimePlatform.PSP2))
-				throw new System.ArgumentOutOfRangeException("Platform specific protocols are not supported on this platform");
+//		config = new ConnectionConfig();
+//		byte clientChannelId = config.AddChannel(QosType.StateUpdate);  // QosType.UnreliableFragmented
+//
+//		// add client host
+//		HostTopology topology = new HostTopology(config, 1);
+//		client.Configure(topology);
 
-			client.Configure(config, 1);
-		}
+//		if (config != null)
+//		{
+//			if ((config.UsePlatformSpecificProtocols) && (UnityEngine.Application.platform != RuntimePlatform.PS4) && (UnityEngine.Application.platform != RuntimePlatform.PSP2))
+//				throw new System.ArgumentOutOfRangeException("Platform specific protocols are not supported on this platform");
+//
+//			client.Configure(config, 1);
+//		}
+
 //		else
 //		{
 //			if (m_CustomConfig && m_ConnectionConfig != null)

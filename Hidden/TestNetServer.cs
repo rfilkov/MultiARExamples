@@ -8,7 +8,9 @@ using UnityEngine.Networking.NetworkSystem;
 public class TestNetServer : MonoBehaviour 
 {
 
+
 	public bool isNetworkActive;
+
 
 	// static message objects to avoid runtime-allocations
 	static AddPlayerMessage s_AddPlayerMessage = new AddPlayerMessage();
@@ -16,12 +18,18 @@ public class TestNetServer : MonoBehaviour
 	static ErrorMessage s_ErrorMessage = new ErrorMessage();
 
 
-	private NetworkServerSimple networkServer = null;
+	private MyNetServer networkServer = null;
 
 
 	void Start () 
 	{
-		StartServer(null, -1);
+		var config = new ConnectionConfig();
+		//config.AddChannel(QosType.ReliableSequenced);
+		//config.AddChannel(QosType.Unreliable);
+		config.AddChannel(QosType.StateUpdate);
+		config.MaxSentMessageQueueSize = 2048;
+
+		StartServer(config, 8);
 	}
 
 	void OnDestroy()
@@ -49,64 +57,29 @@ public class TestNetServer : MonoBehaviour
 		//if (m_RunInBackground)
 			Application.runInBackground = true;
 
-		networkServer = new NetworkServerSimple();
+		networkServer = GetComponent<MyNetServer>(); // new MyNetServer(); // new NetworkServerSimple();
 
-//		NetworkCRC.scriptCRCCheck = true;
-		networkServer.useWebSockets = false;
-
-//		if (m_GlobalConfig != null)
-//		{
-//			NetworkTransport.Init(m_GlobalConfig);
-//		}
-
-//		// passing a config overrides setting the connectionConfig property
-//		if (m_CustomConfig && m_ConnectionConfig != null && config == null)
-//		{
-//			m_ConnectionConfig.Channels.Clear();
-//			for (int channelId = 0; channelId < m_Channels.Count; channelId++)
-//			{
-//				m_ConnectionConfig.AddChannel(m_Channels[channelId]);
-//			}
-//			NetworkServer.Configure(m_ConnectionConfig, m_MaxConnections);
-//		}
-
-		if (config != null)
-		{
-			networkServer.Configure(config, maxConnections);
-		}
-
-//		if (info != null)
-//		{
-//			if (!NetworkServer.Listen(info, m_NetworkPort))
-//			{
-//				if (LogFilter.logError) { Debug.LogError("StartServer listen failed."); }
-//				return false;
-//			}
-//		}
-//		else
-		{
-//			if (m_ServerBindToIP && !string.IsNullOrEmpty(m_ServerBindAddress))
-//			{
-//				if (!NetworkServer.Listen(m_ServerBindAddress, m_NetworkPort))
+			{
+//				networkServer.useWebSockets = false;
+//				HostTopology hostTopology = null;
+//
+//				if (config != null)
 //				{
-//					if (LogFilter.logError) { Debug.LogError("StartServer listen on " + m_ServerBindAddress + " failed."); }
+//					hostTopology = new HostTopology(config, maxConnections);
+//					networkServer.Configure(hostTopology);
+//				}
+//
+//				if (!networkServer.Listen(8888, hostTopology))
+//				{
+//					if (LogFilter.logError) { Debug.LogError("StartServer listen failed."); }
 //					return false;
 //				}
-//			}
-//			else
-			{
-				if (!networkServer.Listen(8888))
-				{
-					if (LogFilter.logError) { Debug.LogError("StartServer listen failed."); }
-					return false;
-				}
 			}
-		}
 
 		// this must be after Listen(), since that registers the default message handlers
 		RegisterServerMessages();
 
-		if (LogFilter.logDebug) { Debug.Log("NetworkManager StartServer port:" + networkServer.listenPort); }
+		if (LogFilter.logDebug) { Debug.Log("NetworkManager StartServer port:" + networkServer.listenOnPort); }
 		isNetworkActive = true;
 
 //		// Only change scene if the requested online scene is not blank, and is not already loaded
@@ -134,8 +107,10 @@ public class TestNetServer : MonoBehaviour
 		isNetworkActive = false;
 
 		//NetworkServer.Shutdown();
-		networkServer.DisconnectAllConnections();
-		networkServer.Stop();
+//		networkServer.DisconnectAllConnections();
+//		networkServer.Stop();
+
+
 
 //		StopMatchMaker();
 //		if (!string.IsNullOrEmpty(m_OfflineScene))
@@ -159,9 +134,9 @@ public class TestNetServer : MonoBehaviour
 	{
 		networkServer.RegisterHandler(MsgType.Connect, OnServerConnectInternal);
 		networkServer.RegisterHandler(MsgType.Disconnect, OnServerDisconnectInternal);
-		networkServer.RegisterHandler(MsgType.Ready, OnServerReadyMessageInternal);
-		networkServer.RegisterHandler(MsgType.AddPlayer, OnServerAddPlayerMessageInternal);
-		networkServer.RegisterHandler(MsgType.RemovePlayer, OnServerRemovePlayerMessageInternal);
+//		networkServer.RegisterHandler(MsgType.Ready, OnServerReadyMessageInternal);
+//		networkServer.RegisterHandler(MsgType.AddPlayer, OnServerAddPlayerMessageInternal);
+//		networkServer.RegisterHandler(MsgType.RemovePlayer, OnServerRemovePlayerMessageInternal);
 		networkServer.RegisterHandler(MsgType.Error, OnServerErrorInternal);
 	}
 
@@ -172,7 +147,7 @@ public class TestNetServer : MonoBehaviour
 	{
 		if (LogFilter.logDebug) { Debug.Log("NetworkManager:OnServerConnectInternal"); }
 
-		netMsg.conn.SetMaxDelay(0.01f);
+//		netMsg.conn.SetMaxDelay(0.01f);
 
 //		if (m_MaxBufferedPackets != ChannelBuffer.MaxBufferedPackets)
 //		{

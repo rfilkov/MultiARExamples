@@ -1358,6 +1358,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1632023739}
   - component: {fileID: 1632023740}
+  - component: {fileID: 1632023741}
   m_Layer: 0
   m_Name: ServerController
   m_TagString: Untagged
@@ -1390,6 +1391,23 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   isNetworkActive: 0
+--- !u!114 &1632023741
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 1632023738}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 765fc172efb5ae041b02cd9e22a333f9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  listenOnPort: 8888
+  broadcastPort: 8889
+  maxConnections: 8
+  useWebSockets: 0
+  connStatusText: {fileID: 1997960910}
+  serverStatusText: {fileID: 1623333460}
 --- !u!1 &1878466515
 GameObject:
   m_ObjectHideFlags: 0
