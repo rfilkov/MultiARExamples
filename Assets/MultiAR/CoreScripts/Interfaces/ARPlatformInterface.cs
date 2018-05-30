@@ -2,6 +2,14 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+
+// delegate invoked after an anchor gets saved
+public delegate void AnchorSavedDelegate(string anchorId);
+
+// delegate invoked after an anchor gets restored
+public delegate void AnchorRestoredDelegate(GameObject anchorObj);
+
+
 public interface ARPlatformInterface 
 {
 	/// <summary>
@@ -160,6 +168,14 @@ public interface ARPlatformInterface
 	string AnchorGameObjectToWorld(GameObject gameObj, Vector3 worldPosition, Quaternion worldRotation);
 
 	/// <summary>
+	/// Anchors the game object to anchor object.
+	/// </summary>
+	/// <returns><c>true</c>, if game object was anchored, <c>false</c> otherwise.</returns>
+	/// <param name="gameObj">Game object.</param>
+	/// <param name="anchorObj">Anchor object.</param>
+	bool AnchorGameObject(GameObject gameObj, GameObject anchorObj);
+
+	/// <summary>
 	/// Unparents the game object and removes the anchor from the system (if possible).
 	/// </summary>
 	/// <returns><c>true</c>, if game object anchor was removed, <c>false</c> otherwise.</returns>
@@ -177,5 +193,19 @@ public interface ARPlatformInterface
 	/// Resumes the AR session, if paused.
 	/// </summary>
 	void ResumeSession();
+
+	/// <summary>
+	/// Saves the world anchor.
+	/// </summary>
+	/// <param name="gameObj">Anchored game object.</param>
+	/// <param name="anchorSaved">Delegate invoked after the anchor gets saved.</param>
+	void SaveWorldAnchor(GameObject gameObj, AnchorSavedDelegate anchorSaved);
+
+	/// <summary>
+	/// Restores the world anchor.
+	/// </summary>
+	/// <param name="anchorId">Anchor identifier.</param>
+	/// <param name="anchorRestored">Delegate invoked after the anchor gets restored.</param>
+	void RestoreWorldAnchor(string anchorId, AnchorRestoredDelegate anchorRestored);
 
 }

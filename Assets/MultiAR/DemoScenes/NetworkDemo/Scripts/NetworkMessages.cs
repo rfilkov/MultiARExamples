@@ -67,14 +67,14 @@ public class GetGameAnchorResponseMsg : MessageBase
 {
 	public bool found;
 	public string anchorId;
-	public string apiKey;
+	//public string apiKey;
 
 	public override void Serialize(NetworkWriter writer)
 	{
 		base.Serialize(writer);
 		writer.Write(found);
 		writer.Write(anchorId);
-		writer.Write(apiKey);
+		//writer.Write(apiKey);
 	}
 
 	public override void Deserialize(NetworkReader reader)
@@ -82,7 +82,7 @@ public class GetGameAnchorResponseMsg : MessageBase
 		base.Deserialize(reader);
 		found = reader.ReadBoolean();
 		anchorId = reader.ReadString();
-		apiKey = reader.ReadString();
+		//apiKey = reader.ReadString();
 	}
 }
 
@@ -114,20 +114,20 @@ public class CheckHostAnchorRequestMsg : MessageBase
 public class CheckHostAnchorResponseMsg : MessageBase
 {
 	public bool granted;
-	public string apiKey;
+	//public string apiKey;
 
 	public override void Serialize(NetworkWriter writer)
 	{
 		base.Serialize(writer);
 		writer.Write(granted);
-		writer.Write(apiKey);
+		//writer.Write(apiKey);
 	}
 
 	public override void Deserialize(NetworkReader reader)
 	{
 		base.Deserialize(reader);
 		granted = reader.ReadBoolean();
-		apiKey = reader.ReadString();
+		//apiKey = reader.ReadString();
 	}
 }
 

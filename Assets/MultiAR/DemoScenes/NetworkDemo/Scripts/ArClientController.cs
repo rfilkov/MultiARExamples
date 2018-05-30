@@ -24,9 +24,25 @@ public class ArClientController : MonoBehaviour
 	[Tooltip("UI-Text to display status messages.")]
 	public UnityEngine.UI.Text statusText;
 
+	// Anchor object to be saved or restored.
+	[HideInInspector]
+	public GameObject worldAnchorObj = null;
+
+	// Whether the world anchor needs to be set or not
+	[HideInInspector]
+	public bool setAnchorAllowed = false;
+
+	// Whether the saved world anchor can be used or not
+	[HideInInspector]
+	public bool getAnchorAllowed = false;
+
+
 	// network client & discovery
 	private NetworkClient netClient = null;
-	ArNetworkDiscovery netDiscovery = null;
+	private ArNetworkDiscovery netDiscovery = null;
+
+	// reference to multi-ar manager
+	private MultiARManager marManager = null;
 
 
 	// whether the client is connected to the server
@@ -34,16 +50,27 @@ public class ArClientController : MonoBehaviour
 	private float disconnectedAt = 0f;
 	private float dataReceivedAt = 0f;
 
+	// max-wait-time for network and cloud operations 
+	private const float k_MaxWaitTime = 10f;
 
-	// Game-Anchor-Found
-	public delegate void GameAnchorFoundDelegate(string anchorId, string apiKey);
-	public GameAnchorFoundDelegate gameAnchorFoundCallback = null;
+	// set-anchor timestamp
+	private float setAnchorTillTime = 0f;
+
+	// get-anchor timestamp
+	private float getAnchorTillTime = 0f;
+
+	// saved anchor Id
+	private string worldAnchorId = string.Empty;
 
 
 	void Start () 
 	{
 		try 
 		{
+			// get reference to the multi-ar manager
+			marManager = MultiARManager.Instance;
+
+			// create the network client
 			LogFilter.currentLogLevel = LogFilter.Debug;
 			netClient = new NetworkClient();
 
@@ -109,7 +136,53 @@ public class ArClientController : MonoBehaviour
 
 	void Update () 
 	{
-		
+		// check if the world anchor needs to be saved
+		if (setAnchorAllowed && worldAnchorObj && marManager) 
+		{
+			if (setAnchorTillTime < Time.realtimeSinceStartup) 
+			{
+				setAnchorTillTime = Time.realtimeSinceStartup + k_MaxWaitTime;
+
+				marManager.SaveWorldAnchor(worldAnchorObj, anchorId => 
+					{
+						Debug.Log("SaveWorldAnchor: " + anchorId);
+
+						worldAnchorId = anchorId;
+						getAnchorAllowed = !string.IsNullOrEmpty(anchorId);
+						setAnchorAllowed = !getAnchorAllowed;
+					});
+			}
+		}
+
+		// check if the world anchor needs to be restored
+		if (getAnchorAllowed && !worldAnchorObj && !string.IsNullOrEmpty(worldAnchorId) && marManager) 
+		{
+			if (getAnchorTillTime < Time.realtimeSinceStartup) 
+			{
+				getAnchorTillTime = Time.realtimeSinceStartup + k_MaxWaitTime;
+
+				marManager.RestoreWorldAnchor(worldAnchorId, anchorObj =>
+					{
+						Debug.Log("RestoreWorldAnchor: " + worldAnchorId + ", got: " + (anchorObj != null));
+
+						worldAnchorObj = anchorObj;
+						getAnchorAllowed = anchorObj != null;
+						setAnchorAllowed = false;
+
+						if(!getAnchorAllowed)
+						{
+							// send Check-host-anchor
+							CheckHostAnchorRequestMsg request = new CheckHostAnchorRequestMsg
+							{
+								gameName = this.gameName
+							};
+
+							netClient.Send(NetMsgType.CheckHostAnchorRequest, request);
+						}
+					});
+			}
+		}
+
 	}
 
 
@@ -185,18 +258,20 @@ public class ArClientController : MonoBehaviour
 		var response = netMsg.ReadMessage<GetGameAnchorResponseMsg>();
 		int connId = netMsg.conn.connectionId;
 
-		if (response.found) 
+		if (response.found && !string.IsNullOrEmpty(response.anchorId)) 
 		{
 			LogMessage("GetGameAnchor " + connId + " found: " + response.anchorId);
 
-			if (gameAnchorFoundCallback != null) 
-			{
-				gameAnchorFoundCallback(response.anchorId, response.apiKey);
-			}
+			worldAnchorId = response.anchorId;
+			getAnchorAllowed = true;
+			setAnchorAllowed = false;
 		}
 		else
 		{
 			LogMessage("GetGameAnchor " + connId + ": not found.");
+
+			getAnchorAllowed = false;
+			setAnchorAllowed = false;
 
 			// send Check-host-anchor
 			CheckHostAnchorRequestMsg request = new CheckHostAnchorRequestMsg
@@ -214,12 +289,10 @@ public class ArClientController : MonoBehaviour
 		var response = netMsg.ReadMessage<CheckHostAnchorResponseMsg>();
 
 		int connId = netMsg.conn.connectionId;
-		LogMessage("CheckHostAnchor " + connId + " granted: " + response.granted);
+		LogMessage("CheckHostAnchor " + connId + ": " + (response.granted ? "granted" : "not granted"));
 
-		if (response.granted) 
-		{
-			
-		}
+		getAnchorAllowed = false;
+		setAnchorAllowed = response.granted;
 	}
 
 

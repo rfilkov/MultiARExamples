@@ -37,7 +37,7 @@ public class ArServerController : MonoBehaviour
 	private NetworkDiscovery netDiscovery = null;
 
 	// api key needed for cloud anchor hosting or resolving
-	private string cloudApiKey = "AIzaSyCCDOt1ZpdmcN_c9SFYPZ9lbQ7eldODUrY";
+	//private string cloudApiKey = string.Empty;
 
 	// cloud anchor Id
 	private string gameCloudAnchorId = string.Empty;
@@ -58,7 +58,7 @@ public class ArServerController : MonoBehaviour
 		{
 			LogFilter.currentLogLevel = 0; // dev // LogFilter.Debug;
 
-			// configure the server
+			// configure the network server
 			var config = new ConnectionConfig();
 			config.AddChannel(QosType.ReliableSequenced);
 			config.AddChannel(QosType.Unreliable);
@@ -99,6 +99,7 @@ public class ArServerController : MonoBehaviour
 			{
 				serverStatusText.text = sMessage;
 			}
+
 		} 
 		catch (System.Exception ex) 
 		{
@@ -185,7 +186,7 @@ public class ArServerController : MonoBehaviour
 		{
 			found = !string.IsNullOrEmpty(gameCloudAnchorId),
 			anchorId = gameCloudAnchorId,
-			apiKey = cloudApiKey
+			//apiKey = cloudApiKey
 		};
 
 		NetworkServer.SendToClient(netMsg.conn.connectionId, NetMsgType.GetGameAnchorResponse, response);
@@ -212,7 +213,7 @@ public class ArServerController : MonoBehaviour
 		CheckHostAnchorResponseMsg response = new CheckHostAnchorResponseMsg
 		{
 			granted = requestGranted,
-			apiKey = cloudApiKey
+			//apiKey = cloudApiKey
 		};
 
 		NetworkServer.SendToClient(netMsg.conn.connectionId, NetMsgType.CheckHostAnchorResponse, response);

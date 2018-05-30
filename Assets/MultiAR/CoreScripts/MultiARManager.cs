@@ -433,6 +433,48 @@ public class MultiARManager : MonoBehaviour
 	}
 
 	/// <summary>
+	/// Anchors the game object to anchor object.
+	/// </summary>
+	/// <returns><c>true</c>, if game object was anchored, <c>false</c> otherwise.</returns>
+	/// <param name="gameObj">Game object.</param>
+	/// <param name="anchorObj">Anchor object.</param>
+	public bool AnchorGameObject(GameObject gameObj, GameObject anchorObj)
+	{
+		if(arInterface != null)
+		{
+			return arInterface.AnchorGameObject(gameObj, anchorObj);
+		}
+
+		return false;
+	}
+
+	/// <summary>
+	/// Saves the world anchor.
+	/// </summary>
+	/// <param name="gameObj">Anchored game object.</param>
+	/// <param name="anchorSaved">Delegate invoked after the anchor gets saved.</param>
+	public void SaveWorldAnchor(GameObject gameObj, AnchorSavedDelegate anchorSaved)
+	{
+		if(arInterface != null)
+		{
+			arInterface.SaveWorldAnchor(gameObj, anchorSaved);
+		}
+	}
+
+	/// <summary>
+	/// Restores the world anchor.
+	/// </summary>
+	/// <param name="anchorId">Anchor identifier.</param>
+	/// <param name="anchorRestored">Delegate invoked after the anchor gets restored.</param>
+	public void RestoreWorldAnchor(string anchorId, AnchorRestoredDelegate anchorRestored)
+	{
+		if(arInterface != null)
+		{
+			arInterface.RestoreWorldAnchor(anchorId, anchorRestored);
+		}
+	}
+
+	/// <summary>
 	/// Anchors the game object to world.
 	/// </summary>
 	/// <returns>The anchor Id, or empty string.</returns>

@@ -4,6 +4,9 @@ using UnityEngine;
 using GoogleARCore;
 
 // Handle InstantPreview input in the Editor
+using GoogleARCore.CrossPlatform;
+
+
 #if UNITY_EDITOR
 using Input = GoogleARCore.InstantPreviewInput;
 #endif
@@ -446,6 +449,7 @@ public class ARCoreInteface : ARBaseInterface, ARPlatformInterface
 			{
 				gameObj.transform.SetParent(anchor.transform, true);
 				gameObj.transform.localPosition = Vector3.zero;
+				gameObj.transform.localRotation = Quaternion.identity;
 			}
 
 			MultiARInterop.MultiARData arData = arManager.GetARData();
@@ -493,6 +497,7 @@ public class ARCoreInteface : ARBaseInterface, ARPlatformInterface
 			{
 				gameObj.transform.SetParent(anchor.transform, true);
 				gameObj.transform.localPosition = Vector3.zero;
+				gameObj.transform.localRotation = Quaternion.identity;
 			}
 
 			MultiARInterop.MultiARData arData = arManager.GetARData();
@@ -507,6 +512,47 @@ public class ARCoreInteface : ARBaseInterface, ARPlatformInterface
 		}
 
 		return string.Empty;
+	}
+
+	/// <summary>
+	/// Anchors the game object to anchor object.
+	/// </summary>
+	/// <returns><c>true</c>, if game object was anchored, <c>false</c> otherwise.</returns>
+	/// <param name="gameObj">Game object.</param>
+	/// <param name="anchorObj">Anchor object.</param>
+	public override bool AnchorGameObject(GameObject gameObj, GameObject anchorObj)
+	{
+		if(!isInitialized || anchorObj == null)
+			return false;
+
+		Anchor anchor = anchorObj.GetComponent<Anchor>();
+		if(anchor == null)
+			return false;
+		
+		if(arManager)
+		{
+			string anchorId = anchor.m_NativeHandle.ToString();
+			DontDestroyOnLoad(anchorObj);  // don't destroy it accross scenes
+
+			if(gameObj)
+			{
+				gameObj.transform.SetParent(anchorObj.transform, true);
+				gameObj.transform.localPosition = Vector3.zero;
+				gameObj.transform.localRotation = Quaternion.identity;
+			}
+
+			MultiARInterop.MultiARData arData = arManager.GetARData();
+			arData.allAnchorsDict[anchorId] = new List<GameObject>();
+
+			if(gameObj)
+			{
+				arData.allAnchorsDict[anchorId].Add(gameObj);
+			}
+
+			return true;
+		}
+
+		return false;
 	}
 
 	/// <summary>
@@ -554,6 +600,10 @@ public class ARCoreInteface : ARBaseInterface, ARPlatformInterface
 		return false;
 	}
 
+	/// <summary>
+	/// Pauses the AR session.
+	/// </summary>
+	/// <returns><c>true</c>, if session was paused, <c>false</c> if pausing AR session is not supported.</returns>
 	public override bool PauseSession()
 	{
 		if (arCoreDeviceObj) 
@@ -571,6 +621,9 @@ public class ARCoreInteface : ARBaseInterface, ARPlatformInterface
 		return false;
 	}
 
+	/// <summary>
+	/// Resumes the AR session, if paused.
+	/// </summary>
 	public override void ResumeSession()
 	{
 		if (arCoreDeviceObj) 
@@ -583,6 +636,57 @@ public class ARCoreInteface : ARBaseInterface, ARPlatformInterface
 			}
 		}
 	}
+
+	/// <summary>
+	/// Saves the world anchor.
+	/// </summary>
+	/// <param name="gameObj">Anchored game object.</param>
+	/// <param name="anchorSaved">Delegate invoked after the anchor gets saved.</param>
+	public override void SaveWorldAnchor(GameObject gameObj, AnchorSavedDelegate anchorSaved)
+	{
+		Anchor anchor = gameObj != null ? gameObj.GetComponent<Anchor>() : null;
+		if(anchor == null)
+			anchor = gameObj != null ? gameObj.GetComponentInParent<Anchor>() : null;
+
+		if (anchor == null) 
+		{
+			if (anchorSaved != null)
+				anchorSaved(string.Empty);
+			return;
+		}
+
+		XPSession.CreateCloudAnchor(anchor).ThenAction(result =>
+			{
+				if (anchorSaved != null)
+				{
+					anchorSaved(result.Response == CloudServiceResponse.Success ? result.Anchor.CloudId : string.Empty);
+				}
+			});
+	}
+
+	/// <summary>
+	/// Restores the world anchor.
+	/// </summary>
+	/// <param name="anchorId">Anchor identifier.</param>
+	/// <param name="anchorRestored">Delegate invoked after the anchor gets restored.</param>
+	public override void RestoreWorldAnchor(string anchorId, AnchorRestoredDelegate anchorRestored)
+	{
+		if (string.IsNullOrEmpty(anchorId)) 
+		{
+			if (anchorRestored != null)
+				anchorRestored(null);
+			return;
+		}
+
+		XPSession.ResolveCloudAnchor(anchorId).ThenAction(result =>
+			{
+				if (anchorRestored != null)
+				{
+					anchorRestored(result.Response == CloudServiceResponse.Success ? result.Anchor.gameObject : null);
+				}
+			});
+	}
+
 
 	// -- // -- // -- // -- // -- // -- // -- // -- // -- // -- //
 

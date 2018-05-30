@@ -480,12 +480,15 @@ public class ARKitInteface : ARBaseInterface, ARPlatformInterface
 
 		UnityARUserAnchorData anchorData = UnityARSessionNativeInterface.GetARSessionNativeInterface().AddUserAnchorFromGameObject(anchorObj); 
 		sAnchorId = anchorData.identifierStr;
+
+		anchorObj.name = sAnchorId;
 		DontDestroyOnLoad(anchorObj);  // don't destroy it accross scenes
 
 		if(gameObj)
 		{
 			gameObj.transform.SetParent(anchorObj.transform, true);
 			gameObj.transform.localPosition = Vector3.zero;
+			gameObj.transform.localRotation = Quaternion.identity;
 		}
 
 		MultiARInterop.MultiARData arData = arManager.GetARData();
@@ -497,6 +500,43 @@ public class ARKitInteface : ARBaseInterface, ARPlatformInterface
 		}
 
 		return sAnchorId;
+	}
+
+	/// <summary>
+	/// Anchors the game object to anchor object.
+	/// </summary>
+	/// <returns><c>true</c>, if game object was anchored, <c>false</c> otherwise.</returns>
+	/// <param name="gameObj">Game object.</param>
+	/// <param name="anchorObj">Anchor object.</param>
+	public override bool AnchorGameObject(GameObject gameObj, GameObject anchorObj)
+	{
+		if(!isInitialized || anchorObj == null)
+			return false;
+
+		if(arManager)
+		{
+			string anchorId = anchorObj.name;
+			DontDestroyOnLoad(anchorObj);  // don't destroy it accross scenes
+
+			if(gameObj)
+			{
+				gameObj.transform.SetParent(anchorObj.transform, true);
+				gameObj.transform.localPosition = Vector3.zero;
+				gameObj.transform.localRotation = Quaternion.identity;
+			}
+
+			MultiARInterop.MultiARData arData = arManager.GetARData();
+			arData.allAnchorsDict[anchorId] = new List<GameObject>();
+
+			if(gameObj)
+			{
+				arData.allAnchorsDict[anchorId].Add(gameObj);
+			}
+
+			return true;
+		}
+
+		return false;
 	}
 
 	/// <summary>
@@ -542,6 +582,10 @@ public class ARKitInteface : ARBaseInterface, ARPlatformInterface
 		return false;
 	}
 
+	/// <summary>
+	/// Pauses the AR session.
+	/// </summary>
+	/// <returns><c>true</c>, if session was paused, <c>false</c> if pausing AR session is not supported.</returns>
 	public override bool PauseSession()
 	{
 		if (!isSessionPaused) 
@@ -553,6 +597,9 @@ public class ARKitInteface : ARBaseInterface, ARPlatformInterface
 		return true;
 	}
 
+	/// <summary>
+	/// Resumes the AR session, if paused.
+	/// </summary>
 	public override void ResumeSession()
 	{
 		if (isSessionPaused) 
@@ -572,6 +619,56 @@ public class ARKitInteface : ARBaseInterface, ARPlatformInterface
 			UnityARSessionNativeInterface.GetARSessionNativeInterface().RunWithConfigAndOptions(config, runOptions);
 		}
 	}
+
+	/// <summary>
+	/// Saves the world anchor.
+	/// </summary>
+	/// <param name="gameObj">Anchored game object.</param>
+	/// <param name="anchorSaved">Delegate invoked after the anchor gets saved.</param>
+	public override void SaveWorldAnchor(GameObject gameObj, AnchorSavedDelegate anchorSaved)
+	{
+		if (gameObj == null) 
+		{
+			if (anchorSaved != null)
+				anchorSaved(string.Empty);
+			return;
+		}
+
+		Transform anchorTrans = gameObj.transform.parent != null ?  gameObj.transform.parent : gameObj.transform;
+		Pose anchorPose = new Pose(anchorTrans.position, anchorTrans.rotation);
+
+		GoogleARCore.CrossPlatform.XPSession.CreateCloudAnchor(anchorPose).ThenAction(result =>
+			{
+				if (anchorSaved != null)
+				{
+					anchorSaved(result.Response == GoogleARCore.CrossPlatform.CloudServiceResponse.Success ? result.Anchor.CloudId : string.Empty);
+				}
+			});
+	}
+
+	/// <summary>
+	/// Restores the world anchor.
+	/// </summary>
+	/// <param name="anchorId">Anchor identifier.</param>
+	/// <param name="anchorRestored">Delegate invoked after the anchor gets restored.</param>
+	public override void RestoreWorldAnchor(string anchorId, AnchorRestoredDelegate anchorRestored)
+	{
+		if (string.IsNullOrEmpty(anchorId)) 
+		{
+			if (anchorRestored != null)
+				anchorRestored(null);
+			return;
+		}
+
+		GoogleARCore.CrossPlatform.XPSession.ResolveCloudAnchor(anchorId).ThenAction(result =>
+			{
+				if (anchorRestored != null)
+				{
+					anchorRestored(result.Response == GoogleARCore.CrossPlatform.CloudServiceResponse.Success ? result.Anchor.gameObject : null);
+				}
+			});
+	}
+
 
 	// -- // -- // -- // -- // -- // -- // -- // -- // -- // -- //
 
