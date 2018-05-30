@@ -49,7 +49,7 @@ namespace GoogleARCoreInternal
             {
                 _PreprocessAndroidBuild();
             }
-            else if (target == BuildTarget.iOS)
+            else //if (target == BuildTarget.iOS)
             {
                 _PreprocessIosBuild();
             }

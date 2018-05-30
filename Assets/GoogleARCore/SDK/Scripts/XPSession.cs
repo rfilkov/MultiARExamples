@@ -56,6 +56,17 @@ namespace GoogleARCore.CrossPlatform
         }
 #endif
 
+		/// <summary>
+		/// Attempts to asynchronously host a new cloud anchor.
+		/// </summary>
+		/// <param name="anchorPose">The anchor pose to host.</param>
+		/// <returns>A task that will complete when the attempt to host a new cloud anchor has finished.
+		/// The result will be a <c>CloudAnchorResult</c> associated with the operation.</returns>
+		public static AsyncTask<CloudAnchorResult> CreateCloudAnchor(Pose anchorPose)
+		{
+			return CloudServiceManager.Instance.CreateCloudAnchor(anchorPose);
+		}
+
         /// <summary>
         /// Attempts to asynchronous resolve a cloud anchor.
         /// </summary>
