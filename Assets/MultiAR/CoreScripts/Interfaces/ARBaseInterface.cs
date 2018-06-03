@@ -25,7 +25,7 @@ public class ARBaseInterface : MonoBehaviour
 	{
 		if (anchorSaved != null) 
 		{
-			anchorSaved(string.Empty);
+			anchorSaved(string.Empty, "SaveAnchorNotSupported");
 		}
 	}
 
@@ -34,7 +34,7 @@ public class ARBaseInterface : MonoBehaviour
 	{
 		if (anchorRestored != null) 
 		{
-			anchorRestored(null);
+			anchorRestored(null, "RestoreAnchorNotSupported");
 		}
 	}
 

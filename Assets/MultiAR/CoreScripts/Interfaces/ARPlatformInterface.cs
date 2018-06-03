@@ -4,10 +4,10 @@ using UnityEngine;
 
 
 // delegate invoked after an anchor gets saved
-public delegate void AnchorSavedDelegate(string anchorId);
+public delegate void AnchorSavedDelegate(string anchorId, string errorMessage);
 
 // delegate invoked after an anchor gets restored
-public delegate void AnchorRestoredDelegate(GameObject anchorObj);
+public delegate void AnchorRestoredDelegate(GameObject anchorObj, string errorMessage);
 
 
 public interface ARPlatformInterface 

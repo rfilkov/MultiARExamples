@@ -25,16 +25,13 @@ public class ArClientController : MonoBehaviour
 	public UnityEngine.UI.Text statusText;
 
 	// Anchor object to be saved or restored.
-	[HideInInspector]
-	public GameObject worldAnchorObj = null;
+	private GameObject worldAnchorObj = null;
 
 	// Whether the world anchor needs to be set or not
-	[HideInInspector]
-	public bool setAnchorAllowed = false;
+	private bool setAnchorAllowed = false;
 
 	// Whether the saved world anchor can be used or not
-	[HideInInspector]
-	public bool getAnchorAllowed = false;
+	private bool getAnchorAllowed = false;
 
 
 	// network client & discovery
@@ -63,6 +60,48 @@ public class ArClientController : MonoBehaviour
 	private string worldAnchorId = string.Empty;
 
 
+	/// <summary>
+	/// Determines whether setting world anchor is allowed.
+	/// </summary>
+	/// <returns><c>true</c> if setting anchor is allowed; otherwise, <c>false</c>.</returns>
+	public bool IsSetAnchorAllowed()
+	{
+		return setAnchorAllowed;
+	}
+
+
+	/// <summary>
+	/// Determines whether getting world anchor is allowed.
+	/// </summary>
+	/// <returns><c>true</c> if getting anchor is allowed; otherwise, <c>false</c>.</returns>
+	public bool IsGetAchorAllowed()
+	{
+		return getAnchorAllowed;
+	}
+
+
+	/// <summary>
+	/// Gets or sets the world anchor object.
+	/// </summary>
+	public GameObject WorldAnchorObj
+	{
+		get 
+		{
+			if (worldAnchorObj) 
+			{
+				return worldAnchorObj.transform.parent ? worldAnchorObj.transform.parent.gameObject : worldAnchorObj;
+			}
+
+			return null;
+		}
+
+		set
+		{
+			worldAnchorObj = value;
+		}
+	}
+
+
 	void Start () 
 	{
 		try 
@@ -80,6 +119,7 @@ public class ArClientController : MonoBehaviour
 
 			netClient.RegisterHandler(NetMsgType.GetGameAnchorResponse, OnGetGameAnchorResponse);
 			netClient.RegisterHandler(NetMsgType.CheckHostAnchorResponse, OnCheckHostAnchorResponse);
+			netClient.RegisterHandler(NetMsgType.SetGameAnchorResponse, OnSetGameAnchorResponse);
 
 			if(serverHost != "0.0.0.0" && !string.IsNullOrEmpty(serverHost))
 			{
@@ -136,48 +176,106 @@ public class ArClientController : MonoBehaviour
 
 	void Update () 
 	{
+		if (setAnchorAllowed && !worldAnchorObj) 
+		{
+			if(statusText)
+			{
+				statusText.text = "Tap the floor to anchor the play area.";
+			}
+		}
+
 		// check if the world anchor needs to be saved
 		if (setAnchorAllowed && worldAnchorObj && marManager) 
 		{
 			if (setAnchorTillTime < Time.realtimeSinceStartup) 
 			{
 				setAnchorTillTime = Time.realtimeSinceStartup + k_MaxWaitTime;
+				setAnchorAllowed = false;
 
-				marManager.SaveWorldAnchor(worldAnchorObj, anchorId => 
+				Debug.Log("Saving world anchor");
+				if(statusText)
+				{
+					statusText.text = "Saving world anchor";
+				}
+
+				marManager.SaveWorldAnchor(worldAnchorObj, (anchorId, errorMessage) => 
 					{
-						Debug.Log("SaveWorldAnchor: " + anchorId);
-
 						worldAnchorId = anchorId;
-						getAnchorAllowed = !string.IsNullOrEmpty(anchorId);
-						setAnchorAllowed = !getAnchorAllowed;
+
+						if(string.IsNullOrEmpty(errorMessage))
+						{
+							Debug.Log("World anchor saved: " + anchorId);
+							if(statusText)
+							{
+								statusText.text = "World anchor saved: " + anchorId;
+							}
+
+							if(!string.IsNullOrEmpty(anchorId))
+							{
+								SetGameAnchorRequestMsg request = new SetGameAnchorRequestMsg
+								{
+									gameName = this.gameName,
+									anchorId = worldAnchorId,
+									anchorPos = worldAnchorObj.transform.position,
+									anchorRot = worldAnchorObj.transform.rotation
+								};
+
+								netClient.Send(NetMsgType.SetGameAnchorRequest, request);
+							}
+						}
+						else
+						{
+							Debug.Log("Error saving world anchor: " + errorMessage);
+							if(statusText)
+							{
+								statusText.text = "Error saving world anchor: " + errorMessage;
+							}
+						}
 					});
 			}
 		}
 
 		// check if the world anchor needs to be restored
-		if (getAnchorAllowed && !worldAnchorObj && !string.IsNullOrEmpty(worldAnchorId) && marManager) 
+		if (getAnchorAllowed && !string.IsNullOrEmpty(worldAnchorId) && !worldAnchorObj && marManager) 
 		{
 			if (getAnchorTillTime < Time.realtimeSinceStartup) 
 			{
 				getAnchorTillTime = Time.realtimeSinceStartup + k_MaxWaitTime;
+				getAnchorAllowed = false;
 
-				marManager.RestoreWorldAnchor(worldAnchorId, anchorObj =>
+				Debug.Log("Restoring world anchor");
+				if(statusText)
+				{
+					statusText.text = "Restoring world anchor";
+				}
+
+				marManager.RestoreWorldAnchor(worldAnchorId, (anchorObj, errorMessage) =>
 					{
-						Debug.Log("RestoreWorldAnchor: " + worldAnchorId + ", got: " + (anchorObj != null));
-
 						worldAnchorObj = anchorObj;
-						getAnchorAllowed = anchorObj != null;
-						setAnchorAllowed = false;
 
-						if(!getAnchorAllowed)
+						if(string.IsNullOrEmpty(errorMessage))
 						{
-							// send Check-host-anchor
-							CheckHostAnchorRequestMsg request = new CheckHostAnchorRequestMsg
+							Debug.Log("World anchor restored: " + worldAnchorId);
+							if(statusText)
+							{
+								statusText.text = "World anchor restored: " + worldAnchorId;
+							}
+						}
+						else
+						{
+							Debug.Log("Error restoring world anchor: " + errorMessage);
+							if(statusText)
+							{
+								statusText.text = "Error restoring world anchor: " + errorMessage;
+							}
+
+							// send Get-game-anchor
+							GetGameAnchorRequestMsg request = new GetGameAnchorRequestMsg
 							{
 								gameName = this.gameName
 							};
 
-							netClient.Send(NetMsgType.CheckHostAnchorRequest, request);
+							netClient.Send(NetMsgType.GetGameAnchorRequest, request);
 						}
 					});
 			}
@@ -264,14 +362,10 @@ public class ArClientController : MonoBehaviour
 
 			worldAnchorId = response.anchorId;
 			getAnchorAllowed = true;
-			setAnchorAllowed = false;
 		}
 		else
 		{
 			LogMessage("GetGameAnchor " + connId + ": not found.");
-
-			getAnchorAllowed = false;
-			setAnchorAllowed = false;
 
 			// send Check-host-anchor
 			CheckHostAnchorRequestMsg request = new CheckHostAnchorRequestMsg
@@ -291,8 +385,27 @@ public class ArClientController : MonoBehaviour
 		int connId = netMsg.conn.connectionId;
 		LogMessage("CheckHostAnchor " + connId + ": " + (response.granted ? "granted" : "not granted"));
 
-		getAnchorAllowed = false;
 		setAnchorAllowed = response.granted;
+	}
+
+
+	private void OnSetGameAnchorResponse(NetworkMessage netMsg)
+	{
+		var response = netMsg.ReadMessage<SetGameAnchorResponseMsg>();
+
+		int connId = netMsg.conn.connectionId;
+		LogMessage("SetGameAnchorResponse " + connId + ": " + (response.confirmed ? "confirmed" : "not confirmed"));
+
+		if (!response.confirmed) 
+		{
+			// send Get-game-anchor
+			GetGameAnchorRequestMsg request = new GetGameAnchorRequestMsg
+			{
+				gameName = this.gameName
+			};
+
+			netClient.Send(NetMsgType.GetGameAnchorRequest, request);
+		}
 	}
 
 

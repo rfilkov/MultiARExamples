@@ -630,7 +630,7 @@ public class ARKitInteface : ARBaseInterface, ARPlatformInterface
 		if (gameObj == null) 
 		{
 			if (anchorSaved != null)
-				anchorSaved(string.Empty);
+				anchorSaved(string.Empty, "AnchorNotFound");
 			return;
 		}
 
@@ -641,7 +641,8 @@ public class ARKitInteface : ARBaseInterface, ARPlatformInterface
 			{
 				if (anchorSaved != null)
 				{
-					anchorSaved(result.Response == GoogleARCore.CrossPlatform.CloudServiceResponse.Success ? result.Anchor.CloudId : string.Empty);
+					anchorSaved(result.Response == GoogleARCore.CrossPlatform.CloudServiceResponse.Success ? result.Anchor.CloudId : string.Empty,
+						result.Response == GoogleARCore.CrossPlatform.CloudServiceResponse.Success ? string.Empty : result.Response.ToString());
 				}
 			});
 	}
@@ -656,7 +657,7 @@ public class ARKitInteface : ARBaseInterface, ARPlatformInterface
 		if (string.IsNullOrEmpty(anchorId)) 
 		{
 			if (anchorRestored != null)
-				anchorRestored(null);
+				anchorRestored(null, "InvalidAnchorId");
 			return;
 		}
 
@@ -664,7 +665,8 @@ public class ARKitInteface : ARBaseInterface, ARPlatformInterface
 			{
 				if (anchorRestored != null)
 				{
-					anchorRestored(result.Response == GoogleARCore.CrossPlatform.CloudServiceResponse.Success ? result.Anchor.gameObject : null);
+					anchorRestored(result.Response == GoogleARCore.CrossPlatform.CloudServiceResponse.Success ? result.Anchor.gameObject : null,
+						result.Response == GoogleARCore.CrossPlatform.CloudServiceResponse.Success ? string.Empty : result.Response.ToString());
 				}
 			});
 	}

@@ -650,16 +650,23 @@ public class ARCoreInteface : ARBaseInterface, ARPlatformInterface
 
 		if (anchor == null) 
 		{
+			Debug.Log("Anchor not found on object or parent");
+
 			if (anchorSaved != null)
-				anchorSaved(string.Empty);
+				anchorSaved(string.Empty, "AnchorNotFound");
 			return;
 		}
 
+		Debug.Log("Saving cloud anchor...");
+
 		XPSession.CreateCloudAnchor(anchor).ThenAction(result =>
 			{
+				Debug.Log("Saving cloud anchor complete. Result: " + result.Response + ", cloudId: " + (result.Anchor != null ? result.Anchor.CloudId : null));
+
 				if (anchorSaved != null)
 				{
-					anchorSaved(result.Response == CloudServiceResponse.Success ? result.Anchor.CloudId : string.Empty);
+					anchorSaved(result.Response == CloudServiceResponse.Success ? result.Anchor.CloudId : string.Empty,
+						result.Response == CloudServiceResponse.Success ? string.Empty : result.Response.ToString());
 				}
 			});
 	}
@@ -674,7 +681,7 @@ public class ARCoreInteface : ARBaseInterface, ARPlatformInterface
 		if (string.IsNullOrEmpty(anchorId)) 
 		{
 			if (anchorRestored != null)
-				anchorRestored(null);
+				anchorRestored(null, "InvalidAnchorId");
 			return;
 		}
 
@@ -682,7 +689,8 @@ public class ARCoreInteface : ARBaseInterface, ARPlatformInterface
 			{
 				if (anchorRestored != null)
 				{
-					anchorRestored(result.Response == CloudServiceResponse.Success ? result.Anchor.gameObject : null);
+					anchorRestored(result.Response == CloudServiceResponse.Success ? result.Anchor.gameObject : null,
+						result.Response == CloudServiceResponse.Success ? string.Empty : result.Response.ToString());
 				}
 			});
 	}

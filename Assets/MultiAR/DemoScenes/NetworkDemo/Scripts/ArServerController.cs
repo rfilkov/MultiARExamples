@@ -39,6 +39,10 @@ public class ArServerController : MonoBehaviour
 	// api key needed for cloud anchor hosting or resolving
 	//private string cloudApiKey = string.Empty;
 
+	// timeout constants in seconds
+	private const float GameAnchorTimeout = 24 * 3600f;  // how long to keep the anchor
+	private const float AnchorHostingTimeout = 60f;  // how long to wait for anchor hosting
+
 	// cloud anchor Id
 	private string gameCloudAnchorId = string.Empty;
 	private Transform gameAnchorTransform = null;
@@ -130,7 +134,24 @@ public class ArServerController : MonoBehaviour
 
 	void Update () 
 	{
-		
+		// check for waiting too long for anchor hosting
+		if (hostingClientId >= 0 && Time.time > (hostingClientTimestamp + AnchorHostingTimeout)) 
+		{
+			hostingClientId = -1;
+			hostingClientTimestamp = 0f;
+
+			LogToConsole("Hosting client timed out.");
+		}
+
+		// check for anchor timeout
+		if (!string.IsNullOrEmpty(gameCloudAnchorId) && Time.time > (gameAnchorTimestamp + GameAnchorTimeout)) 
+		{
+			gameCloudAnchorId = string.Empty;
+			gameAnchorTransform = null;
+			gameAnchorTimestamp = 0f;
+
+			LogToConsole("Game anchor timed out.");
+		}
 	}
 
 
@@ -192,7 +213,7 @@ public class ArServerController : MonoBehaviour
 		NetworkServer.SendToClient(netMsg.conn.connectionId, NetMsgType.GetGameAnchorResponse, response);
 
 		int connId = netMsg.conn.connectionId;
-		LogToConsole("GetGameAnchor received from client " + connId);
+		LogToConsole("GetGameAnchor received from client " + connId + ", anchorId: " + gameCloudAnchorId);
 	}
 
 
@@ -230,10 +251,12 @@ public class ArServerController : MonoBehaviour
 		if (request == null || request.gameName != gameName)
 			return;
 
-		bool requestConfirmed = string.IsNullOrEmpty(gameCloudAnchorId) && hostingClientId == netMsg.conn.connectionId;
+		bool requestConfirmed = !string.IsNullOrEmpty(request.anchorId) && hostingClientId == netMsg.conn.connectionId;
 
 		if (requestConfirmed) 
 		{
+			hostingClientId = -1;
+
 			gameCloudAnchorId = request.anchorId;
 			gameAnchorTimestamp = Time.realtimeSinceStartup;
 

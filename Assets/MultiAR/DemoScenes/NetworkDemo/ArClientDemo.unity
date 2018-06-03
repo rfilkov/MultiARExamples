@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.44657826, g: 0.49641263, b: 0.57481676, a: 1}
+  m_IndirectSpecularColor: {r: 0.44657898, g: 0.4964133, b: 0.5748178, a: 1}
 --- !u!157 &3
 LightmapSettings:
   m_ObjectHideFlags: 0
@@ -211,6 +211,7 @@ GameObject:
   m_Component:
   - component: {fileID: 754451774}
   - component: {fileID: 754451775}
+  - component: {fileID: 754451776}
   m_Layer: 0
   m_Name: ClientController
   m_TagString: Untagged
@@ -244,10 +245,21 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   gameName: ArGame
   broadcastPort: 8889
-  serverHost: 192.168.0.103
+  serverHost: 192.168.0.102
   serverPort: 8888
   reconnectAfter: 2
   statusText: {fileID: 1092880655}
+--- !u!114 &754451776
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 754451773}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f62ed242463802f489f18a5207b8d13a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &1092880652
 GameObject:
   m_ObjectHideFlags: 0
@@ -330,7 +342,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: Tap to anchor the floor.
+  m_Text: 
 --- !u!222 &1092880656
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -686,7 +698,7 @@ Prefab:
       objectReference: {fileID: 708755512}
     - target: {fileID: 1541651302486692, guid: cb4d91dd0146cac4395f7dadfdec7aac, type: 2}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_ParentPrefab: {fileID: 100100000, guid: cb4d91dd0146cac4395f7dadfdec7aac, type: 2}
