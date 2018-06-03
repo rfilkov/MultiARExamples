@@ -21,6 +21,12 @@ public class ArClientController : MonoBehaviour
 	[Tooltip("Try to reconnect after this amount of seconds.")]
 	public float reconnectAfter = 2f;
 
+	[Tooltip("Registered player prefab.")]
+	public GameObject playerPrefab;
+
+	[Tooltip("Registered spawn prefabs.")]
+	public List<GameObject> spawnPrefabs = new List<GameObject>();
+
 	[Tooltip("UI-Text to display status messages.")]
 	public UnityEngine.UI.Text statusText;
 
@@ -33,12 +39,14 @@ public class ArClientController : MonoBehaviour
 	// Whether the saved world anchor can be used or not
 	private bool getAnchorAllowed = false;
 
+	// reference to the network manager
+	private ClientNetworkManager netManager = null;
 
-	// network client & discovery
+	// reference to the network client & discovery
 	private NetworkClient netClient = null;
-	private ArNetworkDiscovery netDiscovery = null;
+	private ClientNetworkDiscovery netDiscovery = null;
 
-	// reference to multi-ar manager
+	// reference to the multi-ar manager
 	private MultiARManager marManager = null;
 
 
@@ -106,20 +114,39 @@ public class ArClientController : MonoBehaviour
 	{
 		try 
 		{
+			//LogFilter.currentLogLevel = LogFilter.Debug;
+
 			// get reference to the multi-ar manager
 			marManager = MultiARManager.Instance;
 
+			// setup network manager component
+			netManager = GetComponent<ClientNetworkManager>();
+			if(netManager == null)
+			{
+				netManager = gameObject.AddComponent<ClientNetworkManager>();
+			}
+
+			if(netManager != null)
+			{
+				netManager.arClient = this;
+
+				netManager.playerPrefab = playerPrefab;
+				netManager.spawnPrefabs.AddRange(spawnPrefabs);
+			}
+
 			// create the network client
-			LogFilter.currentLogLevel = LogFilter.Debug;
-			netClient = new NetworkClient();
+			//netClient = new NetworkClient();
 
-			netClient.RegisterHandler(MsgType.Error, OnNetworkError);
-			netClient.RegisterHandler(MsgType.Connect, OnClientConnect);
-			netClient.RegisterHandler(MsgType.Disconnect, OnClientDisconnect);
-
-			netClient.RegisterHandler(NetMsgType.GetGameAnchorResponse, OnGetGameAnchorResponse);
-			netClient.RegisterHandler(NetMsgType.CheckHostAnchorResponse, OnCheckHostAnchorResponse);
-			netClient.RegisterHandler(NetMsgType.SetGameAnchorResponse, OnSetGameAnchorResponse);
+//			if(netClient != null)
+//			{
+//				netClient.RegisterHandler(MsgType.Error, OnNetworkError);
+//				netClient.RegisterHandler(MsgType.Connect, OnClientConnect);
+//				netClient.RegisterHandler(MsgType.Disconnect, OnClientDisconnect);
+//
+//				netClient.RegisterHandler(NetMsgType.GetGameAnchorResponse, OnGetGameAnchorResponse);
+//				netClient.RegisterHandler(NetMsgType.CheckHostAnchorResponse, OnCheckHostAnchorResponse);
+//				netClient.RegisterHandler(NetMsgType.SetGameAnchorResponse, OnSetGameAnchorResponse);
+//			}
 
 			if(serverHost != "0.0.0.0" && !string.IsNullOrEmpty(serverHost))
 			{
@@ -129,16 +156,23 @@ public class ArClientController : MonoBehaviour
 			else
 			{
 				// start network discovery
-				netDiscovery = gameObject.AddComponent<ArNetworkDiscovery>();
+				netDiscovery = gameObject.GetComponent<ClientNetworkDiscovery>();
+				if(netDiscovery == null)
+				{
+					netDiscovery = gameObject.AddComponent<ClientNetworkDiscovery>();
+				}
 
-				netDiscovery.arClient = this;
-				netDiscovery.broadcastPort = broadcastPort;
-				netDiscovery.broadcastKey = serverPort;
-				netDiscovery.broadcastData = gameName;
-				netDiscovery.showGUI = false;
+				if(netDiscovery != null)
+				{
+					netDiscovery.arClient = this;
+					netDiscovery.broadcastPort = broadcastPort;
+					//netDiscovery.broadcastKey = serverPort;
+					//netDiscovery.broadcastData = gameName;
+					netDiscovery.showGUI = false;
 
-				netDiscovery.Initialize();
-				netDiscovery.StartAsClient();
+					netDiscovery.Initialize();
+					netDiscovery.StartAsClient();
+				}
 			}
 		} 
 		catch (System.Exception ex) 
@@ -159,24 +193,42 @@ public class ArClientController : MonoBehaviour
 		disconnectedAt = Time.realtimeSinceStartup;
 		dataReceivedAt = 0f;
 
-		if (netDiscovery && netDiscovery.running) 
+//		if (netDiscovery && netDiscovery.running) 
+//		{
+//			netDiscovery.StopBroadcast();
+//			netDiscovery = null;
+//		}
+//
+//		if (netClient != null) 
+//		{
+//			//netClient.Disconnect();
+//			netClient.Shutdown();
+//			netClient = null;
+//		}
+
+//		if (netClient != null) 
+//		{
+//			netClient.Disconnect();
+//		}
+
+		if (netManager != null) 
 		{
-			netDiscovery.StopBroadcast();
-			netDiscovery = null;
+			netManager.StopClient();
 		}
 
-		if (netClient != null) 
-		{
-			//netClient.Disconnect();
-			netClient.Shutdown();
-			netClient = null;
-		}
 	}
 
 
 	void Update () 
 	{
-		if (setAnchorAllowed && !worldAnchorObj) 
+		if (!clientConnected) 
+		{
+			if(statusText)
+			{
+				statusText.text = "Not connected.";
+			}
+		}
+		else if (setAnchorAllowed && !worldAnchorObj) 
 		{
 			if(statusText)
 			{
@@ -185,7 +237,7 @@ public class ArClientController : MonoBehaviour
 		}
 
 		// check if the world anchor needs to be saved
-		if (setAnchorAllowed && worldAnchorObj && marManager) 
+		if (setAnchorAllowed && worldAnchorObj && marManager && netClient != null) 
 		{
 			if (setAnchorTillTime < Time.realtimeSinceStartup) 
 			{
@@ -236,7 +288,7 @@ public class ArClientController : MonoBehaviour
 		}
 
 		// check if the world anchor needs to be restored
-		if (getAnchorAllowed && !string.IsNullOrEmpty(worldAnchorId) && !worldAnchorObj && marManager) 
+		if (getAnchorAllowed && !string.IsNullOrEmpty(worldAnchorId) && !worldAnchorObj && marManager && netClient != null) 
 		{
 			if (getAnchorTillTime < Time.realtimeSinceStartup) 
 			{
@@ -289,25 +341,31 @@ public class ArClientController : MonoBehaviour
 	/// </summary>
 	public void ConnectToServer()
 	{
-		if (netClient != null && serverHost != "0.0.0.0" && !string.IsNullOrEmpty(serverHost)) 
+		if (/**netClient != null*/ netManager != null && serverHost != "0.0.0.0" && !string.IsNullOrEmpty(serverHost)) 
 		{
 			var config = new ConnectionConfig();
 			config.AddChannel(QosType.ReliableSequenced);
 			config.AddChannel(QosType.Unreliable);
 
-			netClient.Configure(config, 1);
-			netClient.Connect(serverHost, serverPort);
+//			netClient.Configure(config, 1);
+//			netClient.Connect(serverHost, serverPort);
+
+			netManager.networkAddress = serverHost;
+			netManager.networkPort = serverPort;
+			netClient = netManager.StartClient(null, config);
 		}
 	}
 
 
 	// handles network error message
-	void OnNetworkError(NetworkMessage netMsg)
+	//public void OnNetworkError(NetworkMessage netMsg)
+	public void OnNetworkError(NetworkConnection conn, int errorCode)
 	{
-		var errorMsg = netMsg.ReadMessage<ErrorMessage>();
-		int connId = netMsg.conn.connectionId;
+		//var errorMsg = netMsg.ReadMessage<ErrorMessage>();
+		//int connId = netMsg.conn.connectionId;
+		int connId = conn.connectionId;
 
-		string sErrorMessage = "NetError " + connId + ": " + (NetworkError)errorMsg.errorCode;
+		string sErrorMessage = "NetError " + connId + ": " + (NetworkError)errorCode;
 		Debug.LogError(sErrorMessage);
 
 		if(statusText)
@@ -318,15 +376,39 @@ public class ArClientController : MonoBehaviour
 
 
 	// handles Connect-message
-	private void OnClientConnect(NetworkMessage netMsg)
+	//public void OnClientConnect(NetworkMessage netMsg)
+	public void OnClientConnect(NetworkConnection conn)
 	{
-		int connId = netMsg.conn.connectionId;
+		//int connId = netMsg.conn.connectionId;
+		int connId = conn.connectionId;
 
 		clientConnected = true;
 		disconnectedAt = 0f;
 		dataReceivedAt = Time.realtimeSinceStartup;
 
-		LogMessage("Connected client " + connId + " IP: " + netMsg.conn.address);
+		LogMessage("Connected client " + connId + " to: " + conn.address);
+
+		// register client handlers
+		conn.RegisterHandler(NetMsgType.GetGameAnchorResponse, OnGetGameAnchorResponse);
+		conn.RegisterHandler(NetMsgType.CheckHostAnchorResponse, OnCheckHostAnchorResponse);
+		conn.RegisterHandler(NetMsgType.SetGameAnchorResponse, OnSetGameAnchorResponse);
+
+//		// register player prefab
+//		if (playerPrefab != null)
+//		{
+//			ClientScene.RegisterPrefab(playerPrefab);
+//		}
+//
+//		// register spawn prefabs
+//		for (int i = 0; i < spawnPrefabs.Count; i++)
+//		{
+//			var prefab = spawnPrefabs[i];
+//
+//			if (prefab != null)
+//			{
+//				ClientScene.RegisterPrefab(prefab);
+//			}
+//		}
 
 		// send Get-game-anchor
 		GetGameAnchorRequestMsg request = new GetGameAnchorRequestMsg
@@ -339,15 +421,17 @@ public class ArClientController : MonoBehaviour
 
 
 	// handles Disconnect-message
-	private void OnClientDisconnect(NetworkMessage netMsg)
+	//public void OnClientDisconnect(NetworkMessage netMsg)
+	public void OnClientDisconnect(NetworkConnection conn)
 	{
-		int connId = netMsg.conn.connectionId;
+		//int connId = netMsg.conn.connectionId;
+		int connId = conn.connectionId;
 
 		clientConnected = false;
 		disconnectedAt = Time.realtimeSinceStartup;
 		dataReceivedAt = Time.realtimeSinceStartup;
 
-		LogMessage("Disconnected client " + connId + " IP: " + netMsg.conn.address);
+		LogMessage("Disconnected client " + connId + " from: " + conn.address);
 	}
 
 
@@ -425,9 +509,56 @@ public class ArClientController : MonoBehaviour
 
 
 /// <summary>
-/// Ar network discovery client.
+/// ArClient's NetworkManager component
 /// </summary>
-public class ArNetworkDiscovery : NetworkDiscovery
+public class ClientNetworkManager : NetworkManager
+{
+
+	public ArClientController arClient;
+
+
+	public override void OnClientConnect(NetworkConnection conn)
+	{
+		//Debug.Log ("OnClientConnect");
+		base.OnClientConnect(conn);
+
+		if (arClient != null) 
+		{
+			arClient.OnClientConnect(conn);
+		}
+	}
+
+
+	public override void OnClientDisconnect(NetworkConnection conn)
+	{
+		//Debug.Log ("OnClientDisconnect");
+
+		if (arClient != null) 
+		{
+			arClient.OnClientDisconnect(conn);
+		}
+
+		base.OnClientDisconnect(conn);
+	}
+
+
+	public override void OnClientError(NetworkConnection conn, int errorCode)
+	{
+		base.OnClientError(conn, errorCode);
+
+		if (arClient != null) 
+		{
+			arClient.OnNetworkError(conn, errorCode);
+		}
+	}
+
+}
+
+
+/// <summary>
+/// ArClient's NetworkDiscovery component
+/// </summary>
+public class ClientNetworkDiscovery : NetworkDiscovery
 {
 
 	public ArClientController arClient;
@@ -435,14 +566,26 @@ public class ArNetworkDiscovery : NetworkDiscovery
 
 	public override void OnReceivedBroadcast(string fromAddress, string data)
 	{
-		if (arClient != null && data == arClient.gameName && 
+		if (string.IsNullOrEmpty(data))
+			return;
+
+		// split the data
+		string[] items = data.Split(':');
+		if (items == null || items.Length < 3)
+			return;
+
+		if (arClient != null && items[0] == arClient.gameName && 
 			(arClient.serverHost == "0.0.0.0" || string.IsNullOrEmpty(arClient.serverHost)))
 		{
-			arClient.serverHost = fromAddress;
-			this.StopBroadcast();
+			Debug.Log("GotBroadcast: " + data);
+
+			arClient.serverHost = items[1];
+			arClient.serverPort = int.Parse(items [2]);
+			//this.StopBroadcast();
 
 			arClient.ConnectToServer();
 		}
 	}
+
 }
 

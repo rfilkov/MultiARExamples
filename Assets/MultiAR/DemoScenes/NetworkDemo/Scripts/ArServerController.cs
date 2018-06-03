@@ -23,6 +23,9 @@ public class ArServerController : MonoBehaviour
 	[Tooltip("Whether the server should use websockets or not.")]
 	public bool useWebSockets = false;
 
+	[Tooltip("Registered player prefab.")]
+	public GameObject playerPrefab;
+
 	[Tooltip("UI-Text to display connection status messages.")]
 	public Text connStatusText;
 
@@ -32,8 +35,8 @@ public class ArServerController : MonoBehaviour
 	[Tooltip("UI-Text to display server console.")]
 	public Text consoleMessages;
 
-
-	// network broadcast component
+	// reference to the network components
+	private NetworkManager netManager = null;
 	private NetworkDiscovery netDiscovery = null;
 
 	// api key needed for cloud anchor hosting or resolving
@@ -60,20 +63,43 @@ public class ArServerController : MonoBehaviour
 	{
 		try 
 		{
-			LogFilter.currentLogLevel = 0; // dev // LogFilter.Debug;
+			//LogFilter.currentLogLevel = 0; // dev // LogFilter.Debug;
 
-			// configure the network server
-			var config = new ConnectionConfig();
-			config.AddChannel(QosType.ReliableSequenced);
-			config.AddChannel(QosType.Unreliable);
+			// setup network manager component
+			netManager = GetComponent<NetworkManager>();
+			if(netManager == null)
+			{
+				netManager = gameObject.AddComponent<NetworkManager>();
+			}
 
-			NetworkServer.Configure(config, maxConnections);
-			NetworkServer.useWebSockets = useWebSockets;
+			// start the server
+			if(netManager != null)
+			{
+				netManager.networkPort = listenOnPort;
+				netManager.useWebSockets = useWebSockets;
 
-			// start the server and register handlers
-			string serverHost = Network.player.ipAddress;
-			NetworkServer.Listen(listenOnPort);
+				netManager.playerPrefab = playerPrefab;
 
+				// configure the network server
+				var config = new ConnectionConfig();
+				config.AddChannel(QosType.ReliableSequenced);
+				config.AddChannel(QosType.Unreliable);
+
+				netManager.StartServer(config, maxConnections);
+			}
+
+//			// configure the network server
+//			var config = new ConnectionConfig();
+//			config.AddChannel(QosType.ReliableSequenced);
+//			config.AddChannel(QosType.Unreliable);
+//
+//			NetworkServer.Configure(config, maxConnections);
+//			NetworkServer.useWebSockets = useWebSockets;
+
+			// start the server
+//			NetworkServer.Listen(listenOnPort);
+
+			// register server handlers
 			NetworkServer.RegisterHandler(MsgType.Error, OnNetworkError);
 			NetworkServer.RegisterHandler(MsgType.Connect, OnServerConnect);
 			NetworkServer.RegisterHandler(MsgType.Disconnect, OnServerDisconnect);
@@ -83,14 +109,22 @@ public class ArServerController : MonoBehaviour
 			NetworkServer.RegisterHandler(NetMsgType.SetGameAnchorRequest, OnSetGameAnchorRequest);
 			NetworkServer.RegisterHandler(NetMsgType.SetClientPoseRequest, OnSetClientPoseRequest);
 
-			// get the broadcasting component
+			// get server ip address
+			string serverHost = Network.player.ipAddress;
+
+			// setup network discovery component
 			netDiscovery = GetComponent<NetworkDiscovery>();
+			if(netDiscovery == null)
+			{
+				netDiscovery = gameObject.AddComponent<NetworkDiscovery>();
+			}
 
 			if(netDiscovery != null)
 			{
 				netDiscovery.broadcastPort = broadcastPort;
-				netDiscovery.broadcastKey = listenOnPort;
-				netDiscovery.broadcastData = gameName;
+				//netDiscovery.broadcastKey = listenOnPort;
+				netDiscovery.broadcastData = gameName + ":" + serverHost + ":" + listenOnPort;
+				netDiscovery.showGUI = false;
 
 				netDiscovery.Initialize();
 				netDiscovery.StartAsServer();
@@ -123,12 +157,19 @@ public class ArServerController : MonoBehaviour
 		dictClientTrans.Clear();
 
 		// shutdown the server and disconnect all clients
-		NetworkServer.Shutdown();
-
-		if (netDiscovery) 
+		//NetworkServer.Shutdown();
+		if (netManager) 
 		{
-			netDiscovery.StopBroadcast();
+			netManager.StopServer();
 		}
+
+//		if (netDiscovery) 
+//		{
+//			netDiscovery.StopBroadcast();
+//		}
+
+		string sMessage = gameName + "-Server stopped.";
+		Debug.Log(sMessage);
 	}
 
 

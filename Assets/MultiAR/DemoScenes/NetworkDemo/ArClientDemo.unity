@@ -245,7 +245,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   gameName: ArGame
   broadcastPort: 8889
-  serverHost: 192.168.0.102
+  serverHost: 0.0.0.0
   serverPort: 8888
   reconnectAfter: 2
   statusText: {fileID: 1092880655}
