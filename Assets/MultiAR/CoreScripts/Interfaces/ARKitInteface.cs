@@ -799,6 +799,18 @@ public class ARKitInteface : ARBaseInterface, ARPlatformInterface
 		UnityARSessionNativeInterface.ARUserAnchorAddedEvent += UserAnchorAdded;
 		UnityARSessionNativeInterface.ARUserAnchorRemovedEvent += UserAnchorRemoved;
 
+		// create ARCoreSession component, if the cloud functionality is used
+		GoogleARCore.ARCoreSession arCoreSession = gameObject.GetComponent<GoogleARCore.ARCoreSession>();
+		if (arCoreSession == null) 
+		{
+			TextAsset cloudApiKey = Resources.Load("RuntimeSettings/CloudServicesApiKey") as TextAsset;
+
+			if (cloudApiKey != null) 
+			{
+				arCoreSession = gameObject.AddComponent<GoogleARCore.ARCoreSession>();
+			}
+		}
+
 		// interface is initialized
 		isInitialized = true;
 	}

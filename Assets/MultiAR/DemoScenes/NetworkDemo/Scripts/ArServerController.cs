@@ -78,7 +78,10 @@ public class ArServerController : MonoBehaviour
 				netManager.networkPort = listenOnPort;
 				netManager.useWebSockets = useWebSockets;
 
-				netManager.playerPrefab = playerPrefab;
+				if(playerPrefab != null)
+				{
+					netManager.playerPrefab = playerPrefab;
+				}
 
 				// configure the network server
 				var config = new ConnectionConfig();

@@ -130,8 +130,15 @@ public class ArClientController : MonoBehaviour
 			{
 				netManager.arClient = this;
 
-				netManager.playerPrefab = playerPrefab;
-				netManager.spawnPrefabs.AddRange(spawnPrefabs);
+				if(playerPrefab != null)
+				{
+					netManager.playerPrefab = playerPrefab;
+				}
+
+				if(spawnPrefabs != null && spawnPrefabs.Count > 0)
+				{
+					netManager.spawnPrefabs.AddRange(spawnPrefabs);
+				}
 			}
 
 			// create the network client

@@ -160,7 +160,7 @@ PlayerSettings:
   applicationIdentifier:
     Android: com.rfsol.myarapp
     Standalone: com.rfsol.myarapp
-    iOS: com.rfsoft.myarapp
+    iOS: com.rfsol.myarapp
   buildNumber: {}
   AndroidBundleVersionCode: 1
   AndroidMinSdkVersion: 24
@@ -553,7 +553,8 @@ PlayerSettings:
   webGLUseWasm: 0
   webGLCompressionFormat: 1
   scriptingDefineSymbols: {}
-  platformArchitecture: {}
+  platformArchitecture:
+    iOS: 1
   scriptingBackend: {}
   incrementalIl2cppBuild: {}
   additionalIl2CppArgs: 
