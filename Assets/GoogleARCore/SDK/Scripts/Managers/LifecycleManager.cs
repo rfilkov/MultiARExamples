@@ -38,8 +38,8 @@ namespace GoogleARCoreInternal
             {
                 if (s_Instance == null)
                 {
-                    //if (Application.platform == RuntimePlatform.IPhonePlayer)
-					if (Application.platform != RuntimePlatform.Android)
+                    if (Application.platform == RuntimePlatform.IPhonePlayer)
+					//if (Application.platform != RuntimePlatform.Android)
                     {
                         s_Instance = ARCoreIOSLifecycleManager.Instance;
                     }

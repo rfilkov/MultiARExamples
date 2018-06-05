@@ -59,6 +59,21 @@ public class ArServerController : MonoBehaviour
 	private Dictionary<int, NetClientData> dictClientTrans = new Dictionary<int, NetClientData>();
 
 
+	/// <summary>
+	/// Gets the anchor transform.
+	/// </summary>
+	/// <returns>The anchor transform.</returns>
+	public Transform GetAnchorTransform()
+	{
+		if (gameAnchorTransform) 
+		{
+			return gameAnchorTransform.parent ? gameAnchorTransform.parent : gameAnchorTransform;
+		}
+
+		return null;
+	}
+
+
 	void Start () 
 	{
 		try 
@@ -110,7 +125,7 @@ public class ArServerController : MonoBehaviour
 			NetworkServer.RegisterHandler(NetMsgType.GetGameAnchorRequest, OnGetGameAnchorRequest);
 			NetworkServer.RegisterHandler(NetMsgType.CheckHostAnchorRequest, OnCheckHostAnchorRequest);
 			NetworkServer.RegisterHandler(NetMsgType.SetGameAnchorRequest, OnSetGameAnchorRequest);
-			NetworkServer.RegisterHandler(NetMsgType.SetClientPoseRequest, OnSetClientPoseRequest);
+			NetworkServer.RegisterHandler(NetMsgType.HandleSyncTransform, ArSyncTransform.HandleSyncTransform);
 
 			// get server ip address
 			string serverHost = Network.player.ipAddress;

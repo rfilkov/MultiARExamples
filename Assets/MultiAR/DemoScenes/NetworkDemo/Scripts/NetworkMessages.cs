@@ -22,9 +22,7 @@ public struct NetMsgType
 
 	public const short SetGameAnchorResponse = 1006;
 
-	public const short SetClientPoseRequest = 1007;
-
-	//public const short SetClientPoseResponse = 1008;
+	public const short HandleSyncTransform = 1007;
 
 }
 

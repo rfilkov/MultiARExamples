@@ -1394,6 +1394,8 @@ MonoBehaviour:
   broadcastPort: 8889
   maxConnections: 8
   useWebSockets: 0
+  playerPrefab: {fileID: 1349481665490388, guid: 75979db9a368a64429fc1c2f660fcd0e,
+    type: 2}
   connStatusText: {fileID: 1997960910}
   serverStatusText: {fileID: 1623333460}
   consoleMessages: {fileID: 1878466517}

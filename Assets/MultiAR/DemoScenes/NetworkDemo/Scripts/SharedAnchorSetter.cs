@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class PlayerController : MonoBehaviour 
+public class SharedAnchorSetter : MonoBehaviour 
 {
 	// reference to MultiARManager
 	private MultiARManager arManager;

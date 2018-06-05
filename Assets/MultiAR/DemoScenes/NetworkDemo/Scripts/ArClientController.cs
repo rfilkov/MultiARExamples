@@ -89,6 +89,21 @@ public class ArClientController : MonoBehaviour
 
 
 	/// <summary>
+	/// Gets the anchor transform.
+	/// </summary>
+	/// <returns>The anchor transform.</returns>
+	public Transform GetAnchorTransform()
+	{
+		if (worldAnchorObj) 
+		{
+			return worldAnchorObj.transform.parent ? worldAnchorObj.transform.parent : worldAnchorObj.transform;
+		}
+
+		return null;
+	}
+
+
+	/// <summary>
 	/// Gets or sets the world anchor object.
 	/// </summary>
 	public GameObject WorldAnchorObj
