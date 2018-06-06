@@ -14,8 +14,8 @@ public class ArServerController : MonoBehaviour
 	[Tooltip("Port to be used for incoming connections.")]
 	public int listenOnPort = 8888;
 
-	[Tooltip("Port used for server broadcast discovery.")]
-	public int broadcastPort = 8889;
+//	[Tooltip("Port used for server broadcast discovery.")]
+//	public int broadcastPort = 8889;
 
 	[Tooltip("Maximum number of allowed connections.")]
 	public int maxConnections = 8;
@@ -36,7 +36,7 @@ public class ArServerController : MonoBehaviour
 	public Text consoleMessages;
 
 	// reference to the network components
-	private NetworkManager netManager = null;
+	private ServerNetworkManager netManager = null;
 	private NetworkDiscovery netDiscovery = null;
 
 	// api key needed for cloud anchor hosting or resolving
@@ -55,8 +55,8 @@ public class ArServerController : MonoBehaviour
 	private int hostingClientId = -1;
 	private float hostingClientTimestamp = 0f;
 
-	// client transforms
-	private Dictionary<int, NetClientData> dictClientTrans = new Dictionary<int, NetClientData>();
+//	// client transforms
+//	private Dictionary<int, NetClientData> dictClientTrans = new Dictionary<int, NetClientData>();
 
 
 	/// <summary>
@@ -81,15 +81,17 @@ public class ArServerController : MonoBehaviour
 			//LogFilter.currentLogLevel = 0; // dev // LogFilter.Debug;
 
 			// setup network manager component
-			netManager = GetComponent<NetworkManager>();
+			netManager = GetComponent<ServerNetworkManager>();
 			if(netManager == null)
 			{
-				netManager = gameObject.AddComponent<NetworkManager>();
+				netManager = gameObject.AddComponent<ServerNetworkManager>();
 			}
 
 			// start the server
 			if(netManager != null)
 			{
+				netManager.arServer = this;
+
 				netManager.networkPort = listenOnPort;
 				netManager.useWebSockets = useWebSockets;
 
@@ -118,9 +120,9 @@ public class ArServerController : MonoBehaviour
 //			NetworkServer.Listen(listenOnPort);
 
 			// register server handlers
-			NetworkServer.RegisterHandler(MsgType.Error, OnNetworkError);
-			NetworkServer.RegisterHandler(MsgType.Connect, OnServerConnect);
-			NetworkServer.RegisterHandler(MsgType.Disconnect, OnServerDisconnect);
+//			NetworkServer.RegisterHandler(MsgType.Error, OnNetworkError);
+//			NetworkServer.RegisterHandler(MsgType.Connect, OnServerConnect);
+//			NetworkServer.RegisterHandler(MsgType.Disconnect, OnServerDisconnect);
 
 			NetworkServer.RegisterHandler(NetMsgType.GetGameAnchorRequest, OnGetGameAnchorRequest);
 			NetworkServer.RegisterHandler(NetMsgType.CheckHostAnchorRequest, OnCheckHostAnchorRequest);
@@ -139,7 +141,7 @@ public class ArServerController : MonoBehaviour
 
 			if(netDiscovery != null)
 			{
-				netDiscovery.broadcastPort = broadcastPort;
+				//netDiscovery.broadcastPort = broadcastPort;
 				//netDiscovery.broadcastKey = listenOnPort;
 				netDiscovery.broadcastData = gameName + ":" + serverHost + ":" + listenOnPort;
 				netDiscovery.showGUI = false;
@@ -171,8 +173,8 @@ public class ArServerController : MonoBehaviour
 
 	void OnDestroy()
 	{
-		// clear client data
-		dictClientTrans.Clear();
+//		// clear client data
+//		dictClientTrans.Clear();
 
 		// shutdown the server and disconnect all clients
 		//NetworkServer.Shutdown();
@@ -214,45 +216,45 @@ public class ArServerController : MonoBehaviour
 	}
 
 
-	// handles network error message
-	void OnNetworkError(NetworkMessage netMsg)
-	{
-		var errorMsg = netMsg.ReadMessage<ErrorMessage>();
-		int connId = netMsg.conn.connectionId;
-
-		LogErrorToConsole("NetError " + connId + " detected: " + (NetworkError)errorMsg.errorCode);
-	}
-
-
-	// handles Connect-message
-	private void OnServerConnect(NetworkMessage netMsg)
-	{
-		int connId = netMsg.conn.connectionId;
-		bool connFound = dictClientTrans.ContainsKey(connId);
-
-		NetClientData clientData = new NetClientData();
-		clientData.ipAddress = netMsg.conn.address;
-		clientData.timestamp = Time.realtimeSinceStartup;
-		clientData.transform = null;
-
-		dictClientTrans [connId] = clientData;
-
-		LogToConsole((!connFound ? "Connected" : "Reconnected") + " client " + connId + " IP: " + netMsg.conn.address);
-	}
-
-
-	// handles Disconnect-message
-	private void OnServerDisconnect(NetworkMessage netMsg)
-	{
-		int connId = netMsg.conn.connectionId;
-
-		if (dictClientTrans.ContainsKey(connId)) 
-		{
-			dictClientTrans.Remove(connId);
-		}
-
-		LogToConsole("Disconnected client " + connId + " IP: " + netMsg.conn.address);
-	}
+//	// handles network error message
+//	void OnNetworkError(NetworkMessage netMsg)
+//	{
+//		var errorMsg = netMsg.ReadMessage<ErrorMessage>();
+//		int connId = netMsg.conn.connectionId;
+//
+//		LogErrorToConsole("NetError " + connId + " detected: " + (NetworkError)errorMsg.errorCode);
+//	}
+//
+//
+//	// handles Connect-message
+//	private void OnServerConnect(NetworkMessage netMsg)
+//	{
+//		int connId = netMsg.conn.connectionId;
+//		bool connFound = dictClientTrans.ContainsKey(connId);
+//
+//		NetClientData clientData = new NetClientData();
+//		clientData.ipAddress = netMsg.conn.address;
+//		clientData.timestamp = Time.realtimeSinceStartup;
+//		clientData.transform = null;
+//
+//		dictClientTrans [connId] = clientData;
+//
+//		LogToConsole((!connFound ? "Connected" : "Reconnected") + " client " + connId + " IP: " + netMsg.conn.address);
+//	}
+//
+//
+//	// handles Disconnect-message
+//	private void OnServerDisconnect(NetworkMessage netMsg)
+//	{
+//		int connId = netMsg.conn.connectionId;
+//
+//		if (dictClientTrans.ContainsKey(connId)) 
+//		{
+//			dictClientTrans.Remove(connId);
+//		}
+//
+//		LogToConsole("Disconnected client " + connId + " IP: " + netMsg.conn.address);
+//	}
 
 
 	// handles GetGameAnchorRequestMsg
@@ -340,63 +342,63 @@ public class ArServerController : MonoBehaviour
 	}
 
 
-	// handles SetClientPoseRequest
-	private void OnSetClientPoseRequest(NetworkMessage netMsg)
-	{
-		var request = netMsg.ReadMessage<SetClientPoseRequestMsg>();
-		if (request == null)
-			return;
-
-		int connId = netMsg.conn.connectionId;
-		bool clientFound = dictClientTrans.ContainsKey(connId);
-
-		if (clientFound) 
-		{
-			NetClientData clientData = dictClientTrans[connId];
-
-			if (clientData.transform == null) 
-			{
-				GameObject clientGo = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-
-				clientGo.name = "Client-" + connId;
-				clientGo.transform.localScale = new Vector3(0.1f, 0.1f, 0.1f);
-
-				clientGo.transform.position = Vector3.zero;
-				clientGo.transform.rotation = Quaternion.identity;
-
-				clientData.transform = clientGo.transform;
-			}
-
-			if (clientData.transform.parent == null && gameAnchorTransform != null) 
-			{
-				clientData.transform.parent = gameAnchorTransform;
-			}
-
-			clientData.transform.localPosition = request.clientPos;
-			clientData.transform.localRotation = request.clientRot;
-
-			clientData.clientPose.position = request.clientPos;
-			clientData.clientPose.rotation = request.clientRot;
-
-			clientData.localPose.position = request.localPos;
-			clientData.localPose.rotation = request.localRot;
-
-			dictClientTrans[connId] = clientData;
-		}
-
-//		SetClientPoseResponseMsg response = new SetClientPoseResponseMsg
-//		{
-//			confirmed = clientFound,
-//		};
+//	// handles SetClientPoseRequest
+//	private void OnSetClientPoseRequest(NetworkMessage netMsg)
+//	{
+//		var request = netMsg.ReadMessage<SetClientPoseRequestMsg>();
+//		if (request == null)
+//			return;
 //
-//		NetworkServer.SendToClient(netMsg.conn.connectionId, NetMsgType.SetClientPoseResponse, response);
-
-		//LogToConsole("SetClientPose received from client " + connId);
-	}
+//		int connId = netMsg.conn.connectionId;
+//		bool clientFound = dictClientTrans.ContainsKey(connId);
+//
+//		if (clientFound) 
+//		{
+//			NetClientData clientData = dictClientTrans[connId];
+//
+//			if (clientData.transform == null) 
+//			{
+//				GameObject clientGo = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+//
+//				clientGo.name = "Client-" + connId;
+//				clientGo.transform.localScale = new Vector3(0.1f, 0.1f, 0.1f);
+//
+//				clientGo.transform.position = Vector3.zero;
+//				clientGo.transform.rotation = Quaternion.identity;
+//
+//				clientData.transform = clientGo.transform;
+//			}
+//
+//			if (clientData.transform.parent == null && gameAnchorTransform != null) 
+//			{
+//				clientData.transform.parent = gameAnchorTransform;
+//			}
+//
+//			clientData.transform.localPosition = request.clientPos;
+//			clientData.transform.localRotation = request.clientRot;
+//
+//			clientData.clientPose.position = request.clientPos;
+//			clientData.clientPose.rotation = request.clientRot;
+//
+//			clientData.localPose.position = request.localPos;
+//			clientData.localPose.rotation = request.localRot;
+//
+//			dictClientTrans[connId] = clientData;
+//		}
+//
+////		SetClientPoseResponseMsg response = new SetClientPoseResponseMsg
+////		{
+////			confirmed = clientFound,
+////		};
+////
+////		NetworkServer.SendToClient(netMsg.conn.connectionId, NetMsgType.SetClientPoseResponse, response);
+//
+//		//LogToConsole("SetClientPose received from client " + connId);
+//	}
 
 
 	// logs message to the console
-	private void LogToConsole(string sMessage)
+	public void LogToConsole(string sMessage)
 	{
 		Debug.Log(sMessage);
 
@@ -417,7 +419,7 @@ public class ArServerController : MonoBehaviour
 
 
 	// logs error message to the console
-	private void LogErrorToConsole(string sMessage)
+	public void LogErrorToConsole(string sMessage)
 	{
 		Debug.LogError(sMessage);
 
@@ -444,3 +446,51 @@ public class ArServerController : MonoBehaviour
 	}
 
 }
+
+
+/// <summary>
+/// ArServer's NetworkManager component
+/// </summary>
+public class ServerNetworkManager : NetworkManager
+{
+
+	public ArServerController arServer;
+
+
+	public override void OnServerConnect(NetworkConnection conn)
+	{
+		base.OnServerConnect(conn);
+
+		if (arServer != null) 
+		{
+			int connId = conn.connectionId;
+			arServer.LogToConsole("Connected client " + connId + " IP: " + conn.address);
+		}
+	}
+
+
+	public override void OnServerDisconnect(NetworkConnection conn)
+	{
+		if (arServer != null) 
+		{
+			int connId = conn.connectionId;
+			arServer.LogToConsole("Disconnected client " + connId + " IP: " + conn.address);
+		}
+
+		base.OnServerDisconnect(conn);
+	}
+
+
+	public override void OnServerError(NetworkConnection conn, int errorCode)
+	{
+		base.OnServerError(conn, errorCode);
+
+		if (arServer != null) 
+		{
+			int connId = conn.connectionId;
+			arServer.LogErrorToConsole("NetError " + connId + " detected: " + (NetworkError)errorCode);
+		}
+	}
+
+}
+

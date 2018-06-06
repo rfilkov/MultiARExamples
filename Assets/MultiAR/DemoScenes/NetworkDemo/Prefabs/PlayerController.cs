@@ -10,13 +10,17 @@ public class PlayerController : NetworkBehaviour // MonoBehaviour
 	public Transform bulletSpawn;
 
 	// reference to the Multi-AR manager
-	private MultiARManager arManager;
-	private Camera arMainCamera;
+	private MultiARManager arManager = null;
+	private Camera arMainCamera = null;
+
+	// reference to the ar-client
+	private ArClientController arClient = null;
 
 
 	void Start()
 	{
 		arManager = MultiARManager.Instance;
+		arClient = ArClientController.Instance;
 	}
 
 
@@ -34,7 +38,7 @@ public class PlayerController : NetworkBehaviour // MonoBehaviour
 //		transform.Rotate(0, x, 0);
 //		transform.Translate(0, 0, z);
 
-		if (!arMainCamera && arManager) 
+		if (!arMainCamera && arManager && arManager.IsInitialized()) 
 		{
 			arMainCamera = arManager.GetMainCamera();
 		}
@@ -45,9 +49,16 @@ public class PlayerController : NetworkBehaviour // MonoBehaviour
 			transform.rotation = arMainCamera.transform.rotation;
 		}
 
-		if (Input.GetKeyDown(KeyCode.Space))
+		// fire when clicked (world anchor must be present)
+		if (arClient && arClient.WorldAnchorObj != null &&
+			arManager && arManager.IsInitialized() && arManager.IsInputAvailable(true))
 		{
-			CmdFire();
+			MultiARInterop.InputAction action = arManager.GetInputAction();
+
+			if (action == MultiARInterop.InputAction.Click)
+			{
+				CmdFire();
+			}
 		}
 	}
 

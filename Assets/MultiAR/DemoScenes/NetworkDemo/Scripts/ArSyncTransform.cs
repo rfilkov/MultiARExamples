@@ -267,7 +267,7 @@ public class ArSyncTransform : NetworkBehaviour
 			return;
 		}
 
-		m_LocalTransformWriter.StartMessage(MsgType.LocalPlayerTransform);
+		m_LocalTransformWriter.StartMessage(NetMsgType.HandleSyncTransform);
 		m_LocalTransformWriter.Write(netId);
 
 		SerializeTransform(m_LocalTransformWriter);
@@ -286,26 +286,26 @@ public class ArSyncTransform : NetworkBehaviour
 		GameObject foundObj = NetworkServer.FindLocalObject(netId);
 		if (foundObj == null)
 		{
-			if (LogFilter.logError) { Debug.LogError("Received ArTransform data for GameObject that doesn't exist"); }
+			if (LogFilter.logError) { Debug.LogError("HandleSyncTransform - NetObject that doesn't exist"); }
 			return;
 		}
 
 		ArSyncTransform foundSync = foundObj.GetComponent<ArSyncTransform>();
 		if (foundSync == null)
 		{
-			if (LogFilter.logError) { Debug.LogError("HandleTransform null target"); }
+			if (LogFilter.logError) { Debug.LogError("HandleSyncTransform - ArSyncTransform component doesn't exist"); }
 			return;
 		}
 
 		if (!foundSync.localPlayerAuthority)
 		{
-			if (LogFilter.logError) { Debug.LogError("HandleTransform no localPlayerAuthority"); }
+			if (LogFilter.logError) { Debug.LogError("HandleSyncTransform - No localPlayerAuthority."); }
 			return;
 		}
 
 		if (netMsg.conn.clientOwnedObjects == null)
 		{
-			if (LogFilter.logError) { Debug.LogError("HandleTransform object not owned by connection"); }
+			if (LogFilter.logError) { Debug.LogError("HandleSyncTransform - object not owned by the client."); }
 			return;
 		}
 

@@ -27,14 +27,14 @@ public struct NetMsgType
 }
 
 
-public struct NetClientData
-{
-	public string ipAddress;
-	public float timestamp;
-	public Transform transform;
-	public Pose clientPose;
-	public Pose localPose;
-}
+//public struct NetClientData
+//{
+//	public string ipAddress;
+//	public float timestamp;
+//	public Transform transform;
+//	public Pose clientPose;
+//	public Pose localPose;
+//}
 
 
 /// <summary>

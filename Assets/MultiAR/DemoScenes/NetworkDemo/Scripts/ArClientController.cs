@@ -9,8 +9,8 @@ public class ArClientController : MonoBehaviour
 	[Tooltip("The name of the AR-game (used by client-server and broadcast messages).")]
 	public string gameName = "ArGame";
 
-	[Tooltip("Port used for server broadcast discovery.")]
-	public int broadcastPort = 8889;
+//	[Tooltip("Port used for server broadcast discovery.")]
+//	public int broadcastPort = 8889;
 
 	[Tooltip("Host name or IP, where the game server is runing.")]
 	public string serverHost = "0.0.0.0";
@@ -29,6 +29,9 @@ public class ArClientController : MonoBehaviour
 
 	[Tooltip("UI-Text to display status messages.")]
 	public UnityEngine.UI.Text statusText;
+
+	// singleton instance of this object
+	private static ArClientController instance = null;
 
 	// Anchor object to be saved or restored.
 	private GameObject worldAnchorObj = null;
@@ -66,6 +69,19 @@ public class ArClientController : MonoBehaviour
 
 	// saved anchor Id
 	private string worldAnchorId = string.Empty;
+
+
+	/// <summary>
+	/// Gets the singleton instance of the ar-client controller.
+	/// </summary>
+	/// <value>The instance.</value>
+	public static ArClientController Instance
+	{
+		get 
+		{
+			return instance;
+		}
+	}
 
 
 	/// <summary>
@@ -122,6 +138,12 @@ public class ArClientController : MonoBehaviour
 		{
 			worldAnchorObj = value;
 		}
+	}
+
+
+	void Awake()
+	{
+		instance = this;
 	}
 
 
@@ -187,7 +209,7 @@ public class ArClientController : MonoBehaviour
 				if(netDiscovery != null)
 				{
 					netDiscovery.arClient = this;
-					netDiscovery.broadcastPort = broadcastPort;
+					//netDiscovery.broadcastPort = broadcastPort;
 					//netDiscovery.broadcastKey = serverPort;
 					//netDiscovery.broadcastData = gameName;
 					netDiscovery.showGUI = false;
@@ -284,6 +306,15 @@ public class ArClientController : MonoBehaviour
 								statusText.text = "World anchor saved: " + anchorId;
 							}
 
+							GameObject gameAnchorGo = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+							gameAnchorGo.name = "GameAnchor-" + anchorId;
+							Transform gameAnchorTransform = gameAnchorGo.transform;
+
+							gameAnchorTransform.SetParent(worldAnchorObj.transform);
+							gameAnchorTransform.localPosition = Vector3.zero;
+							gameAnchorTransform.localRotation = Quaternion.identity;
+							gameAnchorTransform.localScale = new Vector3(0.2f, 0.2f, 0.2f);
+
 							if(!string.IsNullOrEmpty(anchorId))
 							{
 								SetGameAnchorRequestMsg request = new SetGameAnchorRequestMsg
@@ -334,6 +365,15 @@ public class ArClientController : MonoBehaviour
 							{
 								statusText.text = "World anchor restored: " + worldAnchorId;
 							}
+
+							GameObject gameAnchorGo = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+							gameAnchorGo.name = "GameAnchor-" + worldAnchorId;
+							Transform gameAnchorTransform = gameAnchorGo.transform;
+
+							gameAnchorTransform.SetParent(worldAnchorObj.transform);
+							gameAnchorTransform.localPosition = Vector3.zero;
+							gameAnchorTransform.localRotation = Quaternion.identity;
+							gameAnchorTransform.localScale = new Vector3(0.2f, 0.2f, 0.2f);
 						}
 						else
 						{
