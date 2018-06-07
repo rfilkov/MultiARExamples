@@ -72,6 +72,9 @@ public class PlayerController : NetworkBehaviour // MonoBehaviour
 			bulletSpawn.position,
 			bulletSpawn.rotation);
 
+		// Set the player-owner
+		bullet.GetComponent<BulletScript>().playerOwner = gameObject;
+
 		// Add velocity to the bullet
 		bullet.GetComponent<Rigidbody>().velocity = bullet.transform.forward * 6;
 
