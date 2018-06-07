@@ -130,7 +130,11 @@ public class ArServerController : MonoBehaviour
 			NetworkServer.RegisterHandler(NetMsgType.HandleSyncTransform, ArSyncTransform.HandleSyncTransform);
 
 			// get server ip address
+#if !UNITY_WSA
 			string serverHost = Network.player.ipAddress;
+#else
+			string serverHost = "127.0.0.1";
+#endif
 
 			// setup network discovery component
 			netDiscovery = GetComponent<NetworkDiscovery>();
