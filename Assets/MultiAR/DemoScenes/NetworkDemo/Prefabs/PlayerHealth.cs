@@ -35,10 +35,8 @@ public class PlayerHealth : NetworkBehaviour
 			} 
 			else
 			{
-				Debug.Log("Dead!");
-
+				Debug.Log("Player is dead!");
 				RpcSetActive(false);
-				StartCoroutine(RevivePlayerAfterTime());
 			}
 		}
 	}
@@ -52,20 +50,10 @@ public class PlayerHealth : NetworkBehaviour
 		}
 	}
 	
-	private IEnumerator RevivePlayerAfterTime()
-	{
-		yield return new WaitForSeconds(10f);
-
-		currentHealth = maxHealth;
-
-		// called on the Server, will be invoked on the Clients
-		RpcSetActive(true);
-	}
-
 	[ClientRpc]
 	void RpcSetActive(bool isActive)
 	{
-		if (isLocalPlayer)
+		//if (isLocalPlayer)
 		{
 			gameObject.SetActive(isActive);
 		}

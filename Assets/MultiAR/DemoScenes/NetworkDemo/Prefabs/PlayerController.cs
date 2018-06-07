@@ -67,7 +67,7 @@ public class PlayerController : NetworkBehaviour // MonoBehaviour
 	void CmdFire()
 	{
 		// Create the Bullet from the Bullet Prefab
-		var bullet = (GameObject)Instantiate (
+		var bullet = (GameObject)Instantiate(
 			bulletPrefab,
 			bulletSpawn.position,
 			bulletSpawn.rotation);
@@ -80,12 +80,6 @@ public class PlayerController : NetworkBehaviour // MonoBehaviour
 
 		// Destroy the bullet after 2 seconds
 		Destroy(bullet, 2.0f);
-	}
-
-
-	public override void OnStartLocalPlayer()
-	{
-		GetComponent<MeshRenderer>().material.color = Color.blue;
 	}
 
 }

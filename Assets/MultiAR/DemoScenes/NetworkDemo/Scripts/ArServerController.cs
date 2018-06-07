@@ -471,7 +471,7 @@ public class ServerNetworkManager : NetworkManager
 		if (arServer != null) 
 		{
 			int connId = conn.connectionId;
-			arServer.LogToConsole("Connected client " + connId + " IP: " + conn.address);
+			arServer.LogToConsole("Connected client " + connId + ", IP: " + conn.address);
 		}
 	}
 
@@ -481,7 +481,7 @@ public class ServerNetworkManager : NetworkManager
 		if (arServer != null) 
 		{
 			int connId = conn.connectionId;
-			arServer.LogToConsole("Disconnected client " + connId + " IP: " + conn.address);
+			arServer.LogToConsole("Disconnected client " + connId);
 		}
 
 		base.OnServerDisconnect(conn);
