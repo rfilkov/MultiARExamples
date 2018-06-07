@@ -56,7 +56,7 @@ public class ArClientController : MonoBehaviour
 	// whether the client is connected to the server
 	private bool clientConnected = false;
 	private float disconnectedAt = 0f;
-	private float dataReceivedAt = 0f;
+//	private float dataReceivedAt = 0f;
 
 	// max-wait-time for network and cloud operations 
 	private const float k_MaxWaitTime = 10f;
@@ -235,7 +235,7 @@ public class ArClientController : MonoBehaviour
 	{
 		clientConnected = false;
 		disconnectedAt = Time.realtimeSinceStartup;
-		dataReceivedAt = 0f;
+//		dataReceivedAt = 0f;
 
 //		if (netDiscovery && netDiscovery.running) 
 //		{
@@ -454,7 +454,7 @@ public class ArClientController : MonoBehaviour
 
 		clientConnected = true;
 		disconnectedAt = 0f;
-		dataReceivedAt = Time.realtimeSinceStartup;
+//		dataReceivedAt = Time.realtimeSinceStartup;
 
 		LogMessage("Connected client " + connId + " to: " + conn.address);
 
@@ -499,7 +499,7 @@ public class ArClientController : MonoBehaviour
 
 		clientConnected = false;
 		disconnectedAt = Time.realtimeSinceStartup;
-		dataReceivedAt = Time.realtimeSinceStartup;
+//		dataReceivedAt = Time.realtimeSinceStartup;
 
 		LogMessage("Disconnected client " + connId + " from: " + conn.address);
 	}
@@ -540,6 +540,26 @@ public class ArClientController : MonoBehaviour
 		LogMessage("CheckHostAnchor " + connId + ": " + (response.granted ? "granted" : "not granted"));
 
 		setAnchorAllowed = response.granted;
+
+		if (!response.granted) 
+		{
+			StartCoroutine(WaitAndCheckForAnchor());
+		}
+	}
+
+
+	private IEnumerator WaitAndCheckForAnchor()
+	{
+		// wait some time
+		yield return new WaitForSeconds(2f);
+
+		// send Get-game-anchor
+		GetGameAnchorRequestMsg request = new GetGameAnchorRequestMsg
+		{
+			gameName = this.gameName
+		};
+
+		netClient.Send(NetMsgType.GetGameAnchorRequest, request);
 	}
 
 
