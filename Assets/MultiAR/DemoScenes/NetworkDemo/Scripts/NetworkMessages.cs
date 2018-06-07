@@ -183,36 +183,36 @@ public class SetGameAnchorResponseMsg : MessageBase
 }
 
 
-/// <summary>
-/// Set-client-pose request message.
-/// </summary>
-public class SetClientPoseRequestMsg : MessageBase
-{
-	public Vector3 clientPos;
-	public Quaternion clientRot;
-	public Vector3 localPos;
-	public Quaternion localRot;
-
-	public override void Serialize(NetworkWriter writer)
-	{
-		base.Serialize(writer);
-
-		writer.Write(clientPos);
-		writer.Write(clientRot);
-		writer.Write(localPos);
-		writer.Write(localRot);
-	}
-
-	public override void Deserialize(NetworkReader reader)
-	{
-		base.Deserialize(reader);
-
-		clientPos = reader.ReadVector3();
-		clientRot = reader.ReadQuaternion();
-		localPos = reader.ReadVector3();
-		localRot = reader.ReadQuaternion();
-	}
-}
+///// <summary>
+///// Set-client-pose request message.
+///// </summary>
+//public class SetClientPoseRequestMsg : MessageBase
+//{
+//	public Vector3 clientPos;
+//	public Quaternion clientRot;
+//	public Vector3 localPos;
+//	public Quaternion localRot;
+//
+//	public override void Serialize(NetworkWriter writer)
+//	{
+//		base.Serialize(writer);
+//
+//		writer.Write(clientPos);
+//		writer.Write(clientRot);
+//		writer.Write(localPos);
+//		writer.Write(localRot);
+//	}
+//
+//	public override void Deserialize(NetworkReader reader)
+//	{
+//		base.Deserialize(reader);
+//
+//		clientPos = reader.ReadVector3();
+//		clientRot = reader.ReadQuaternion();
+//		localPos = reader.ReadVector3();
+//		localRot = reader.ReadQuaternion();
+//	}
+//}
 
 
 ///// <summary>

@@ -19,7 +19,7 @@ public class ArClientController : MonoBehaviour
 	public int serverPort = 8888;
 
 	[Tooltip("Try to reconnect after this amount of seconds.")]
-	public float reconnectAfter = 2f;
+	public float reconnectAfterSeconds = 2f;
 
 	[Tooltip("Registered player prefab.")]
 	public GameObject playerPrefab;
@@ -270,6 +270,14 @@ public class ArClientController : MonoBehaviour
 			if(statusText)
 			{
 				statusText.text = "Not connected.";
+			}
+
+			if (disconnectedAt > 0f && (Time.realtimeSinceStartup - disconnectedAt) >= reconnectAfterSeconds) 
+			{
+				disconnectedAt = 0f;
+
+				// try to reconnect
+				ConnectToServer();
 			}
 		}
 		else if (setAnchorAllowed && !worldAnchorObj) 

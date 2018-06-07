@@ -196,9 +196,10 @@ public class ArServerController : MonoBehaviour
 	void Update () 
 	{
 		// check for waiting too long for anchor hosting
-		if (hostingClientId >= 0 && Time.time > (hostingClientTimestamp + AnchorHostingTimeout)) 
+		if (hostingClientId >= 0 && hostingClientTimestamp > 0f &&
+			Time.realtimeSinceStartup > (hostingClientTimestamp + AnchorHostingTimeout)) 
 		{
-			hostingClientId = -1;
+			//hostingClientId = -1;
 			hostingClientTimestamp = 0f;
 
 			LogToConsole("Hosting client timed out.");
@@ -285,7 +286,8 @@ public class ArServerController : MonoBehaviour
 		if (request == null || request.gameName != gameName)
 			return;
 
-		bool requestGranted = string.IsNullOrEmpty(gameCloudAnchorId) && hostingClientId < 0;
+		bool requestGranted = string.IsNullOrEmpty(gameCloudAnchorId) && (hostingClientTimestamp == 0f ||
+			Time.realtimeSinceStartup > (hostingClientTimestamp + AnchorHostingTimeout));
 		if (requestGranted) 
 		{
 			hostingClientId = netMsg.conn.connectionId;
@@ -312,7 +314,8 @@ public class ArServerController : MonoBehaviour
 		if (request == null || request.gameName != gameName)
 			return;
 
-		bool requestConfirmed = !string.IsNullOrEmpty(request.anchorId) && hostingClientId == netMsg.conn.connectionId;
+		bool requestConfirmed = !string.IsNullOrEmpty(request.anchorId) && 
+			hostingClientId == netMsg.conn.connectionId;
 
 		if (requestConfirmed) 
 		{
