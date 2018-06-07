@@ -95,7 +95,8 @@ public class ArSyncTransform : NetworkBehaviour
 			SetAnchorTransform();
 		}
 
-		Vector3 locArPosition = anchorTransform ? transform.position - anchorTransform.position : transform.position;
+		//Vector3 locArPosition = anchorTransform ? transform.position - anchorTransform.position : transform.position;
+		Vector3 locArPosition = anchorTransform ? anchorTransform.InverseTransformPoint(transform.position) : transform.position;
 		Quaternion locArRotation = anchorTransform ? Quaternion.Inverse(anchorTransform.rotation) * transform.rotation : transform.rotation;
 
 		// position
@@ -151,7 +152,8 @@ public class ArSyncTransform : NetworkBehaviour
 		}
 
 		// position
-		transform.position = anchorTransform ? anchorTransform.position + locArPosition : locArPosition;
+		//transform.position = anchorTransform ? anchorTransform.position + locArPosition : locArPosition;
+		transform.position = anchorTransform ? anchorTransform.TransformPoint(locArPosition) : locArPosition;
 
 		// rotation
 		transform.rotation = anchorTransform ? anchorTransform.rotation * locArRotation : locArRotation;
