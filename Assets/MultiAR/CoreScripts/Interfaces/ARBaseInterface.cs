@@ -5,6 +5,48 @@ using UnityEngine;
 public class ARBaseInterface : MonoBehaviour  
 {
 
+    // memory buffer management
+    protected const int MemBufferLength = 65535;
+
+    protected byte[] memBuffer = null;
+    protected int memBufferOfs = 0;
+
+
+    protected void InitMemBuffer(int bufLen)
+    {
+        memBuffer = new byte[bufLen];
+        memBufferOfs = 0;
+    }
+
+    protected void WriteMemBuffer(byte[] btData)
+    {
+        if (btData == null)
+            throw new System.Exception("btData is null.");
+        if (memBuffer == null)
+            throw new System.Exception("memBuffer not initialized.");
+        if ((btData.Length + memBufferOfs) > memBuffer.Length)
+            throw new System.Exception("btData doesn't fit memBuffer. bufLen: " + memBuffer.Length + ", bufOfs: " + memBufferOfs + ", dataLen: " + btData.Length);
+
+        System.Buffer.BlockCopy(btData, 0, memBuffer, memBufferOfs, btData.Length);
+    }
+
+    protected byte[] GetMemBuffer()
+    {
+        return memBuffer;
+    }
+
+    protected void ClearMemBuffer()
+    {
+        memBufferOfs = 0;
+    }
+
+    protected void FreeMemBuffer()
+    {
+        memBuffer = null;
+        memBufferOfs = 0;
+    }
+
+
 	public virtual bool AnchorGameObject(GameObject gameObj, GameObject anchorObj)
 	{
 		return false;
@@ -30,7 +72,28 @@ public class ARBaseInterface : MonoBehaviour
 	}
 
 
-	public virtual void RestoreWorldAnchor(string anchorId, AnchorRestoredDelegate anchorRestored)
+    public virtual byte[] GetSavedAnchorData()
+    {
+        return memBuffer;
+    }
+
+
+    public virtual void SetSavedAnchorData(byte[] btData)
+    {
+        if(btData != null)
+        {
+            InitMemBuffer(btData.Length);
+            WriteMemBuffer(btData);
+        }
+        else
+        {
+            memBuffer = null;
+            memBufferOfs = 0;
+        }
+    }
+
+
+    public virtual void RestoreWorldAnchor(string anchorId, AnchorRestoredDelegate anchorRestored)
 	{
 		if (anchorRestored != null) 
 		{

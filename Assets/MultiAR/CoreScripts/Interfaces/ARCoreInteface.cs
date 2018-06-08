@@ -650,18 +650,18 @@ public class ARCoreInteface : ARBaseInterface, ARPlatformInterface
 
 		if (anchor == null) 
 		{
-			Debug.Log("Anchor not found on object or parent");
+			//Debug.Log("Anchor not found on object or parent");
 
 			if (anchorSaved != null)
 				anchorSaved(string.Empty, "AnchorNotFound");
 			return;
 		}
 
-		Debug.Log("Saving cloud anchor...");
+		//Debug.Log("Saving cloud anchor...");
 
 		XPSession.CreateCloudAnchor(anchor).ThenAction(result =>
 			{
-				Debug.Log("Saving cloud anchor complete. Result: " + result.Response + ", cloudId: " + (result.Anchor != null ? result.Anchor.CloudId : null));
+				//Debug.Log("Saving cloud anchor complete. Result: " + result.Response + ", cloudId: " + (result.Anchor != null ? result.Anchor.CloudId : null));
 
 				if (anchorSaved != null)
 				{

@@ -5,6 +5,8 @@ using UnityEngine;
 using UnityEngine.XR;
 using UnityEngine.XR.WSA;
 using UnityEngine.XR.WSA.Input;
+using UnityEngine.XR.WSA.Sharing;
+
 
 public class WinMRInteface : ARBaseInterface, ARPlatformInterface 
 {
@@ -546,9 +548,91 @@ public class WinMRInteface : ARBaseInterface, ARPlatformInterface
 		return false;
 	}
 
-	// -- // -- // -- // -- // -- // -- // -- // -- // -- // -- //
+    public override void SaveWorldAnchor(GameObject gameObj, AnchorSavedDelegate anchorSaved)
+    {
+        if(isDisplayOpaque)
+        {
+            base.SaveWorldAnchor(gameObj, anchorSaved);
+            return;
+        }
 
-	void Start()
+        WorldAnchor anchor = gameObj != null ? gameObj.GetComponent<WorldAnchor>() : null;
+        if (anchor == null)
+            anchor = gameObj != null ? gameObj.GetComponentInParent<WorldAnchor>() : null;
+
+        if (anchor == null)
+        {
+            if (anchorSaved != null)
+                anchorSaved(string.Empty, "AnchorNotFound");
+            return;
+        }
+
+        // init buffer
+        InitMemBuffer(MemBufferLength);
+
+        string anchorId = anchor.gameObject.name;
+        WorldAnchorTransferBatch transferBatch = new WorldAnchorTransferBatch();
+        transferBatch.AddWorldAnchor(anchorId, anchor);
+
+        WorldAnchorTransferBatch.ExportAsync(transferBatch, 
+            (data) =>
+            {
+                WriteMemBuffer(data);
+            }, 
+            (result) =>
+            {
+                if (anchorSaved != null)
+                {
+                    anchorSaved(result == SerializationCompletionReason.Succeeded ? anchorId : string.Empty,
+                        result == SerializationCompletionReason.Succeeded ? string.Empty : result.ToString());
+                }
+            });
+    }
+
+
+    public override void RestoreWorldAnchor(string anchorId, AnchorRestoredDelegate anchorRestored)
+    {
+        if (isDisplayOpaque)
+        {
+            base.RestoreWorldAnchor(anchorId, anchorRestored);
+            return;
+        }
+
+        if (string.IsNullOrEmpty(anchorId))
+        {
+            if (anchorRestored != null)
+                anchorRestored(null, "InvalidAnchorId");
+            return;
+        }
+
+        if(memBuffer == null || memBuffer.Length == 0)
+        {
+            if (anchorRestored != null)
+                anchorRestored(null, "AnchorDataNotSet");
+            return;
+        }
+
+        WorldAnchorTransferBatch.ImportAsync(memBuffer, 
+            (result, batch) =>
+            {
+                GameObject anchorObj = null;
+                if(result == SerializationCompletionReason.Succeeded)
+                {
+                    anchorObj = new GameObject(anchorId);
+                    batch.LockObject(anchorId, anchorObj);
+                }
+
+                if (anchorRestored != null)
+                {
+                    anchorRestored(result == SerializationCompletionReason.Succeeded ? anchorObj : null,
+                        result == SerializationCompletionReason.Succeeded ? string.Empty : result.ToString());
+                }
+            });
+    }
+
+    // -- // -- // -- // -- // -- // -- // -- // -- // -- // -- //
+
+    void Start()
 	{
 		if(!isInterfaceEnabled)
 			return;

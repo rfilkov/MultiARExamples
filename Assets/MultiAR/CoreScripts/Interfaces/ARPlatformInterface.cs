@@ -201,11 +201,23 @@ public interface ARPlatformInterface
 	/// <param name="anchorSaved">Delegate invoked after the anchor gets saved.</param>
 	void SaveWorldAnchor(GameObject gameObj, AnchorSavedDelegate anchorSaved);
 
-	/// <summary>
-	/// Restores the world anchor.
-	/// </summary>
-	/// <param name="anchorId">Anchor identifier.</param>
-	/// <param name="anchorRestored">Delegate invoked after the anchor gets restored.</param>
-	void RestoreWorldAnchor(string anchorId, AnchorRestoredDelegate anchorRestored);
+    /// <summary>
+    /// Restores the world anchor.
+    /// </summary>
+    /// <param name="anchorId">Anchor identifier.</param>
+    /// <param name="anchorRestored">Delegate invoked after the anchor gets restored.</param>
+    void RestoreWorldAnchor(string anchorId, AnchorRestoredDelegate anchorRestored);
+
+    /// <summary>
+    /// Gets the saved anchor data as byte array, or null.
+    /// </summary>
+    /// <returns>The saved anchor data</returns>
+    byte[] GetSavedAnchorData();
+
+    /// <summary>
+    /// Sets the saved anchor data that needs to be restored.
+    /// </summary>
+    /// <param name="btData"></param>
+    void SetSavedAnchorData(byte[] btData);
 
 }
