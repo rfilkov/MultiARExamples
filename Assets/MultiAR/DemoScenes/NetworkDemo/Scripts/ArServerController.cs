@@ -268,13 +268,18 @@ public class ArServerController : MonoBehaviour
 			gameCloudAnchorId = request.anchorId;
 			gameAnchorTimestamp = Time.realtimeSinceStartup;
 
-			GameObject gameAnchorGo = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-			gameAnchorGo.name = "GameAnchor-" + gameCloudAnchorId;
+			GameObject gameAnchorGo = new GameObject("GameAnchor-" + gameCloudAnchorId);
 			gameAnchorTransform = gameAnchorGo.transform;
 
 			gameAnchorTransform.position = request.anchorPos;
 			gameAnchorTransform.rotation = request.anchorRot;
-			gameAnchorTransform.localScale = new Vector3(0.2f, 0.2f, 0.2f);
+
+			GameObject anchoredSphere = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+			anchoredSphere.transform.SetParent(gameAnchorTransform);
+
+			anchoredSphere.transform.localPosition = Vector3.zero;
+			anchoredSphere.transform.localRotation = Quaternion.identity;
+			anchoredSphere.transform.localScale = new Vector3(0.1f, 0.1f, 0.1f);
 		}
 
 		SetGameAnchorResponseMsg response = new SetGameAnchorResponseMsg

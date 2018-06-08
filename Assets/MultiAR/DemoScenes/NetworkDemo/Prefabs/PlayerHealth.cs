@@ -8,12 +8,10 @@ using UnityEngine.Networking;
 public class PlayerHealth : NetworkBehaviour 
 {
 
-	public const int maxHealth = 100;
-
-	public bool destroyOnDeath = false;
+	public const int MaxHealth = 100;
 
 	[SyncVar(hook = "OnChangeHealth")]
-	public int currentHealth = maxHealth;
+	public int currentHealth = MaxHealth;
 
 	public RectTransform healthBar;
 
@@ -29,15 +27,8 @@ public class PlayerHealth : NetworkBehaviour
 
 		if (currentHealth <= 0)
 		{
-			if (destroyOnDeath)
-			{
-				Destroy(gameObject);
-			} 
-			else
-			{
-				Debug.Log("Player is dead!");
-				RpcSetActive(false);
-			}
+			Debug.Log("Player is dead!");
+			RpcSetActive(false);
 		}
 	}
 
