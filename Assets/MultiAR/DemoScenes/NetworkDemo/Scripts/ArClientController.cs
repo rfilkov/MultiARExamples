@@ -257,17 +257,18 @@ public class ArClientController : MonoBehaviour
 		}
 
 		// check if the world anchor needs to be saved
-		if (setAnchorAllowed && worldAnchorObj && marManager && netClient != null) 
+		if (setAnchorAllowed && worldAnchorObj && 
+			marManager && netClient != null) 
 		{
 			if (setAnchorTillTime < Time.realtimeSinceStartup) 
 			{
 				setAnchorTillTime = Time.realtimeSinceStartup + k_MaxWaitTime;
 				setAnchorAllowed = false;
 
-				Debug.Log("Saving world anchor");
+				Debug.Log("Saving world anchor...");
 				if(statusText)
 				{
-					statusText.text = "Saving world anchor";
+					statusText.text = "Saving world anchor...";
 				}
 
 				marManager.SaveWorldAnchor(worldAnchorObj, (anchorId, errorMessage) => 
@@ -317,17 +318,18 @@ public class ArClientController : MonoBehaviour
 		}
 
 		// check if the world anchor needs to be restored
-		if (getAnchorAllowed && !string.IsNullOrEmpty(worldAnchorId) && !worldAnchorObj && marManager && netClient != null) 
+		if (getAnchorAllowed && !string.IsNullOrEmpty(worldAnchorId) && !worldAnchorObj && 
+			marManager && netClient != null) 
 		{
 			if (getAnchorTillTime < Time.realtimeSinceStartup) 
 			{
 				getAnchorTillTime = Time.realtimeSinceStartup + k_MaxWaitTime;
 				getAnchorAllowed = false;
 
-				Debug.Log("Restoring world anchor");
+				Debug.Log("Restoring world anchor...");
 				if(statusText)
 				{
-					statusText.text = "Restoring world anchor";
+					statusText.text = "Restoring world anchor...";
 				}
 
 				marManager.RestoreWorldAnchor(worldAnchorId, (anchorObj, errorMessage) =>
@@ -349,7 +351,7 @@ public class ArClientController : MonoBehaviour
 							gameAnchorTransform.SetParent(worldAnchorObj.transform);
 							gameAnchorTransform.localPosition = Vector3.zero;
 							gameAnchorTransform.localRotation = Quaternion.identity;
-							gameAnchorTransform.localScale = new Vector3(0.2f, 0.2f, 0.2f);
+							gameAnchorTransform.localScale = new Vector3(0.1f, 0.1f, 0.1f);
 						}
 						else
 						{
@@ -482,7 +484,7 @@ public class ArClientController : MonoBehaviour
 
 		setAnchorAllowed = response.granted;
 
-		if (!response.granted) 
+		//if (!response.granted) 
 		{
 			StartCoroutine(WaitAndCheckForAnchor());
 		}

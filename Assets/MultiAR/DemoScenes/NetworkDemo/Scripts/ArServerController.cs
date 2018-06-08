@@ -221,8 +221,19 @@ public class ArServerController : MonoBehaviour
 
 		bool requestGranted = string.IsNullOrEmpty(gameCloudAnchorId) && (hostingClientTimestamp == 0f ||
 			Time.realtimeSinceStartup > (hostingClientTimestamp + AnchorHostingTimeout));
+		
+		if (!requestGranted) 
+		{
+			// check for last-granted client
+			if (string.IsNullOrEmpty (gameCloudAnchorId) && (hostingClientId == netMsg.conn.connectionId)) 
+			{
+				requestGranted = true;
+			}
+		}
+
 		if (requestGranted) 
 		{
+			// save last-granted client & time
 			hostingClientId = netMsg.conn.connectionId;
 			hostingClientTimestamp = Time.realtimeSinceStartup;
 		}
