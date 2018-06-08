@@ -178,20 +178,6 @@ public class ArClientController : MonoBehaviour
 				}
 			}
 
-			// create the network client
-			//netClient = new NetworkClient();
-
-//			if(netClient != null)
-//			{
-//				netClient.RegisterHandler(MsgType.Error, OnNetworkError);
-//				netClient.RegisterHandler(MsgType.Connect, OnClientConnect);
-//				netClient.RegisterHandler(MsgType.Disconnect, OnClientDisconnect);
-//
-//				netClient.RegisterHandler(NetMsgType.GetGameAnchorResponse, OnGetGameAnchorResponse);
-//				netClient.RegisterHandler(NetMsgType.CheckHostAnchorResponse, OnCheckHostAnchorResponse);
-//				netClient.RegisterHandler(NetMsgType.SetGameAnchorResponse, OnSetGameAnchorResponse);
-//			}
-
 			if(serverHost != "0.0.0.0" && !string.IsNullOrEmpty(serverHost))
 			{
 				// connect to the server
@@ -237,24 +223,6 @@ public class ArClientController : MonoBehaviour
 		disconnectedAt = Time.realtimeSinceStartup;
 //		dataReceivedAt = 0f;
 
-//		if (netDiscovery && netDiscovery.running) 
-//		{
-//			netDiscovery.StopBroadcast();
-//			netDiscovery = null;
-//		}
-//
-//		if (netClient != null) 
-//		{
-//			//netClient.Disconnect();
-//			netClient.Shutdown();
-//			netClient = null;
-//		}
-
-//		if (netClient != null) 
-//		{
-//			netClient.Disconnect();
-//		}
-
 		if (netManager != null) 
 		{
 			netManager.StopClient();
@@ -269,7 +237,7 @@ public class ArClientController : MonoBehaviour
 		{
 			if(statusText)
 			{
-				statusText.text = "Not connected.";
+				statusText.text = "Please connect to the game server.";
 			}
 
 			if (disconnectedAt > 0f && (Time.realtimeSinceStartup - disconnectedAt) >= reconnectAfterSeconds) 
@@ -417,9 +385,6 @@ public class ArClientController : MonoBehaviour
 			config.AddChannel(QosType.ReliableSequenced);
 			config.AddChannel(QosType.Unreliable);
 
-//			netClient.Configure(config, 1);
-//			netClient.Connect(serverHost, serverPort);
-
 			netManager.networkAddress = serverHost;
 			netManager.networkPort = serverPort;
 			netClient = netManager.StartClient(null, config);
@@ -428,11 +393,8 @@ public class ArClientController : MonoBehaviour
 
 
 	// handles network error message
-	//public void OnNetworkError(NetworkMessage netMsg)
 	public void OnNetworkError(NetworkConnection conn, int errorCode)
 	{
-		//var errorMsg = netMsg.ReadMessage<ErrorMessage>();
-		//int connId = netMsg.conn.connectionId;
 		int connId = conn.connectionId;
 
 		string sErrorMessage = "NetError " + connId + ": " + (NetworkError)errorCode;
@@ -446,10 +408,8 @@ public class ArClientController : MonoBehaviour
 
 
 	// handles Connect-message
-	//public void OnClientConnect(NetworkMessage netMsg)
 	public void OnClientConnect(NetworkConnection conn)
 	{
-		//int connId = netMsg.conn.connectionId;
 		int connId = conn.connectionId;
 
 		clientConnected = true;
@@ -463,23 +423,6 @@ public class ArClientController : MonoBehaviour
 		conn.RegisterHandler(NetMsgType.CheckHostAnchorResponse, OnCheckHostAnchorResponse);
 		conn.RegisterHandler(NetMsgType.SetGameAnchorResponse, OnSetGameAnchorResponse);
 
-//		// register player prefab
-//		if (playerPrefab != null)
-//		{
-//			ClientScene.RegisterPrefab(playerPrefab);
-//		}
-//
-//		// register spawn prefabs
-//		for (int i = 0; i < spawnPrefabs.Count; i++)
-//		{
-//			var prefab = spawnPrefabs[i];
-//
-//			if (prefab != null)
-//			{
-//				ClientScene.RegisterPrefab(prefab);
-//			}
-//		}
-
 		// send Get-game-anchor
 		GetGameAnchorRequestMsg request = new GetGameAnchorRequestMsg
 		{
@@ -491,10 +434,8 @@ public class ArClientController : MonoBehaviour
 
 
 	// handles Disconnect-message
-	//public void OnClientDisconnect(NetworkMessage netMsg)
 	public void OnClientDisconnect(NetworkConnection conn)
 	{
-		//int connId = netMsg.conn.connectionId;
 		int connId = conn.connectionId;
 
 		clientConnected = false;
@@ -551,15 +492,18 @@ public class ArClientController : MonoBehaviour
 	private IEnumerator WaitAndCheckForAnchor()
 	{
 		// wait some time
-		yield return new WaitForSeconds(2f);
+		yield return new WaitForSeconds(5f);
 
-		// send Get-game-anchor
-		GetGameAnchorRequestMsg request = new GetGameAnchorRequestMsg
+		if (worldAnchorObj == null) 
 		{
-			gameName = this.gameName
-		};
+			// re-send Get-game-anchor
+			GetGameAnchorRequestMsg request = new GetGameAnchorRequestMsg
+			{
+				gameName = this.gameName
+			};
 
-		netClient.Send(NetMsgType.GetGameAnchorRequest, request);
+			netClient.Send(NetMsgType.GetGameAnchorRequest, request);
+		}
 	}
 
 
