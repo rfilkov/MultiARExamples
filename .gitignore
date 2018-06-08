@@ -17,3 +17,5 @@
 /Assets/GoogleARCore/Resources/RuntimeSettings/CloudServicesApiKey.txt.meta
 /ProjectSettings/ARCoreProjectSettings.json
 /ProjectSettings/AndroidResolverDependencies.xml
+/Assets/GoogleARCore/SDK/Plugins/cloud_anchor_manifest.aar
+/Assets/GoogleARCore/SDK/Plugins/cloud_anchor_manifest.aar.meta

@@ -161,14 +161,14 @@ public class ArSyncTransform : NetworkBehaviour
 
 	private void MakeVisible(bool isVisible)
 	{
-//		if (m_transformVisible == isVisible)
-//			return;
-//
-//		m_transformVisible = isVisible;
-//		foreach (Renderer rend in m_renderers) 
-//		{
-//			rend.enabled = isVisible;
-//		}
+		if (m_transformVisible == isVisible)
+			return;
+
+		m_transformVisible = isVisible;
+		foreach (Renderer rend in m_renderers) 
+		{
+			rend.enabled = isVisible;
+		}
 	}
 
 	private void SetAnchorTransform()
