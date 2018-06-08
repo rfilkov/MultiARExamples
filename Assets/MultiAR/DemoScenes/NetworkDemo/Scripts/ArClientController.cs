@@ -290,7 +290,7 @@ public class ArClientController : MonoBehaviour
 							gameAnchorTransform.SetParent(worldAnchorObj.transform);
 							gameAnchorTransform.localPosition = Vector3.zero;
 							gameAnchorTransform.localRotation = Quaternion.identity;
-							gameAnchorTransform.localScale = new Vector3(0.2f, 0.2f, 0.2f);
+							gameAnchorTransform.localScale = new Vector3(0.1f, 0.1f, 0.1f);
 
 							if(!string.IsNullOrEmpty(anchorId))
 							{
@@ -498,6 +498,8 @@ public class ArClientController : MonoBehaviour
 
 		if (worldAnchorObj == null) 
 		{
+			setAnchorAllowed = false;
+
 			// re-send Get-game-anchor
 			GetGameAnchorRequestMsg request = new GetGameAnchorRequestMsg
 			{
@@ -539,7 +541,6 @@ public class ArClientController : MonoBehaviour
 			statusText.text = sMessage;
 		}
 	}
-
 
 }
 
