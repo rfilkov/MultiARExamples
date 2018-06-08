@@ -312,6 +312,10 @@ public class ArClientController : MonoBehaviour
 							{
 								statusText.text = "Error saving world anchor: " + errorMessage;
 							}
+
+							// allow new world anchor setting
+							worldAnchorId = string.Empty;
+							worldAnchorObj = null;
 						}
 					});
 			}
