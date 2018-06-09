@@ -12,10 +12,10 @@ public class ArServerController : MonoBehaviour
 	public string gameName = "ArGame";
 
 	[Tooltip("Port to be used for incoming connections.")]
-	public int listenOnPort = 8888;
+	public int listenOnPort = 7777;
 
 //	[Tooltip("Port used for server broadcast discovery.")]
-//	public int broadcastPort = 8889;
+//	public int broadcastPort = 7779;
 
 	[Tooltip("Maximum number of allowed connections.")]
 	public int maxConnections = 8;
@@ -34,6 +34,13 @@ public class ArServerController : MonoBehaviour
 
 	[Tooltip("UI-Text to display server console.")]
 	public Text consoleMessages;
+
+	[Tooltip("Whether to show debug messages.")]
+	public bool showDebugMessages;
+
+	// number of connections
+	[HideInInspector]
+	public int numConnections = 0;
 
 	// reference to the network components
 	private ServerNetworkManager netManager = null;
@@ -144,10 +151,12 @@ public class ArServerController : MonoBehaviour
 				serverStatusText.text = sMessage;
 			}
 
+			// show current connections
+			LogConnections();
 		} 
 		catch (System.Exception ex) 
 		{
-			Debug.Log(ex.Message + "\n" + ex.StackTrace);
+			Debug.LogError(ex.Message + "\n" + ex.StackTrace);
 
 			if(serverStatusText)
 			{
@@ -179,7 +188,7 @@ public class ArServerController : MonoBehaviour
 			//hostingClientId = -1;
 			hostingClientTimestamp = 0f;
 
-			LogToConsole("Hosting client timed out.");
+			LogDebugToConsole("Hosting client timed out.");
 		}
 
 		// check for anchor timeout
@@ -212,7 +221,7 @@ public class ArServerController : MonoBehaviour
 		NetworkServer.SendToClient(netMsg.conn.connectionId, NetMsgType.GetGameAnchorResponse, response);
 
 		int connId = netMsg.conn.connectionId;
-		LogToConsole("GetGameAnchor received from client " + connId + ", anchorId: " + gameCloudAnchorId);
+		LogDebugToConsole("GetGameAnchor received from client " + connId + ", anchorId: " + gameCloudAnchorId);
 	}
 
 
@@ -251,7 +260,7 @@ public class ArServerController : MonoBehaviour
 		NetworkServer.SendToClient(netMsg.conn.connectionId, NetMsgType.CheckHostAnchorResponse, response);
 
 		int connId = netMsg.conn.connectionId;
-		LogToConsole("CheckHostAnchor received from client " + connId);
+		LogDebugToConsole("CheckHostAnchor received from client " + connId);
 	}
 
 
@@ -296,56 +305,67 @@ public class ArServerController : MonoBehaviour
 		NetworkServer.SendToClient(netMsg.conn.connectionId, NetMsgType.SetGameAnchorResponse, response);
 
 		int connId = netMsg.conn.connectionId;
-		LogToConsole("SetGameAnchor received from client " + connId + ", anchorId: " + request.anchorId);
+		LogDebugToConsole("SetGameAnchor received from client " + connId + ", anchorId: " + request.anchorId);
 	}
 
 
-	// logs message to the console
+	// updates the connection message
+	public void LogConnections()
+	{
+		if (connStatusText) 
+		{
+			connStatusText.text = numConnections.ToString() + " player(s) connected.";
+		}
+	}
+
+	// adds the message to console
+	private void AddToConsole(string sMessage)
+	{
+		if (consoleMessages) 
+		{
+			consoleMessages.text += "\r\n" + sMessage;
+
+			// scroll to end
+			ScrollRect scrollRect = consoleMessages.gameObject.GetComponentInParent<ScrollRect>();
+			if (scrollRect) 
+			{
+				Canvas.ForceUpdateCanvases();
+				scrollRect.verticalScrollbar.value = 0f;
+				Canvas.ForceUpdateCanvases();		
+			}
+		}
+	}
+
+	// logs message to console
 	public void LogToConsole(string sMessage)
 	{
 		Debug.Log(sMessage);
-
-		if (consoleMessages) 
-		{
-			consoleMessages.text += "\r\n" + sMessage;
-
-			// scroll to end
-			ScrollRect scrollRect = consoleMessages.gameObject.GetComponentInParent<ScrollRect>();
-			if (scrollRect) 
-			{
-				Canvas.ForceUpdateCanvases();
-				scrollRect.verticalScrollbar.value = 0f;
-				Canvas.ForceUpdateCanvases();		
-			}
-		}
+		AddToConsole(sMessage);
 	}
 
-
-	// logs error message to the console
+	// logs error message to console
 	public void LogErrorToConsole(string sMessage)
 	{
 		Debug.LogError(sMessage);
-
-		if (consoleMessages) 
-		{
-			consoleMessages.text += "\r\n" + sMessage;
-
-			// scroll to end
-			ScrollRect scrollRect = consoleMessages.gameObject.GetComponentInParent<ScrollRect>();
-			if (scrollRect) 
-			{
-				Canvas.ForceUpdateCanvases();
-				scrollRect.verticalScrollbar.value = 0f;
-				Canvas.ForceUpdateCanvases();		
-			}
-		}
+		AddToConsole(sMessage);
 	}
 
-
-	// logs error message to the console
+	// logs error message to console
 	private void LogErrorToConsole(System.Exception ex)
 	{
-		LogErrorToConsole(ex.Message + "\n" + ex.StackTrace);
+		Debug.LogError(ex.Message + "\n" + ex.StackTrace);
+		AddToConsole(ex.Message);
+	}
+
+	// logs debug message to console
+	public void LogDebugToConsole(string sMessage)
+	{
+		Debug.Log(sMessage);
+
+		if (showDebugMessages) 
+		{
+			AddToConsole(sMessage);
+		}
 	}
 
 }
@@ -368,6 +388,9 @@ public class ServerNetworkManager : NetworkManager
 		{
 			int connId = conn.connectionId;
 			arServer.LogToConsole("Connected client " + connId + ", IP: " + conn.address);
+
+			arServer.numConnections++;
+			arServer.LogConnections();
 		}
 	}
 
@@ -378,6 +401,9 @@ public class ServerNetworkManager : NetworkManager
 		{
 			int connId = conn.connectionId;
 			arServer.LogToConsole("Disconnected client " + connId);
+
+			arServer.numConnections--;
+			arServer.LogConnections();
 		}
 
 		base.OnServerDisconnect(conn);

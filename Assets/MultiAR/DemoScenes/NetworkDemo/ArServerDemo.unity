@@ -1390,7 +1390,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   gameName: ArGame
-  listenOnPort: 8888
+  listenOnPort: 7777
   maxConnections: 8
   useWebSockets: 0
   playerPrefab: {fileID: 1349481665490388, guid: 75979db9a368a64429fc1c2f660fcd0e,
@@ -1398,6 +1398,8 @@ MonoBehaviour:
   connStatusText: {fileID: 1997960910}
   serverStatusText: {fileID: 1623333460}
   consoleMessages: {fileID: 1878466517}
+  showDebugMessages: 0
+  numConnections: 0
 --- !u!1 &1878466515
 GameObject:
   m_ObjectHideFlags: 0
@@ -1621,8 +1623,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0, y: -10}
-  m_SizeDelta: {x: 0, y: 30}
+  m_AnchoredPosition: {x: 5, y: -10}
+  m_SizeDelta: {x: -10, y: 30}
   m_Pivot: {x: 0.5, y: 1}
 --- !u!114 &1997960909
 MonoBehaviour:

@@ -244,15 +244,15 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   gameName: ArGame
-  broadcastPort: 8889
   serverHost: 0.0.0.0
-  serverPort: 8888
-  reconnectAfter: 2
+  serverPort: 7777
+  reconnectAfterSeconds: 2
   playerPrefab: {fileID: 1349481665490388, guid: 75979db9a368a64429fc1c2f660fcd0e,
     type: 2}
   spawnPrefabs:
   - {fileID: 1180623737584186, guid: e580335d513c3fe46914ea1af993d23f, type: 2}
   statusText: {fileID: 1092880655}
+  showDebugMessages: 0
 --- !u!114 &754451776
 MonoBehaviour:
   m_ObjectHideFlags: 0

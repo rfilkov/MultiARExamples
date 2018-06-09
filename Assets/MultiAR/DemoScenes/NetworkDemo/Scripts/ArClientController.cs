@@ -10,13 +10,13 @@ public class ArClientController : MonoBehaviour
 	public string gameName = "ArGame";
 
 //	[Tooltip("Port used for server broadcast discovery.")]
-//	public int broadcastPort = 8889;
+//	public int broadcastPort = 7779;
 
 	[Tooltip("Host name or IP, where the game server is runing.")]
 	public string serverHost = "0.0.0.0";
 
 	[Tooltip("Port, where the game data server is listening.")]
-	public int serverPort = 8888;
+	public int serverPort = 7777;
 
 	[Tooltip("Try to reconnect after this amount of seconds.")]
 	public float reconnectAfterSeconds = 2f;
@@ -29,6 +29,9 @@ public class ArClientController : MonoBehaviour
 
 	[Tooltip("UI-Text to display status messages.")]
 	public UnityEngine.UI.Text statusText;
+
+	[Tooltip("Whether to show debug messages.")]
+	public bool showDebugMessages;
 
 	// singleton instance of this object
 	private static ArClientController instance = null;
@@ -210,7 +213,7 @@ public class ArClientController : MonoBehaviour
 		} 
 		catch (System.Exception ex) 
 		{
-			Debug.Log(ex.Message + "\n" + ex.StackTrace);
+			Debug.LogError(ex.Message + "\n" + ex.StackTrace);
 
 			if(statusText)
 			{
@@ -240,7 +243,7 @@ public class ArClientController : MonoBehaviour
 		{
 			if(statusText)
 			{
-				statusText.text = "Please connect to the game server.";
+				statusText.text = "Connect to the game server.";
 			}
 
 			if (disconnectedAt > 0f && (Time.realtimeSinceStartup - disconnectedAt) >= reconnectAfterSeconds) 
@@ -268,11 +271,7 @@ public class ArClientController : MonoBehaviour
 				setAnchorTillTime = Time.realtimeSinceStartup + k_MaxWaitTime;
 				setAnchorAllowed = false;
 
-				Debug.Log("Saving world anchor...");
-				if(statusText)
-				{
-					statusText.text = "Saving world anchor...";
-				}
+				LogMessage("Saving world anchor...");
 
 				marManager.SaveWorldAnchor(worldAnchorObj, (anchorId, errorMessage) => 
 					{
@@ -280,11 +279,7 @@ public class ArClientController : MonoBehaviour
 
 						if(string.IsNullOrEmpty(errorMessage))
 						{
-							Debug.Log("World anchor saved: " + anchorId);
-							if(statusText)
-							{
-								statusText.text = "World anchor saved: " + anchorId;
-							}
+							LogMessage("World anchor saved: " + anchorId);
 
 							GameObject gameAnchorGo = GameObject.CreatePrimitive(PrimitiveType.Sphere);
 							gameAnchorGo.name = "GameAnchor-" + anchorId;
@@ -307,15 +302,16 @@ public class ArClientController : MonoBehaviour
 								};
 
 								netClient.Send(NetMsgType.SetGameAnchorRequest, request);
+
+								if(statusText)
+								{
+									statusText.text = "Tap to shoot.";
+								}
 							}
 						}
 						else
 						{
-							Debug.Log("Error saving world anchor: " + errorMessage);
-							if(statusText)
-							{
-								statusText.text = "Error saving world anchor: " + errorMessage;
-							}
+							LogErrorMessage("Error saving world anchor: " + errorMessage);
 
 							// allow new world anchor setting
 							worldAnchorId = string.Empty;
@@ -334,11 +330,7 @@ public class ArClientController : MonoBehaviour
 				getAnchorTillTime = Time.realtimeSinceStartup + k_MaxWaitTime;
 				getAnchorAllowed = false;
 
-				Debug.Log("Restoring world anchor...");
-				if(statusText)
-				{
-					statusText.text = "Restoring world anchor...";
-				}
+				LogMessage("Restoring world anchor...");
 
 				marManager.SetSavedAnchorData(worldAnchorData);
 				marManager.RestoreWorldAnchor(worldAnchorId, (anchorObj, errorMessage) =>
@@ -347,11 +339,7 @@ public class ArClientController : MonoBehaviour
 
 						if(string.IsNullOrEmpty(errorMessage))
 						{
-							Debug.Log("World anchor restored: " + worldAnchorId);
-							if(statusText)
-							{
-								statusText.text = "World anchor restored: " + worldAnchorId;
-							}
+							LogMessage("World anchor restored: " + worldAnchorId);
 
 							GameObject gameAnchorGo = GameObject.CreatePrimitive(PrimitiveType.Sphere);
 							gameAnchorGo.name = "GameAnchor-" + worldAnchorId;
@@ -361,14 +349,15 @@ public class ArClientController : MonoBehaviour
 							gameAnchorTransform.localPosition = Vector3.zero;
 							gameAnchorTransform.localRotation = Quaternion.identity;
 							gameAnchorTransform.localScale = new Vector3(0.1f, 0.1f, 0.1f);
+
+							if(statusText)
+							{
+								statusText.text = "Tap to shoot.";
+							}
 						}
 						else
 						{
-							Debug.Log("Error restoring world anchor: " + errorMessage);
-							if(statusText)
-							{
-								statusText.text = "Error restoring world anchor: " + errorMessage;
-							}
+							LogErrorMessage("Error restoring world anchor: " + errorMessage);
 
 							// send Get-game-anchor
 							GetGameAnchorRequestMsg request = new GetGameAnchorRequestMsg
@@ -409,12 +398,7 @@ public class ArClientController : MonoBehaviour
 		int connId = conn.connectionId;
 
 		string sErrorMessage = "NetError " + connId + ": " + (NetworkError)errorCode;
-		Debug.LogError(sErrorMessage);
-
-		if(statusText)
-		{
-			statusText.text = sErrorMessage;
-		}
+		LogErrorMessage(sErrorMessage);
 	}
 
 
@@ -427,7 +411,7 @@ public class ArClientController : MonoBehaviour
 		disconnectedAt = 0f;
 //		dataReceivedAt = Time.realtimeSinceStartup;
 
-		LogMessage("Connected client " + connId + " to: " + conn.address);
+		LogDebugMessage("Connected client " + connId + " to: " + conn.address);
 
 		// register client handlers
 		conn.RegisterHandler(NetMsgType.GetGameAnchorResponse, OnGetGameAnchorResponse);
@@ -453,7 +437,7 @@ public class ArClientController : MonoBehaviour
 		disconnectedAt = Time.realtimeSinceStartup;
 //		dataReceivedAt = Time.realtimeSinceStartup;
 
-		LogMessage("Disconnected client " + connId + " from: " + conn.address);
+		LogDebugMessage("Disconnected client " + connId + " from: " + conn.address);
 	}
 
 
@@ -464,7 +448,7 @@ public class ArClientController : MonoBehaviour
 
 		if (response.found && !string.IsNullOrEmpty(response.anchorId)) 
 		{
-			LogMessage("GetGameAnchor " + connId + " found: " + response.anchorId);
+			LogDebugMessage("GetGameAnchor " + connId + " found: " + response.anchorId);
 
 			worldAnchorId = response.anchorId;
 			worldAnchorData = response.anchorData;
@@ -472,7 +456,7 @@ public class ArClientController : MonoBehaviour
 		}
 		else
 		{
-			LogMessage("GetGameAnchor " + connId + ": not found.");
+			LogDebugMessage("GetGameAnchor " + connId + ": not found.");
 
 			// send Check-host-anchor
 			CheckHostAnchorRequestMsg request = new CheckHostAnchorRequestMsg
@@ -490,7 +474,7 @@ public class ArClientController : MonoBehaviour
 		var response = netMsg.ReadMessage<CheckHostAnchorResponseMsg>();
 
 		int connId = netMsg.conn.connectionId;
-		LogMessage("CheckHostAnchor " + connId + ": " + (response.granted ? "granted" : "not granted"));
+		LogDebugMessage("CheckHostAnchor " + connId + ": " + (response.granted ? "granted" : "not granted"));
 
 		setAnchorAllowed = response.granted;
 
@@ -526,7 +510,7 @@ public class ArClientController : MonoBehaviour
 		var response = netMsg.ReadMessage<SetGameAnchorResponseMsg>();
 
 		int connId = netMsg.conn.connectionId;
-		LogMessage("SetGameAnchorResponse " + connId + ": " + (response.confirmed ? "confirmed" : "not confirmed"));
+		LogDebugMessage("SetGameAnchorResponse " + connId + ": " + (response.confirmed ? "confirmed" : "not confirmed"));
 
 		if (!response.confirmed) 
 		{
@@ -547,6 +531,30 @@ public class ArClientController : MonoBehaviour
 		Debug.Log(sMessage);
 
 		if(statusText)
+		{
+			statusText.text = sMessage;
+		}
+	}
+
+
+	// logs the given error message to console and the screen
+	private void LogErrorMessage(string sMessage)
+	{
+		Debug.LogError(sMessage);
+
+		if(statusText)
+		{
+			statusText.text = sMessage;
+		}
+	}
+
+
+	// logs the given debug message to console and the screen
+	private void LogDebugMessage(string sMessage)
+	{
+		Debug.Log(sMessage);
+
+		if(statusText && showDebugMessages)
 		{
 			statusText.text = sMessage;
 		}
