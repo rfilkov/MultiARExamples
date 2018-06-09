@@ -56,21 +56,33 @@ public class GetGameAnchorResponseMsg : MessageBase
 	public bool found;
 	public string anchorId;
 	//public string apiKey;
+	public byte[] anchorData;
 
 	public override void Serialize(NetworkWriter writer)
 	{
 		base.Serialize(writer);
+
 		writer.Write(found);
 		writer.Write(anchorId);
 		//writer.Write(apiKey);
+
+		if (anchorData == null) 
+		{
+			anchorData = new byte[0];
+		}
+
+		writer.WriteBytesAndSize(anchorData, anchorData.Length);
 	}
 
 	public override void Deserialize(NetworkReader reader)
 	{
 		base.Deserialize(reader);
+
 		found = reader.ReadBoolean();
 		anchorId = reader.ReadString();
 		//apiKey = reader.ReadString();
+
+		anchorData = reader.ReadBytesAndSize();
 	}
 }
 
@@ -129,6 +141,7 @@ public class SetGameAnchorRequestMsg : MessageBase
 	public string anchorId;
 	public Vector3 anchorPos;
 	public Quaternion anchorRot;
+	public byte[] anchorData;
 
 	public override void Serialize(NetworkWriter writer)
 	{
@@ -138,6 +151,13 @@ public class SetGameAnchorRequestMsg : MessageBase
 		writer.Write(anchorId);
 		writer.Write(anchorPos);
 		writer.Write(anchorRot);
+
+		if (anchorData == null) 
+		{
+			anchorData = new byte[0];
+		}
+
+		writer.WriteBytesAndSize(anchorData, anchorData.Length);
 	}
 
 	public override void Deserialize(NetworkReader reader)
@@ -148,6 +168,8 @@ public class SetGameAnchorRequestMsg : MessageBase
 		anchorId = reader.ReadString();
 		anchorPos = reader.ReadVector3();
 		anchorRot = reader.ReadQuaternion();
+
+		anchorData = reader.ReadBytesAndSize();
 	}
 }
 

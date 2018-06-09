@@ -70,6 +70,9 @@ public class ArClientController : MonoBehaviour
 	// saved anchor Id
 	private string worldAnchorId = string.Empty;
 
+	// saved anchor data, if any
+	private byte[] worldAnchorData = null;
+
 
 	/// <summary>
 	/// Gets the singleton instance of the ar-client controller.
@@ -299,7 +302,8 @@ public class ArClientController : MonoBehaviour
 									gameName = this.gameName,
 									anchorId = worldAnchorId,
 									anchorPos = worldAnchorObj.transform.position,
-									anchorRot = worldAnchorObj.transform.rotation
+									anchorRot = worldAnchorObj.transform.rotation,
+									anchorData = marManager.GetSavedAnchorData()
 								};
 
 								netClient.Send(NetMsgType.SetGameAnchorRequest, request);
@@ -336,6 +340,7 @@ public class ArClientController : MonoBehaviour
 					statusText.text = "Restoring world anchor...";
 				}
 
+				marManager.SetSavedAnchorData(worldAnchorData);
 				marManager.RestoreWorldAnchor(worldAnchorId, (anchorObj, errorMessage) =>
 					{
 						worldAnchorObj = anchorObj;
@@ -462,6 +467,7 @@ public class ArClientController : MonoBehaviour
 			LogMessage("GetGameAnchor " + connId + " found: " + response.anchorId);
 
 			worldAnchorId = response.anchorId;
+			worldAnchorData = response.anchorData;
 			getAnchorAllowed = true;
 		}
 		else

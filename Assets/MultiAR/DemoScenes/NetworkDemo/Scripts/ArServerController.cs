@@ -51,6 +51,9 @@ public class ArServerController : MonoBehaviour
 	private Transform gameAnchorTransform = null;
 	private float gameAnchorTimestamp = 0f;
 
+	// game anchor data, if any
+	private byte[] gameAnchorData = null;
+
 	// id of the hosting-requesting cloud-anchor client 
 	private int hostingClientId = -1;
 	private float hostingClientTimestamp = 0f;
@@ -202,7 +205,8 @@ public class ArServerController : MonoBehaviour
 		{
 			found = !string.IsNullOrEmpty(gameCloudAnchorId),
 			anchorId = gameCloudAnchorId,
-			//apiKey = cloudApiKey
+			//apiKey = cloudApiKey,
+			anchorData = gameAnchorData
 		};
 
 		NetworkServer.SendToClient(netMsg.conn.connectionId, NetMsgType.GetGameAnchorResponse, response);
@@ -267,6 +271,8 @@ public class ArServerController : MonoBehaviour
 
 			gameCloudAnchorId = request.anchorId;
 			gameAnchorTimestamp = Time.realtimeSinceStartup;
+
+			gameAnchorData = request.anchorData;
 
 			GameObject gameAnchorGo = new GameObject("GameAnchor-" + gameCloudAnchorId);
 			gameAnchorTransform = gameAnchorGo.transform;

@@ -475,6 +475,32 @@ public class MultiARManager : MonoBehaviour
 	}
 
 	/// <summary>
+	/// Gets the saved anchor data as byte array, or null.
+	/// </summary>
+	/// <returns>The saved anchor data</returns>
+	public byte[] GetSavedAnchorData()
+	{
+		if(arInterface != null)
+		{
+			return arInterface.GetSavedAnchorData();
+		}
+
+		return null;
+	}
+
+	/// <summary>
+	/// Sets the saved anchor data that needs to be restored.
+	/// </summary>
+	/// <param name="btData"></param>
+	public void SetSavedAnchorData(byte[] btData)
+	{
+		if(arInterface != null)
+		{
+			arInterface.SetSavedAnchorData(btData);
+		}
+	}
+
+	/// <summary>
 	/// Anchors the game object to world.
 	/// </summary>
 	/// <returns>The anchor Id, or empty string.</returns>
