@@ -11,6 +11,10 @@ public class ARBaseInterface : MonoBehaviour
     protected byte[] memBuffer = null;
     protected int memBufferOfs = 0;
 
+	// image anchors
+	protected Dictionary<string, GameObject> dictImageAnchors = new Dictionary<string, GameObject>();
+	protected List<string> alImageAnchorNames = new List<string>();
+
 
     protected void InitMemBuffer(int bufLen)
     {
@@ -99,6 +103,42 @@ public class ARBaseInterface : MonoBehaviour
 		{
 			anchorRestored(null, "RestoreAnchorNotSupported");
 		}
+	}
+
+
+	public virtual void InitImageAnchorsTracking(AnchorImageManager imageManager)
+	{
+	}
+
+
+	public virtual void EnableImageAnchorsTracking()
+	{
+	}
+
+
+	public virtual void DisableImageAnchorsTracking()
+	{
+	}
+
+
+	public List<string> GetTrackedImageAnchorNames()
+	{
+		return alImageAnchorNames;
+	}
+
+
+	public string GetFirstTrackedImageAnchorName()
+	{
+		return alImageAnchorNames.Count > 0 ? alImageAnchorNames[0] : string.Empty;;
+	}
+
+
+	public GameObject GetTrackedImageAnchorByName(string imageAnchorName)
+	{
+		if (dictImageAnchors.ContainsKey(imageAnchorName))
+			return dictImageAnchors[imageAnchorName];
+		else
+			return null;
 	}
 
 }

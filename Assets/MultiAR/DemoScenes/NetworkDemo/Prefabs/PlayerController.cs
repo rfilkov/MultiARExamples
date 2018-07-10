@@ -14,13 +14,13 @@ public class PlayerController : NetworkBehaviour // MonoBehaviour
 	private Camera arMainCamera = null;
 
 	// reference to the ar-client
-	private ArClientController arClient = null;
+	private ArClientBaseController arClient = null;
 
 
 	void Start()
 	{
 		arManager = MultiARManager.Instance;
-		arClient = ArClientController.Instance;
+		arClient = ArClientBaseController.Instance;
 	}
 
 

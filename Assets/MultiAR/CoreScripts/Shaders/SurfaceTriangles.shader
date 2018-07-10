@@ -47,13 +47,15 @@ Shader "Custom/SurfaceTriangles" {
 		struct v2f
 		{
 			float4 vertex : SV_POSITION;
+			float3 tpn : TEXCOORD0;
 			float4 world : TEXCOORD1;
 		};
 
-		v2f vert(appdata v)
+		v2f vert(appdata_base v)
 		{
 			v2f o;
 			o.vertex = UnityObjectToClipPos(v.vertex); // UnityObjectToClipPos(v.vertex);
+			o.tpn = normalize(abs(mul(unity_ObjectToWorld, fixed4(v.normal, 0.0)).xyz));
 			o.world = mul(unity_ObjectToWorld, v.vertex); // mul(unity_ObjectToWorld, v.vertex);
 			return o;
 		}
@@ -71,7 +73,7 @@ Shader "Custom/SurfaceTriangles" {
 			return r(dot(n, float2(2.46, -1.21)));
 		}
 
-		float3 smallTrianglesColor(float3 pos)
+		float3 smallTrianglesColor(float3 pos, float3 tpn)
 		{
 			float a = (radians(60.0));
 			float zoom = 0.125;
@@ -88,14 +90,28 @@ Shader "Custom/SurfaceTriangles" {
 			return lerp(type, l, 0.3);
 		}
 
-		float3 largeTrianglesColor(float3 pos)
+		float3 largeTrianglesColor(float3 pos, float3 tpn)
 		{
 			float a = (radians(60.0));
 			float zoom = 0.5;
-			float2 c = (pos.xy + float2(0.0, pos.z)) * float2(sin(a), 1.0) / _TrianglesScale;//scaled coordinates
-			c = ((c + float2(c.y, 0.0)*cos(a)) / zoom) + float2(floor((c.x - c.y*cos(a)) / zoom*4.0) / 4.0, 0.0);//Add rotations
 
-			float l = min(min((1.0 - (2.0 * abs(frac((c.x - c.y)*4.0) - 0.5))),
+			float2 posxy = pos.xy;
+			float posz = pos.z;
+			if (tpn.x > tpn.y && tpn.x > tpn.z)
+			{
+				posxy = pos.zy;
+				posz = pos.x;
+			}
+			else if (tpn.y > tpn.x && tpn.y > tpn.z)
+			{
+				posxy = pos.xz;
+				posz = pos.y;
+			}
+
+			float2 c = (posxy + float2(0.0, posz)) * float2(sin(a), 1.0) / _TrianglesScale;//scaled coordinates
+			c = ((c + float2(c.y, 0.0) * cos(a)) / zoom) + float2(floor((c.x - c.y * cos(a)) / zoom * 4.0) / 4.0, 0.0);//Add rotations
+
+			float l = min(min((1.0 - (2.0 * abs(frac((c.x - c.y) * 4.0) - 0.5))),
 				(1.0 - (2.0 * abs(frac(c.y * 4.0) - 0.5)))),
 				(1.0 - (2.0 * abs(frac(c.x * 4.0) - 0.5))));
 			l = smoothstep(0.03, 0.02, l);
@@ -110,14 +126,14 @@ Shader "Custom/SurfaceTriangles" {
 		// at every point based on its position and normal. In this case, it simply
 		// returns a constant yellow color.
 		//------------------------------------------------------------------------
-		float3 doMaterial(in float3 pos, in float3 midPos)
+		float3 doMaterial(in float3 pos, in float3 midPos, in float3 tpn)
 		{
 			float d = length(pos.xz - midPos.xz) + pos.y - midPos.y;
 			d /= _RangeScale;
 			float border = fmod(_Time.y * _Speed, 5.0);
 
-			float3 c1 = largeTrianglesColor(pos);
-			//float3 c2 = smallTrianglesColor(pos);
+			float3 c1 = largeTrianglesColor(pos, tpn);
+			//float3 c2 = smallTrianglesColor(pos, tpn);
 
 			// Small rim
 			float3 c = float3(1.0, 1.0, 1.0) * smoothstep(border - 0.2, border, d);
@@ -137,7 +153,7 @@ Shader "Custom/SurfaceTriangles" {
 
 		fixed4 frag(v2f i) : SV_Target
 		{
-			float3 c = doMaterial(i.world.xyz, _Center.xyz);
+			float3 c = doMaterial(i.world.xyz, _Center.xyz, i.tpn);
 			return float4(c, length(c));
 		}
 			ENDCG

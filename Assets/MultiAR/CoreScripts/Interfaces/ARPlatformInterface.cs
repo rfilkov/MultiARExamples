@@ -220,4 +220,39 @@ public interface ARPlatformInterface
     /// <param name="btData"></param>
     void SetSavedAnchorData(byte[] btData);
 
+	/// <summary>
+	/// Inits the image anchors tracking.
+	/// </summary>
+	/// <param name="imageManager">Anchor image manager.</param>
+	void InitImageAnchorsTracking(AnchorImageManager imageManager);
+
+	/// <summary>
+	/// Enables (starts tracking) image anchors.
+	/// </summary>
+	void EnableImageAnchorsTracking();
+
+	/// <summary>
+	/// Disables (stops tracking) image anchors.
+	/// </summary>
+	void DisableImageAnchorsTracking();
+
+	/// <summary>
+	/// Gets the currently found image anchor names.
+	/// </summary>
+	/// <returns>The image anchor names.</returns>
+	List<string> GetTrackedImageAnchorNames();
+
+	/// <summary>
+	/// Gets the name of first found image anchor.
+	/// </summary>
+	/// <returns>The name of first image anchor.</returns>
+	string GetFirstTrackedImageAnchorName();
+
+	/// <summary>
+	/// Gets the tracked image anchor by name.
+	/// </summary>
+	/// <returns>The tracked image anchor.</returns>
+	/// <param name="imageAnchorName">Image anchor name.</param>
+	GameObject GetTrackedImageAnchorByName(string imageAnchorName);
+
 }

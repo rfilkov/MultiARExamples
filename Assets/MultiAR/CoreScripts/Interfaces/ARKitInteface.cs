@@ -672,6 +672,33 @@ public class ARKitInteface : ARBaseInterface, ARPlatformInterface
 	}
 
 
+	/// <summary>
+	/// Enables (starts tracking) image anchors.
+	/// </summary>
+	public override void EnableImageAnchorsTracking()
+	{
+		base.EnableImageAnchorsTracking();
+
+		UnityARSessionNativeInterface.ARImageAnchorAddedEvent += AddImageAnchor;
+		UnityARSessionNativeInterface.ARImageAnchorUpdatedEvent += UpdateImageAnchor;
+		UnityARSessionNativeInterface.ARImageAnchorRemovedEvent += RemoveImageAnchor;
+	}
+
+
+	/// <summary>
+	/// Disables (stops tracking) image anchors.
+	/// </summary>
+	public override void DisableImageAnchorsTracking()
+	{
+		base.DisableImageAnchorsTracking();
+
+		UnityARSessionNativeInterface.ARImageAnchorAddedEvent -= AddImageAnchor;
+		UnityARSessionNativeInterface.ARImageAnchorUpdatedEvent -= UpdateImageAnchor;
+		UnityARSessionNativeInterface.ARImageAnchorRemovedEvent -= RemoveImageAnchor;
+	}
+
+
+
 	// -- // -- // -- // -- // -- // -- // -- // -- // -- // -- //
 
 	void Start()
@@ -831,6 +858,13 @@ public class ARKitInteface : ARBaseInterface, ARPlatformInterface
 
 			UnityARSessionNativeInterface.ARUserAnchorAddedEvent -= UserAnchorAdded;
 			UnityARSessionNativeInterface.ARUserAnchorRemovedEvent -= UserAnchorRemoved;
+
+//			if (isImageAnchorsEnabled) 
+//			{
+//				UnityARSessionNativeInterface.ARImageAnchorAddedEvent -= AddImageAnchor;
+//				UnityARSessionNativeInterface.ARImageAnchorUpdatedEvent -= UpdateImageAnchor;
+//				UnityARSessionNativeInterface.ARImageAnchorRemovedEvent -= RemoveImageAnchor;
+//			}
 
 			// destroy persistent plane objects
 			List<ARPlaneAnchorGameObject> listPlaneObjs = new List<ARPlaneAnchorGameObject>(planeAnchorDict.Values);
@@ -1069,6 +1103,55 @@ public class ARKitInteface : ARBaseInterface, ARPlatformInterface
 		}
 
 	}
+
+	// invoked by ARImageAnchorAddedEvent
+	private void AddImageAnchor(ARImageAnchor arImageAnchor)
+	{
+		string sImageName = arImageAnchor.referenceImageName;
+
+		GameObject anchorObj = new GameObject("ImageAnchor-" + sImageName);
+		DontDestroyOnLoad(anchorObj);
+
+		anchorObj.transform.position = UnityARMatrixOps.GetPosition(arImageAnchor.transform);
+		anchorObj.transform.rotation = UnityARMatrixOps.GetRotation(arImageAnchor.transform);
+
+		alImageAnchorNames.Add(sImageName);
+		dictImageAnchors.Add(sImageName, anchorObj);
+	}
+
+	// invoked by ARImageAnchorUpdatedEvent
+	private void UpdateImageAnchor(ARImageAnchor arImageAnchor)
+	{
+		string sImageName = arImageAnchor.referenceImageName;
+
+		if (dictImageAnchors.ContainsKey(sImageName)) 
+		{
+			GameObject anchorObj = dictImageAnchors[sImageName];
+
+			anchorObj.transform.position = UnityARMatrixOps.GetPosition(arImageAnchor.transform);
+			anchorObj.transform.rotation = UnityARMatrixOps.GetRotation(arImageAnchor.transform);
+
+			dictImageAnchors[sImageName] = anchorObj;
+		}
+
+	}
+
+	// invoked by ARImageAnchorRemovedEvent
+	private void RemoveImageAnchor(ARImageAnchor arImageAnchor)
+	{
+		string sImageName = arImageAnchor.referenceImageName;
+
+		if (dictImageAnchors.ContainsKey(sImageName))
+		{
+			GameObject anchorObj = dictImageAnchors[sImageName];
+
+			alImageAnchorNames.Remove(sImageName);
+			dictImageAnchors.Remove(sImageName);
+
+			GameObject.Destroy(anchorObj);
+		}
+	}
+
 
 	// returns the timestamp in seconds
 	private double GetCurrentTimestamp()

@@ -449,58 +449,6 @@ public class MultiARManager : MonoBehaviour
 	}
 
 	/// <summary>
-	/// Saves the world anchor.
-	/// </summary>
-	/// <param name="gameObj">Anchored game object.</param>
-	/// <param name="anchorSaved">Delegate invoked after the anchor gets saved.</param>
-	public void SaveWorldAnchor(GameObject gameObj, AnchorSavedDelegate anchorSaved)
-	{
-		if(arInterface != null)
-		{
-			arInterface.SaveWorldAnchor(gameObj, anchorSaved);
-		}
-	}
-
-	/// <summary>
-	/// Restores the world anchor.
-	/// </summary>
-	/// <param name="anchorId">Anchor identifier.</param>
-	/// <param name="anchorRestored">Delegate invoked after the anchor gets restored.</param>
-	public void RestoreWorldAnchor(string anchorId, AnchorRestoredDelegate anchorRestored)
-	{
-		if(arInterface != null)
-		{
-			arInterface.RestoreWorldAnchor(anchorId, anchorRestored);
-		}
-	}
-
-	/// <summary>
-	/// Gets the saved anchor data as byte array, or null.
-	/// </summary>
-	/// <returns>The saved anchor data</returns>
-	public byte[] GetSavedAnchorData()
-	{
-		if(arInterface != null)
-		{
-			return arInterface.GetSavedAnchorData();
-		}
-
-		return null;
-	}
-
-	/// <summary>
-	/// Sets the saved anchor data that needs to be restored.
-	/// </summary>
-	/// <param name="btData"></param>
-	public void SetSavedAnchorData(byte[] btData)
-	{
-		if(arInterface != null)
-		{
-			arInterface.SetSavedAnchorData(btData);
-		}
-	}
-
-	/// <summary>
 	/// Anchors the game object to world.
 	/// </summary>
 	/// <returns>The anchor Id, or empty string.</returns>
@@ -785,7 +733,126 @@ public class MultiARManager : MonoBehaviour
 
 	}
 
+	/// <summary>
+	/// Saves the world anchor.
+	/// </summary>
+	/// <param name="gameObj">Anchored game object.</param>
+	/// <param name="anchorSaved">Delegate invoked after the anchor gets saved.</param>
+	public void SaveWorldAnchor(GameObject gameObj, AnchorSavedDelegate anchorSaved)
+	{
+		if(arInterface != null)
+		{
+			arInterface.SaveWorldAnchor(gameObj, anchorSaved);
+		}
+	}
+
+	/// <summary>
+	/// Restores the world anchor.
+	/// </summary>
+	/// <param name="anchorId">Anchor identifier.</param>
+	/// <param name="anchorRestored">Delegate invoked after the anchor gets restored.</param>
+	public void RestoreWorldAnchor(string anchorId, AnchorRestoredDelegate anchorRestored)
+	{
+		if(arInterface != null)
+		{
+			arInterface.RestoreWorldAnchor(anchorId, anchorRestored);
+		}
+	}
+
+	/// <summary>
+	/// Gets the saved anchor data as byte array, or null.
+	/// </summary>
+	/// <returns>The saved anchor data</returns>
+	public byte[] GetSavedAnchorData()
+	{
+		if(arInterface != null)
+		{
+			return arInterface.GetSavedAnchorData();
+		}
+
+		return null;
+	}
+
+	/// <summary>
+	/// Sets the saved anchor data that needs to be restored.
+	/// </summary>
+	/// <param name="btData"></param>
+	public void SetSavedAnchorData(byte[] btData)
+	{
+		if(arInterface != null)
+		{
+			arInterface.SetSavedAnchorData(btData);
+		}
+	}
+
+	/// <summary>
+	/// Enables (starts tracking) image anchors.
+	/// </summary>
+	public void EnableImageAnchorsTracking()
+	{
+		if (arInterface != null) 
+		{
+			arInterface.EnableImageAnchorsTracking();
+		}
+	}
+
+	/// <summary>
+	/// Disables (stops tracking) image anchors.
+	/// </summary>
+	public void DisableImageAnchorsTracking()
+	{
+		if (arInterface != null) 
+		{
+			arInterface.DisableImageAnchorsTracking();
+		}
+	}
+
+	/// <summary>
+	/// Gets the currently found image anchor names.
+	/// </summary>
+	/// <returns>The image anchor names.</returns>
+	public List<string> GetTrackedImageAnchorNames()
+	{
+		if (arInterface != null) 
+		{
+			return arInterface.GetTrackedImageAnchorNames();
+		}
+
+		return null;
+	}
+
+	/// <summary>
+	/// Gets the name of first found image anchor.
+	/// </summary>
+	/// <returns>The name of first image anchor.</returns>
+	public string GetFirstTrackedImageAnchorName()
+	{
+		if (arInterface != null) 
+		{
+			return arInterface.GetFirstTrackedImageAnchorName();
+		}
+
+		return string.Empty;
+	}
+
+	/// <summary>
+	/// Gets the tracked image anchor by name.
+	/// </summary>
+	/// <returns>The tracked image anchor.</returns>
+	/// <param name="imageAnchorName">Image anchor name.</param>
+	public GameObject GetTrackedImageAnchorByName(string imageAnchorName)
+	{
+		if (arInterface != null) 
+		{
+			return arInterface.GetTrackedImageAnchorByName(imageAnchorName);
+		}
+
+		return null;
+	}
+
+
 	// -- // -- // -- // -- // -- // -- // -- // -- // -- // -- //
+
 
 	void Awake()
 	{
@@ -851,6 +918,20 @@ public class MultiARManager : MonoBehaviour
 
 		// set initialization status
 		isInitialized = (arInterface != null);
+
+		if (arInterface != null) 
+		{
+			// check for augmented images
+			AnchorImageManager imageManager = GameObject.FindObjectOfType<AnchorImageManager>();
+
+			if (imageManager != null && imageManager.anchorImages != null && imageManager.anchorImages.Count > 0) 
+			{
+				// prepare images for tracking
+				arInterface.InitImageAnchorsTracking(imageManager);
+				arData.imageAnchorsEnabled = true;
+			}
+		}
+
 	}
 
 	void Start()
@@ -870,6 +951,12 @@ public class MultiARManager : MonoBehaviour
 			}
 		}
 
+		// enable image-anchors tracking
+		if (arData.imageAnchorsEnabled && arInterface != null) 
+		{
+			arInterface.EnableImageAnchorsTracking();
+		}
+
 //		if(surfaceVisualizationMaterial == null && useOverlaySurface != SurfaceRenderEnum.None)
 //		{
 //			// get the default material
@@ -887,7 +974,15 @@ public class MultiARManager : MonoBehaviour
 	{
 		if(instanceInited)
 		{
+			// disable image-anchors tracking
+			if (arData.imageAnchorsEnabled && arInterface != null) 
+			{
+				arInterface.DisableImageAnchorsTracking();
+				arData.imageAnchorsEnabled = false;
+			}
+
 			instance = null;
+			instanceInited = false;
 		}
 	}
 

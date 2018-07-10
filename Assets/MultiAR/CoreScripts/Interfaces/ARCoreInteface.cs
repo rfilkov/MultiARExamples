@@ -74,6 +74,10 @@ public class ARCoreInteface : ARBaseInterface, ARPlatformInterface
 
 	// reference to the instantiated ar-core-device prefab
 	private GameObject arCoreDeviceObj = null;
+	private AugmentedImageDatabase arImageDatabase = null;
+
+	// list of tracked augmented images
+	private List<AugmentedImage> alTrackedAugmentedImages = new List<AugmentedImage>();
 
 
 	/// <summary>
@@ -637,6 +641,7 @@ public class ARCoreInteface : ARBaseInterface, ARPlatformInterface
 		}
 	}
 
+
 	/// <summary>
 	/// Saves the world anchor.
 	/// </summary>
@@ -696,6 +701,16 @@ public class ARCoreInteface : ARBaseInterface, ARPlatformInterface
 	}
 
 
+	/// <summary>
+	/// Inits the image anchors tracking.
+	/// </summary>
+	/// <param name="imageManager">Anchor image manager.</param>
+	public override void InitImageAnchorsTracking(AnchorImageManager imageManager)
+	{
+		arImageDatabase = Resources.Load<AugmentedImageDatabase>("ArCoreImageDatabase");
+	}
+
+
 	// -- // -- // -- // -- // -- // -- // -- // -- // -- // -- //
 
 	public void Start()
@@ -720,6 +735,13 @@ public class ARCoreInteface : ARBaseInterface, ARPlatformInterface
 		arCoreDeviceObj = Instantiate(arCoreDevicePrefab, Vector3.zero, Quaternion.identity);
 		arCoreDeviceObj.name = "ARCore Device";
 		DontDestroyOnLoad(arCoreDeviceObj);
+
+		// update the session config, if needed
+		ARCoreSession arSession = arCoreDeviceObj.GetComponent<ARCoreSession>();
+		if (arSession != null && arSession.SessionConfig != null && arImageDatabase != null) 
+		{
+			arSession.SessionConfig.AugmentedImageDatabase = arImageDatabase;
+		}
 
 		// reference to the AR main camera
 		mainCamera = arCoreDeviceObj.GetComponentInChildren<Camera>();
@@ -960,6 +982,41 @@ public class ARCoreInteface : ARBaseInterface, ARPlatformInterface
 
 		// clean up
 		alAnchorsToRemove.Clear();
+
+		// look for image anchors, if enabled
+		if (arData.imageAnchorsEnabled) 
+		{
+			// Get updated augmented images for this frame.
+			Session.GetTrackables<AugmentedImage>(alTrackedAugmentedImages, TrackableQueryFilter.Updated);
+
+			foreach (var image in alTrackedAugmentedImages)
+			{
+				string sImageName = image.Name;
+				bool wasImageTracked = dictImageAnchors.ContainsKey(sImageName);
+
+				if (!wasImageTracked && image.TrackingState == TrackingState.Tracking)
+				{
+					// Create an anchor to ensure that ARCore keeps tracking this augmented image.
+					Anchor anchor = image.CreateAnchor(image.CenterPose);
+					anchor.gameObject.name = "ImageAnchor-" + sImageName;
+					DontDestroyOnLoad(anchor.gameObject);
+
+					alImageAnchorNames.Add(sImageName);
+					dictImageAnchors.Add(sImageName, anchor.gameObject);
+				}
+				else if (wasImageTracked && image.TrackingState == TrackingState.Stopped)
+				{
+					// remove the anchor
+					GameObject anchorObj = dictImageAnchors[sImageName];
+
+					alImageAnchorNames.Remove(sImageName);
+					dictImageAnchors.Remove(sImageName);
+
+					GameObject.Destroy(anchorObj);
+				}
+			}
+		}
+
 	}
 
 

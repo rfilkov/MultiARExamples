@@ -25,7 +25,7 @@ public class ArSyncTransform : NetworkBehaviour
 	private NetworkWriter m_LocalTransformWriter;
 
 	private ArServerController m_arServer = null;
-	private ArClientController m_arClient = null;
+	private ArClientBaseController m_arClient = null;
 
 	private List<Renderer> m_renderers = new List<Renderer>();
 	private bool m_transformVisible = true;
@@ -63,7 +63,7 @@ public class ArSyncTransform : NetworkBehaviour
 
 	public override void OnStartClient()
 	{
-		m_arClient = FindObjectOfType<ArClientController>();
+		m_arClient = ArClientBaseController.Instance;
 	}
 
 	public override bool OnSerialize(NetworkWriter writer, bool initialState)

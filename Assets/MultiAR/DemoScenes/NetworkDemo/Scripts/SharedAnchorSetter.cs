@@ -6,14 +6,14 @@ public class SharedAnchorSetter : MonoBehaviour
 {
 	// reference to MultiARManager
 	private MultiARManager arManager;
-	private ArClientController arClient;
+	private ArClientBaseController arClient;
 
 
 	void Start () 
 	{
 		// get reference to MultiARManager
 		arManager = MultiARManager.Instance;
-		arClient = GetComponent<ArClientController>();
+		arClient = ArClientBaseController.Instance;
 	}
 	
 	void Update () 
