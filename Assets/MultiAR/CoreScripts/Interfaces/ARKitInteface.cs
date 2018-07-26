@@ -52,6 +52,7 @@ public class ARKitInteface : ARBaseInterface, ARPlatformInterface
 	// whether the session is currently paused
 	private bool isSessionPaused = false;
 
+	private ARReferenceImagesSet arImageDatabase = null;
 
 	/// <summary>
 	/// Gets the AR platform supported by the interface.
@@ -614,6 +615,11 @@ public class ARKitInteface : ARBaseInterface, ARPlatformInterface
 			config.enableLightEstimation = true;
 			config.enableAutoFocus = true;
 
+			if (arImageDatabase != null) 
+			{
+				config.arResourceGroupName = arImageDatabase.resourceGroupName;
+			}
+
 			UnityARSessionRunOption runOptions = UnityARSessionRunOption.ARSessionRunOptionRemoveExistingAnchors | 
 				UnityARSessionRunOption.ARSessionRunOptionResetTracking;
 			UnityARSessionNativeInterface.GetARSessionNativeInterface().RunWithConfigAndOptions(config, runOptions);
@@ -682,6 +688,8 @@ public class ARKitInteface : ARBaseInterface, ARPlatformInterface
 		UnityARSessionNativeInterface.ARImageAnchorAddedEvent += AddImageAnchor;
 		UnityARSessionNativeInterface.ARImageAnchorUpdatedEvent += UpdateImageAnchor;
 		UnityARSessionNativeInterface.ARImageAnchorRemovedEvent += RemoveImageAnchor;
+
+		//Debug.Log("Called EnableImageAnchorsTracking()");
 	}
 
 
@@ -695,8 +703,19 @@ public class ARKitInteface : ARBaseInterface, ARPlatformInterface
 		UnityARSessionNativeInterface.ARImageAnchorAddedEvent -= AddImageAnchor;
 		UnityARSessionNativeInterface.ARImageAnchorUpdatedEvent -= UpdateImageAnchor;
 		UnityARSessionNativeInterface.ARImageAnchorRemovedEvent -= RemoveImageAnchor;
+
+		//Debug.Log("Called DisableImageAnchorsTracking()");
 	}
 
+
+	/// <summary>
+	/// Inits the image anchors tracking.
+	/// </summary>
+	/// <param name="imageManager">Anchor image manager.</param>
+	public override void InitImageAnchorsTracking(AnchorImageManager imageManager)
+	{
+		arImageDatabase = Resources.Load<ARReferenceImagesSet>("ArKitImageDatabase");
+	}
 
 
 	// -- // -- // -- // -- // -- // -- // -- // -- // -- // -- //
@@ -786,6 +805,12 @@ public class ARKitInteface : ARBaseInterface, ARPlatformInterface
 
 		camManager.startAlignment = UnityARAlignment.UnityARAlignmentGravityAndHeading;
 		camManager.planeDetection = UnityARPlaneDetection.HorizontalAndVertical;
+
+		//Debug.Log("arImageDatabase: " + (arImageDatabase != null ? arImageDatabase.resourceGroupName : "-"));
+		if (arImageDatabase != null) 
+		{
+			camManager.detectionImages = arImageDatabase;
+		}
 
 		// allow relocalization after session interruption
 		UnityARSessionNativeInterface.ARSessionShouldAttemptRelocalization = true;
@@ -1108,6 +1133,7 @@ public class ARKitInteface : ARBaseInterface, ARPlatformInterface
 	private void AddImageAnchor(ARImageAnchor arImageAnchor)
 	{
 		string sImageName = arImageAnchor.referenceImageName;
+		//Debug.Log("Called AddImageAnchor() for image: " + sImageName);
 
 		GameObject anchorObj = new GameObject("ImageAnchor-" + sImageName);
 		DontDestroyOnLoad(anchorObj);
@@ -1123,6 +1149,7 @@ public class ARKitInteface : ARBaseInterface, ARPlatformInterface
 	private void UpdateImageAnchor(ARImageAnchor arImageAnchor)
 	{
 		string sImageName = arImageAnchor.referenceImageName;
+		//Debug.Log("Called UpdateImageAnchor() for image: " + sImageName);
 
 		if (dictImageAnchors.ContainsKey(sImageName)) 
 		{
@@ -1140,6 +1167,7 @@ public class ARKitInteface : ARBaseInterface, ARPlatformInterface
 	private void RemoveImageAnchor(ARImageAnchor arImageAnchor)
 	{
 		string sImageName = arImageAnchor.referenceImageName;
+		//Debug.Log("Called RemoveImageAnchor() for image: " + sImageName);
 
 		if (dictImageAnchors.ContainsKey(sImageName))
 		{

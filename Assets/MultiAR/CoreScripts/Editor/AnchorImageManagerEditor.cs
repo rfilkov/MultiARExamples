@@ -11,6 +11,10 @@ public class AnchorImageManagerEditor : Editor
 
 	SerializedProperty anchorImages;
 
+	private const string SaveResourcePath = "Assets/Resources";
+	private const string ArCoreImageDatabase = "ArCoreImageDatabase.asset";
+	private const string ArKitImageDatabase = "ArKitImageDatabase.asset";
+
 
 	void OnEnable()
 	{
@@ -24,7 +28,6 @@ public class AnchorImageManagerEditor : Editor
 		EditorGUILayout.PropertyField(anchorImages, true);
 		serializedObject.ApplyModifiedProperties();
 
-		//EditorGUILayout.
 		var buttonStyle = new GUIStyle(GUI.skin.button);
 		buttonStyle.margin = new RectOffset(10, 10, 13, 0);
 
@@ -41,15 +44,25 @@ public class AnchorImageManagerEditor : Editor
 					anchorImageObjs.Add(anchorImageElem.objectReferenceValue);
 			}
 
-			CreateArCoreDatabase(anchorImageObjs);
+			CreateArImageDatabase(anchorImageObjs);
 		}
+
+		string sImageDbInfo = GetArImageDatabaseInfo();
+		EditorGUILayout.LabelField(sImageDbInfo);
 	}
 
 
-	// creates augmented image database for AR-Core
-	private void CreateArCoreDatabase(List<Object> anchorImageObjs)
+	// creates augmented image database
+	private void CreateArImageDatabase(List<Object> anchorImageObjs)
 	{
-		var newDatabase = ScriptableObject.CreateInstance<GoogleARCore.AugmentedImageDatabase>();
+		if (!Directory.Exists(SaveResourcePath))
+		{
+			Directory.CreateDirectory(SaveResourcePath);
+			AssetDatabase.Refresh();
+		}
+
+#if UNITY_ANDROID
+		var imageDatabase = ScriptableObject.CreateInstance<GoogleARCore.AugmentedImageDatabase>();
 
 		for (int i = 0; i < anchorImageObjs.Count; i++) 
 		{
@@ -61,33 +74,95 @@ public class AnchorImageManagerEditor : Editor
 
 			GoogleARCore.AugmentedImageDatabaseEntry newEntry = new GoogleARCore.AugmentedImageDatabaseEntry(imageName,
 				                                                    AssetDatabase.LoadAssetAtPath<Texture2D>(assetPath));
-			newDatabase.Add(newEntry);
+			imageDatabase.Add(newEntry);
 		}
 
-		string saveDbPath = "Assets/Resources"; // Application.streamingAssetsPath;
-		if (!Directory.Exists(saveDbPath))
+		string saveImageDbPath = Path.Combine(SaveResourcePath, ArCoreImageDatabase);
+		if (File.Exists(saveImageDbPath)) 
 		{
-			Directory.CreateDirectory(saveDbPath);
-			AssetDatabase.Refresh();
-		}
-
-		saveDbPath = Path.Combine(saveDbPath, "ArCoreImageDatabase.asset");
-		if (File.Exists(saveDbPath)) 
-		{
-			AssetDatabase.DeleteAsset(saveDbPath);
+			AssetDatabase.DeleteAsset(saveImageDbPath);
 		}
 			
 		//saveDbPath = AssetDatabase.GenerateUniqueAssetPath(saveDbPath);
-		AssetDatabase.CreateAsset(newDatabase, saveDbPath);
+		AssetDatabase.CreateAsset(imageDatabase, saveImageDbPath);
 
-		// build the database
-		string sError = string.Empty;
-		newDatabase.BuildIfNeeded(out sError);
+//		// build the database
+//		string sError = string.Empty;
+//		newDatabase.BuildIfNeeded(out sError);
+//
+//		if (!string.IsNullOrEmpty(sError))
+//		{
+//			Debug.LogError(sError);
+//		}
+#endif
 
-		if (!string.IsNullOrEmpty(sError))
+#if UNITY_IOS
+		var imageDatabase = ScriptableObject.CreateInstance<ARReferenceImagesSet>();
+
+		imageDatabase.resourceGroupName = "ArKitImageDatabase";
+		imageDatabase.referenceImages = new ARReferenceImage[anchorImageObjs.Count];
+
+		for (int i = 0; i < anchorImageObjs.Count; i++) 
 		{
-			Debug.LogError(sError);
+			Object imageObj = anchorImageObjs[i];
+			Texture2D imageTex = imageObj as Texture2D;
+
+			if(imageTex != null)
+			{
+				var imageRef = ScriptableObject.CreateInstance<ARReferenceImage>();
+				imageRef.imageTexture = imageTex;
+				imageRef.imageName = imageTex.name;
+
+				string saveImageRefPath = Path.Combine(SaveResourcePath, "ArKitImageRef" + i + ".asset");
+				if (File.Exists(saveImageRefPath)) 
+				{
+					AssetDatabase.DeleteAsset(saveImageRefPath);
+				}
+
+				AssetDatabase.CreateAsset(imageRef, saveImageRefPath);
+
+				imageDatabase.referenceImages[i] = AssetDatabase.LoadAssetAtPath<ARReferenceImage>(saveImageRefPath);
+			}
 		}
+
+		string saveImageDbPath = Path.Combine(SaveResourcePath, ArKitImageDatabase);
+		if (File.Exists(saveImageDbPath)) 
+		{
+			AssetDatabase.DeleteAsset(saveImageDbPath);
+		}
+
+		AssetDatabase.CreateAsset(imageDatabase, saveImageDbPath);
+#endif
+	}
+
+
+	// gets augmented image database info (path & update time)
+	private string GetArImageDatabaseInfo()
+	{
+		string imageDbPath = string.Empty;
+
+#if UNITY_ANDROID
+		imageDbPath = Path.Combine(SaveResourcePath, ArCoreImageDatabase);
+#endif
+
+#if UNITY_IOS
+		imageDbPath = Path.Combine(SaveResourcePath, ArKitImageDatabase);
+#endif
+
+		if (imageDbPath != string.Empty) 
+		{
+			if (File.Exists(imageDbPath)) 
+			{
+				return "Last updated on: " + File.GetLastWriteTime(imageDbPath) + 
+					"\n" + imageDbPath;
+			} 
+			else 
+			{
+				return "Image database not created yet.\n" + imageDbPath;
+			}
+		}
+
+		return "Set platform to Android or iOS!";
 	}
 
 }

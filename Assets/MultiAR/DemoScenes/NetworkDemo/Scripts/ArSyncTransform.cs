@@ -13,7 +13,7 @@ public class ArSyncTransform : NetworkBehaviour
 	public float m_SendInterval = 0.1f;
 	public float m_MovementTheshold = 0.001f;
 
-	private float m_LastClientSyncTime; // last time client received a sync from server
+	//private float m_LastClientSyncTime; // last time client received a sync from server
 	private float m_LastClientSendTime; // last time client send a sync to server
 
 	private Vector3 m_PrevPosition;
@@ -57,7 +57,7 @@ public class ArSyncTransform : NetworkBehaviour
 
 	public override void OnStartServer()
 	{
-		m_LastClientSyncTime = 0;
+		//m_LastClientSyncTime = 0;
 		m_arServer = FindObjectOfType<ArServerController>();
 	}
 
@@ -128,7 +128,7 @@ public class ArSyncTransform : NetworkBehaviour
 
 		MakeVisible(anchorTransform != null);
 
-		m_LastClientSyncTime = Time.time;
+		//m_LastClientSyncTime = Time.time;
 	}
 
 	private void UnserializeTransform(NetworkReader reader, bool initialState)
@@ -315,7 +315,7 @@ public class ArSyncTransform : NetworkBehaviour
 		{
 			foundSync.UnserializeTransform(netMsg.reader, false);
 
-			foundSync.m_LastClientSyncTime = Time.time;
+			//foundSync.m_LastClientSyncTime = Time.time;
 			return;
 		}
 
@@ -335,7 +335,7 @@ public class ArSyncTransform : NetworkBehaviour
 	public override void OnStartAuthority()
 	{
 		// must reset this timer, or the server will continue to send target position instead of current position
-		m_LastClientSyncTime = 0;
+		//m_LastClientSyncTime = 0;
 	}
 
 }

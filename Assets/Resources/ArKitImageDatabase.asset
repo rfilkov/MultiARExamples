@@ -1,0 +1,20 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1c37f7746917f4760aa00e7ff7fd81dc, type: 3}
+  m_Name: ArKitImageDatabase
+  m_EditorClassIdentifier: 
+  resourceGroupName: ArKitImageDatabase
+  referenceImages:
+  - {fileID: 11400000, guid: 179fb0de1d395461ba7819847bac454f, type: 2}
+  - {fileID: 11400000, guid: b7b1c9557a5ad4a5b809babadf69f1ab, type: 2}
+  - {fileID: 11400000, guid: 5c5478e56d9bf438b91e256d246838af, type: 2}
+  - {fileID: 11400000, guid: f826aaefe6fce4d0bae0b649f5027e0c, type: 2}
+  - {fileID: 11400000, guid: 9434f37b7eb0147899950466ecd01198, type: 2}
