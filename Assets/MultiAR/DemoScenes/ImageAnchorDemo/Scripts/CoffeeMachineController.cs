@@ -176,7 +176,14 @@ public class CoffeeMachineController : MonoBehaviour
 
 					cupAnchor.transform.position = imageAnchor.transform.position;
 					cupAnchor.transform.rotation = imageAnchor.transform.rotation;
-					//cupAnchor.transform.localScale = Vector3.one * 0.1f;
+
+					// create anchor-pointer object (cube)
+					GameObject anchorPoiterObj = GameObject.CreatePrimitive(PrimitiveType.Cube);
+					anchorPoiterObj.transform.parent = imageAnchor.transform;
+
+					anchorPoiterObj.transform.localPosition = Vector3.zero;
+					anchorPoiterObj.transform.localRotation = Quaternion.identity;
+					anchorPoiterObj.transform.localScale = Vector3.one * 0.1f;
 
 					// create cup models
 					StartCoroutine(CreateAndPlaceCups());
