@@ -993,13 +993,13 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   coffeeCupModels:
-  - {fileID: 1344677824046460, guid: ea1d4e667364e3547b960d811ea772aa, type: 2}
-  - {fileID: 1344677824046460, guid: 38f28a64d0c6da848990b6afe69ef497, type: 2}
-  - {fileID: 1344677824046460, guid: c9322ce539938664889c2e371e10e527, type: 2}
+  - {fileID: 1177475364791040, guid: ea1d4e667364e3547b960d811ea772aa, type: 2}
+  - {fileID: 1366687871920632, guid: 38f28a64d0c6da848990b6afe69ef497, type: 2}
+  - {fileID: 1971021557482348, guid: c9322ce539938664889c2e371e10e527, type: 2}
   coffeeCupOffsets:
-  - {x: -0.2, y: -0.2, z: -0.2}
-  - {x: 0, y: -0.2, z: -0.2}
-  - {x: 0.2, y: -0.2, z: -0.2}
+  - {x: -0.2, y: -0.2, z: -0.1}
+  - {x: 0, y: -0.2, z: -0.1}
+  - {x: 0.2, y: -0.2, z: -0.1}
   coffeeCupTitles:
   - Coffee
   - Double coffee

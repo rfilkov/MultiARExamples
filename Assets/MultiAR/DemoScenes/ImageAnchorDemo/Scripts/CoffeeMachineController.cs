@@ -66,7 +66,7 @@ public class CoffeeMachineController : MonoBehaviour
 		if (cupAnchor != null && imageAnchorName != string.Empty && imageAnchor != null) 
 		{
 			cupAnchor.transform.position = Vector3.Lerp(cupAnchor.transform.position, imageAnchor.transform.position, Time.deltaTime * 3f);
-			cupAnchor.transform.rotation = Quaternion.Slerp(cupAnchor.transform.rotation, imageAnchor.transform.rotation, Time.deltaTime * 3f);
+			//cupAnchor.transform.rotation = Quaternion.Slerp(cupAnchor.transform.rotation, imageAnchor.transform.rotation, Time.deltaTime * 3f);
 		}
 
 		// check for user interaction, to select a coffee cup
@@ -156,6 +156,9 @@ public class CoffeeMachineController : MonoBehaviour
 		if (infoText) 
 		{
 			infoText.text = "Found image anchor: " + (imageAnchorName != string.Empty ? imageAnchorName : "-");
+
+			if(cupIndexSelected >= 0)
+				infoText.text = string.Format("Selected: {0}", coffeeCupTitles[cupIndexSelected]);
 		}
 
 		// check for found image anchor
@@ -168,14 +171,16 @@ public class CoffeeMachineController : MonoBehaviour
 			if (imageAnchorName != string.Empty)
 			{
 				imageAnchor = marManager.GetTrackedImageAnchorByName(imageAnchorName);
+				Camera mainCamera = marManager.GetMainCamera();
 
-				if (imageAnchor != null) 
+				if (imageAnchor != null && mainCamera != null) 
 				{
 					// create coffee cups-parent (used to smooth anchor jittering)
 					cupAnchor = new GameObject("CupAnchor"); // GameObject.CreatePrimitive(PrimitiveType.Cube);
 
 					cupAnchor.transform.position = imageAnchor.transform.position;
-					cupAnchor.transform.rotation = imageAnchor.transform.rotation;
+					Vector3 vAnchorDir = imageAnchor.transform.position - mainCamera.transform.position;
+					cupAnchor.transform.rotation = Quaternion.LookRotation(vAnchorDir, Vector3.up); // imageAnchor.transform.rotation;
 
 					// create anchor-pointer object (cube)
 					GameObject anchorPoiterObj = GameObject.CreatePrimitive(PrimitiveType.Cube);
@@ -183,7 +188,7 @@ public class CoffeeMachineController : MonoBehaviour
 
 					anchorPoiterObj.transform.localPosition = Vector3.zero;
 					anchorPoiterObj.transform.localRotation = Quaternion.identity;
-					anchorPoiterObj.transform.localScale = Vector3.one * 0.1f;
+					anchorPoiterObj.transform.localScale = new Vector3(0.05f, 0.1f, 0.15f);
 
 					// create cup models
 					StartCoroutine(CreateAndPlaceCups());
@@ -236,7 +241,7 @@ public class CoffeeMachineController : MonoBehaviour
 				// if cup gets selected
 				if (cupTransSelected != null) 
 				{
-					// hide ui of non-selected cups
+					// hide non-selected cups
 					for (int i = 0; i < cupTrans.Count; i++) 
 					{
 						if (i != cupIndexSelected) 
@@ -343,7 +348,11 @@ public class CoffeeMachineController : MonoBehaviour
 		{
 			GameObject.Destroy(imageAnchor.gameObject);
 			imageAnchor = null;
+		}
 
+		// destroy cup anchor
+		if (cupAnchor != null) 
+		{
 			GameObject.Destroy(cupAnchor);
 			cupAnchor = null;
 		}

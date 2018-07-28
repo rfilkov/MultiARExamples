@@ -7,7 +7,7 @@ public class CupRotator : MonoBehaviour
 
 	void Update () 
 	{
-		transform.Rotate (0f, 0f, 1f);
+		transform.Rotate (0f, 1f, 0f);
 	}
 
 }

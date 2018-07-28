@@ -112,7 +112,7 @@ public class AnchorImageManagerEditor : Editor
 		var imageDatabase = ScriptableObject.CreateInstance<ARReferenceImagesSet>();
 
 		imageDatabase.resourceGroupName = "ArKitImageDatabase";
-		imageDatabase.referenceImages = new ARReferenceImage[anchorImageObjs.Count];
+		imageDatabase.referenceImages = new ARReferenceImage[anchorImageProps.Count];
 
 		for (int i = 0; i < anchorImageProps.Count; i++) 
 		{
@@ -131,6 +131,7 @@ public class AnchorImageManagerEditor : Editor
 				var imageRef = ScriptableObject.CreateInstance<ARReferenceImage>();
 				imageRef.imageTexture = imageTex;
 				imageRef.imageName = imageTex.name;
+				imageRef.physicalSize = widthProp.floatValue;
 
 				string saveImageRefPath = Path.Combine(SaveResourcePath, "ArKitImageRef" + i + ".asset");
 				if (File.Exists(saveImageRefPath)) 
