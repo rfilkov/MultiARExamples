@@ -10,6 +10,7 @@ public class AnchorImageManagerEditor : Editor
 {
 
 	SerializedProperty anchorImages;
+	//SerializedProperty anchorObj;
 
 	private const string SaveResourcePath = "Assets/Resources";
 	private const string ArCoreImageDatabase = "ArCoreImageDatabase.asset";
@@ -19,6 +20,7 @@ public class AnchorImageManagerEditor : Editor
 	void OnEnable()
 	{
 		anchorImages = serializedObject.FindProperty("anchorImages");
+		//anchorObj = serializedObject.FindProperty("anchorObj");
 	}
 
 
@@ -26,6 +28,7 @@ public class AnchorImageManagerEditor : Editor
 	{
 		serializedObject.Update();
 		EditorGUILayout.PropertyField(anchorImages, true);
+		//EditorGUILayout.PropertyField(anchorObj);
 		serializedObject.ApplyModifiedProperties();
 
 		var buttonStyle = new GUIStyle(GUI.skin.button);
@@ -35,16 +38,17 @@ public class AnchorImageManagerEditor : Editor
 		{
 			// create the image database
 			int numImages = anchorImages.arraySize;
-			List<Object> anchorImageObjs = new List<Object>();
+			List<SerializedProperty> anchorImageObjs = new List<SerializedProperty>();
 
 			for (int i = 0; i < numImages; i++) 
 			{
-				SerializedProperty anchorImageElem = anchorImages.GetArrayElementAtIndex(i);
-				if(anchorImageElem.objectReferenceValue != null)
-					anchorImageObjs.Add(anchorImageElem.objectReferenceValue);
+				SerializedProperty anchorImageProp = anchorImages.GetArrayElementAtIndex(i);
+				//if(anchorImageProp.objectReferenceValue != null)
+					anchorImageObjs.Add(anchorImageProp);
 			}
 
 			CreateArImageDatabase(anchorImageObjs);
+			anchorImageObjs.Clear();
 		}
 
 		string sImageDbInfo = GetArImageDatabaseInfo();
@@ -53,7 +57,7 @@ public class AnchorImageManagerEditor : Editor
 
 
 	// creates augmented image database
-	private void CreateArImageDatabase(List<Object> anchorImageObjs)
+	private void CreateArImageDatabase(List<SerializedProperty> anchorImageProps)
 	{
 		if (!Directory.Exists(SaveResourcePath))
 		{
@@ -64,16 +68,24 @@ public class AnchorImageManagerEditor : Editor
 #if UNITY_ANDROID
 		var imageDatabase = ScriptableObject.CreateInstance<GoogleARCore.AugmentedImageDatabase>();
 
-		for (int i = 0; i < anchorImageObjs.Count; i++) 
+		for (int i = 0; i < anchorImageProps.Count; i++) 
 		{
-			Object imageObj = anchorImageObjs[i];
+			SerializedProperty property = anchorImageProps[i];
+
+			SerializedProperty imageProp = property.FindPropertyRelative("image");
+			SerializedProperty widthProp = property.FindPropertyRelative("width");
+			if(imageProp == null || imageProp.objectReferenceValue == null)
+				continue;
+
+			Object imageObj = imageProp.objectReferenceValue;
 			string assetPath = AssetDatabase.GetAssetPath(imageObj);
 
 			var fileName = Path.GetFileName(assetPath);
 			var imageName = fileName.Replace(Path.GetExtension(fileName), string.Empty);
 
 			GoogleARCore.AugmentedImageDatabaseEntry newEntry = new GoogleARCore.AugmentedImageDatabaseEntry(imageName,
-				                                                    AssetDatabase.LoadAssetAtPath<Texture2D>(assetPath));
+				                                                    AssetDatabase.LoadAssetAtPath<Texture2D>(assetPath),
+                                                                    widthProp.floatValue);
 			imageDatabase.Add(newEntry);
 		}
 
@@ -102,9 +114,16 @@ public class AnchorImageManagerEditor : Editor
 		imageDatabase.resourceGroupName = "ArKitImageDatabase";
 		imageDatabase.referenceImages = new ARReferenceImage[anchorImageObjs.Count];
 
-		for (int i = 0; i < anchorImageObjs.Count; i++) 
+		for (int i = 0; i < anchorImageProps.Count; i++) 
 		{
-			Object imageObj = anchorImageObjs[i];
+			SerializedProperty property = anchorImageProps[i];
+
+			SerializedProperty imageProp = property.FindPropertyRelative("image");
+			SerializedProperty widthProp = property.FindPropertyRelative("width");
+			if(imageProp == null || imageProp.objectReferenceValue == null)
+				continue;
+
+			Object imageObj = imageProp.objectReferenceValue;
 			Texture2D imageTex = imageObj as Texture2D;
 
 			if(imageTex != null)

@@ -56,6 +56,3 @@ EditorBuildSettings:
   - enabled: 0
     path: Assets/GoogleARCore/Examples/AugmentedImage/Scenes/AugmentedImage.unity
     guid: be567d47d3ab94b3badc5b211f535a24
-  - enabled: 0
-    path: Assets/UnityARKitPlugin/Examples/ARKit1.5/UnityARImageAnchor/UnityARImageAnchor2.unity
-    guid: 70d0624dad5134e4b974b85542acd9dd

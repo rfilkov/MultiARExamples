@@ -1276,6 +1276,11 @@ Prefab:
       propertyPath: m_IsActive
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 114962951517112342, guid: cb4d91dd0146cac4395f7dadfdec7aac,
+        type: 2}
+      propertyPath: pointCloudPrefab
+      value: 
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_ParentPrefab: {fileID: 100100000, guid: cb4d91dd0146cac4395f7dadfdec7aac, type: 2}
   m_IsPrefabParent: 0
@@ -1296,11 +1301,16 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   anchorImages:
-  - {fileID: 2800000, guid: f2b1d6a50d00e4f45ab5817c7f65016f, type: 3}
-  - {fileID: 2800000, guid: 5d6aac51b390b414c9f824273bf6e53e, type: 3}
-  - {fileID: 2800000, guid: e922a6b87f147404a86607037c4aa647, type: 3}
-  - {fileID: 2800000, guid: 7efdfd9885bbf7c4baecddab25976297, type: 3}
-  - {fileID: 2800000, guid: e846d62ae280e9d46be37dfc4a6c2431, type: 3}
+  - image: {fileID: 2800000, guid: f2b1d6a50d00e4f45ab5817c7f65016f, type: 3}
+    width: 0.25
+  - image: {fileID: 2800000, guid: 5d6aac51b390b414c9f824273bf6e53e, type: 3}
+    width: 0.25
+  - image: {fileID: 2800000, guid: e922a6b87f147404a86607037c4aa647, type: 3}
+    width: 0.25
+  - image: {fileID: 2800000, guid: 7efdfd9885bbf7c4baecddab25976297, type: 3}
+    width: 0.25
+  - image: {fileID: 2800000, guid: e846d62ae280e9d46be37dfc4a6c2431, type: 3}
+    width: 0.25
 --- !u!1 &1811431764
 GameObject:
   m_ObjectHideFlags: 0

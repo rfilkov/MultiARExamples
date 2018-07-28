@@ -5,7 +5,9 @@ using UnityEngine;
 public class AnchorImageManager : MonoBehaviour 
 {
 
-	public List<Texture2D> anchorImages = new List<Texture2D>();
+	public List<AnchorImageObject> anchorImages = new List<AnchorImageObject>();
+
+	//public AnchorImageObject anchorObj;
 
 	//public string imageDatabaseName = "ImageDatabase";
 
