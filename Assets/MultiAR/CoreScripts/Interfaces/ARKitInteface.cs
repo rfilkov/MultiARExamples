@@ -105,6 +105,15 @@ public class ARKitInteface : ARBaseInterface, ARPlatformInterface
 	}
 
 	/// <summary>
+	/// Determines whether the interface is in tracking state or not
+	/// </summary>
+	/// <returns><c>true</c> if this instance is tracking; otherwise, <c>false</c>.</returns>
+	public override bool IsTracking()
+	{
+		return cameraTrackingState == ARTrackingState.ARTrackingStateNormal;
+	}
+
+	/// <summary>
 	/// Gets the main camera.
 	/// </summary>
 	/// <returns>The main camera.</returns>

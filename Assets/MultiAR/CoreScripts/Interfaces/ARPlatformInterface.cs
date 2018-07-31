@@ -43,6 +43,12 @@ public interface ARPlatformInterface
 	bool IsInitialized();
 
 	/// <summary>
+	/// Determines whether the interface is in tracking state or not
+	/// </summary>
+	/// <returns><c>true</c> if this instance is tracking; otherwise, <c>false</c>.</returns>
+	bool IsTracking();
+
+	/// <summary>
 	/// Gets the AR main camera.
 	/// </summary>
 	/// <returns>The AR main camera.</returns>

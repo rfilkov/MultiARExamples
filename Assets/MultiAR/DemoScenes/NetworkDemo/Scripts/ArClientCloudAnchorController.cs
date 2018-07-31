@@ -18,7 +18,9 @@ public class ArClientCloudAnchorController : ArClientBaseController
 	protected override void Update () 
 	{
 		base.Update();
-		if (!clientConnected)
+		if (netClient == null || !clientConnected)
+			return;
+		if (marManager == null || !marManager.IsTracking())
 			return;
 		
 		if (setAnchorAllowed && !worldAnchorObj) 
@@ -29,9 +31,29 @@ public class ArClientCloudAnchorController : ArClientBaseController
 			}
 		}
 
+		// if there is no world anchor set yet, check for click
+		if (setAnchorAllowed && worldAnchorObj == null && marManager.IsInputAvailable(true))
+		{
+			MultiARInterop.InputAction action = marManager.GetInputAction();
+
+			if (action == MultiARInterop.InputAction.Click)
+			{
+				MultiARInterop.TrackableHit hit;
+
+				if(marManager.RaycastToWorld(true, out hit))
+				{
+					// create the world anchor object
+					worldAnchorObj = new GameObject("SharedWorldAnchor");
+					worldAnchorObj.transform.position = hit.point;
+					worldAnchorObj.transform.rotation = hit.rotation;  // Quaternion.identity
+
+					marManager.AnchorGameObjectToWorld(worldAnchorObj, hit);
+				}
+			}
+		}
+
 		// check if the world anchor needs to be saved
-		if (setAnchorAllowed && worldAnchorObj && 
-			marManager && netClient != null) 
+		if (setAnchorAllowed && worldAnchorObj != null) 
 		{
 			if (setAnchorTillTime < Time.realtimeSinceStartup) 
 			{
@@ -48,7 +70,7 @@ public class ArClientCloudAnchorController : ArClientBaseController
 						{
 							LogMessage("World anchor saved: " + anchorId);
 
-							GameObject gameAnchorGo = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+							GameObject gameAnchorGo = GameObject.CreatePrimitive(PrimitiveType.Cube);
 							gameAnchorGo.name = "GameAnchor-" + anchorId;
 							Transform gameAnchorTransform = gameAnchorGo.transform;
 
@@ -89,8 +111,7 @@ public class ArClientCloudAnchorController : ArClientBaseController
 		}
 
 		// check if the world anchor needs to be restored
-		if (getAnchorAllowed && !string.IsNullOrEmpty(worldAnchorId) && !worldAnchorObj && 
-			marManager && netClient != null) 
+		if (getAnchorAllowed && !string.IsNullOrEmpty(worldAnchorId) && worldAnchorObj == null) 
 		{
 			if (getAnchorTillTime < Time.realtimeSinceStartup) 
 			{
@@ -108,7 +129,7 @@ public class ArClientCloudAnchorController : ArClientBaseController
 						{
 							LogMessage("World anchor restored: " + worldAnchorId);
 
-							GameObject gameAnchorGo = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+							GameObject gameAnchorGo = GameObject.CreatePrimitive(PrimitiveType.Cube);
 							gameAnchorGo.name = "GameAnchor-" + worldAnchorId;
 							Transform gameAnchorTransform = gameAnchorGo.transform;
 

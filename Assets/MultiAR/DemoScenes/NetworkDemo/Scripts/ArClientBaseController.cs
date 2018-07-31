@@ -217,7 +217,7 @@ public class ArClientBaseController : MonoBehaviour
 	protected virtual void OnDestroy()
 	{
 		clientConnected = false;
-		disconnectedAt = Time.realtimeSinceStartup;
+		disconnectedAt = 0f;
 //		dataReceivedAt = 0f;
 
 		if (netManager != null) 
@@ -233,7 +233,12 @@ public class ArClientBaseController : MonoBehaviour
 		{
 			if(statusText)
 			{
-				statusText.text = "Connect to the game server.";
+				if(string.IsNullOrEmpty(serverHost) || serverHost == "0.0.0.0")
+					statusText.text = "Looking for game server...";
+				else if(disconnectedAt == 0f)
+					statusText.text = "Connecting to game server: " + serverHost;
+				else
+					statusText.text = "Reconnecting to: " + serverHost;
 			}
 
 			if (disconnectedAt > 0f && (Time.realtimeSinceStartup - disconnectedAt) >= reconnectAfterSeconds) 

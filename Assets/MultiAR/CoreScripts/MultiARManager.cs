@@ -99,7 +99,6 @@ public class MultiARManager : MonoBehaviour
 		return isInitialized;
 	}
 
-
 	/// <summary>
 	/// Gets the selected AR interface.
 	/// </summary>
@@ -116,6 +115,20 @@ public class MultiARManager : MonoBehaviour
 	public MultiARInterop.MultiARData GetARData()
 	{
 		return arData;
+	}
+
+	/// <summary>
+	/// Determines whether the interface is in tracking state or not
+	/// </summary>
+	/// <returns><c>true</c> if this instance is tracking; otherwise, <c>false</c>.</returns>
+	public bool IsTracking()
+	{
+		if(arInterface != null)
+		{
+			return arInterface.IsTracking();
+		}
+
+		return false;
 	}
 
 	/// <summary>

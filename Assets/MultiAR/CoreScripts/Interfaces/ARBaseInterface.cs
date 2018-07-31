@@ -16,6 +16,11 @@ public class ARBaseInterface : MonoBehaviour
 	protected List<string> alImageAnchorNames = new List<string>();
 
 
+	public virtual bool IsTracking()
+	{
+		return false;
+	}
+
     protected void InitMemBuffer(int bufLen)
     {
         memBuffer = new byte[bufLen];

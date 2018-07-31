@@ -29,6 +29,9 @@ public class ArServerController : MonoBehaviour
 	[Tooltip("UI-Text to display connection status messages.")]
 	public Text connStatusText;
 
+	[Tooltip("UI-Text to display anchor status messages.")]
+	public Text anchorStatusText;
+
 	[Tooltip("UI-Text to display server status messages.")]
 	public Text serverStatusText;
 
@@ -199,6 +202,11 @@ public class ArServerController : MonoBehaviour
 			gameAnchorTimestamp = 0f;
 
 			LogToConsole("Game anchor timed out.");
+
+			if (anchorStatusText) 
+			{
+				anchorStatusText.text = string.Empty;
+			}
 		}
 	}
 
@@ -222,6 +230,11 @@ public class ArServerController : MonoBehaviour
 
 		int connId = netMsg.conn.connectionId;
 		LogDebugToConsole("GetGameAnchor received from client " + connId + ", anchorId: " + gameCloudAnchorId);
+
+		if (!string.IsNullOrEmpty(gameCloudAnchorId)) 
+		{
+			LogToConsole("  Got anchor by client " + connId);
+		}
 	}
 
 
@@ -283,18 +296,23 @@ public class ArServerController : MonoBehaviour
 
 			gameAnchorData = request.anchorData;
 
+			if (anchorStatusText) 
+			{
+				anchorStatusText.text = "Shared world anchor: " + gameCloudAnchorId;
+			}
+
 			GameObject gameAnchorGo = new GameObject("GameAnchor-" + gameCloudAnchorId);
 			gameAnchorTransform = gameAnchorGo.transform;
 
 			gameAnchorTransform.position = request.anchorPos;
 			gameAnchorTransform.rotation = request.anchorRot;
 
-			GameObject anchoredSphere = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-			anchoredSphere.transform.SetParent(gameAnchorTransform);
+			GameObject anchoredCube = GameObject.CreatePrimitive(PrimitiveType.Cube);
+			anchoredCube.transform.SetParent(gameAnchorTransform);
 
-			anchoredSphere.transform.localPosition = Vector3.zero;
-			anchoredSphere.transform.localRotation = Quaternion.identity;
-			anchoredSphere.transform.localScale = new Vector3(0.1f, 0.1f, 0.1f);
+			anchoredCube.transform.localPosition = Vector3.zero;
+			anchoredCube.transform.localRotation = Quaternion.identity;
+			anchoredCube.transform.localScale = new Vector3(0.1f, 0.1f, 0.1f);
 		}
 
 		SetGameAnchorResponseMsg response = new SetGameAnchorResponseMsg
@@ -306,6 +324,8 @@ public class ArServerController : MonoBehaviour
 
 		int connId = netMsg.conn.connectionId;
 		LogDebugToConsole("SetGameAnchor received from client " + connId + ", anchorId: " + request.anchorId);
+
+		LogToConsole("  Set anchor by client " + connId);
 	}
 
 

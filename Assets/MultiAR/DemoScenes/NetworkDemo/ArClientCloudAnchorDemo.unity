@@ -211,7 +211,6 @@ GameObject:
   m_Component:
   - component: {fileID: 754451774}
   - component: {fileID: 754451775}
-  - component: {fileID: 754451776}
   m_Layer: 0
   m_Name: ClientController
   m_TagString: Untagged
@@ -253,17 +252,6 @@ MonoBehaviour:
   - {fileID: 1180623737584186, guid: e580335d513c3fe46914ea1af993d23f, type: 2}
   statusText: {fileID: 1092880655}
   showDebugMessages: 0
---- !u!114 &754451776
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 754451773}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f62ed242463802f489f18a5207b8d13a, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!1 &1092880652
 GameObject:
   m_ObjectHideFlags: 0
@@ -702,6 +690,11 @@ Prefab:
       objectReference: {fileID: 708755512}
     - target: {fileID: 1541651302486692, guid: cb4d91dd0146cac4395f7dadfdec7aac, type: 2}
       propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 114962951517112342, guid: cb4d91dd0146cac4395f7dadfdec7aac,
+        type: 2}
+      propertyPath: useOverlaySurface
       value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
