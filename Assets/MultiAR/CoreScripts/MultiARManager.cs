@@ -24,7 +24,7 @@ public class MultiARManager : MonoBehaviour
 	[HideInInspector]
 	public bool hitTrackedSurfacesOnly = true;
 
-	public enum SurfaceRenderEnum : int { None, Occlusion, Visualization };
+	public enum SurfaceRenderEnum : int { None, Visualization, Occlusion, OcclusionWithShadows };
 	[Tooltip("Whether to create scene surfaces to overlay the ar-detected surfaces.")]
 	public SurfaceRenderEnum useOverlaySurface = SurfaceRenderEnum.Visualization;
 
@@ -33,6 +33,9 @@ public class MultiARManager : MonoBehaviour
 
 	[Tooltip("Material used for overlay surface occlusion.")]
 	public Material surfaceOcclusionMaterial;
+
+	[Tooltip("Material used for overlay surface occlusion with shadows.")]
+	public Material surfaceOcclusionWithShadowsMaterial;
 
 	[Tooltip("Whether the overlay surfaces should have colliders, or not.")]
 	public bool surfaceCollider = true;
@@ -688,6 +691,10 @@ public class MultiARManager : MonoBehaviour
 
 			case SurfaceRenderEnum.Occlusion:
 				surfaceMat = surfaceOcclusionMaterial;
+				break;
+
+			case SurfaceRenderEnum.OcclusionWithShadows:
+				surfaceMat = surfaceOcclusionWithShadowsMaterial;
 				break;
 		}
 

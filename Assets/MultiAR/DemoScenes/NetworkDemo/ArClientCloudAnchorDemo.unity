@@ -252,6 +252,7 @@ MonoBehaviour:
   - {fileID: 1180623737584186, guid: e580335d513c3fe46914ea1af993d23f, type: 2}
   statusText: {fileID: 1092880655}
   showDebugMessages: 0
+  cloudAnchorMaterial: {fileID: 2100000, guid: 3bda841d1c98a994d9d3af4e138697ce, type: 2}
 --- !u!1 &1092880652
 GameObject:
   m_ObjectHideFlags: 0
@@ -695,7 +696,7 @@ Prefab:
     - target: {fileID: 114962951517112342, guid: cb4d91dd0146cac4395f7dadfdec7aac,
         type: 2}
       propertyPath: useOverlaySurface
-      value: 1
+      value: 2
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_ParentPrefab: {fileID: 100100000, guid: cb4d91dd0146cac4395f7dadfdec7aac, type: 2}

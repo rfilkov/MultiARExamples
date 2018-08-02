@@ -257,10 +257,12 @@ MonoBehaviour:
   pointCloudPrefab: {fileID: 1707953204718416, guid: 2f471897ca3904978b6ce3a09dae9a0f,
     type: 2}
   hitTrackedSurfacesOnly: 1
-  useOverlaySurface: 2
+  useOverlaySurface: 1
   surfaceVisualizationMaterial: {fileID: 2100000, guid: db609c97cfc8f33498a041f25909d840,
     type: 2}
   surfaceOcclusionMaterial: {fileID: 2100000, guid: 859f17bceb12dab4caae4ba154d5cc87,
+    type: 2}
+  surfaceOcclusionWithShadowsMaterial: {fileID: 2100000, guid: 89b16ed937c9e0c4386ede58f72092b8,
     type: 2}
   surfaceCollider: 1
   colliderMaterial: {fileID: 13400000, guid: ad6352a37e3a54830ab406d3cef90535, type: 2}
