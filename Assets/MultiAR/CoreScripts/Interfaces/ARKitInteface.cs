@@ -8,10 +8,13 @@ public class ARKitInteface : ARBaseInterface, ARPlatformInterface
 	[Tooltip("Material used for camera background.")]
 	public Material yuvMaterial;
 
-//	[Tooltip("Reference to the TrackedPlane prefab.")]
-//	public GameObject trackedPlanePrefab;
+    //	[Tooltip("Reference to the TrackedPlane prefab.")]
+    //	public GameObject trackedPlanePrefab;
 
-	[Tooltip("Whether the interface is enabled by MultiARManager.")]
+    [Tooltip("Initial camera alignment.")]
+    public UnityARAlignment cameraAlignment = UnityARAlignment.UnityARAlignmentGravity;
+
+    [Tooltip("Whether the interface is enabled by MultiARManager.")]
 	private bool isInterfaceEnabled = false;
 
 	// Reference to the MultiARManager in the scene
@@ -617,7 +620,7 @@ public class ARKitInteface : ARBaseInterface, ARPlatformInterface
 			isSessionPaused = false;
 
 			ARKitWorldTrackingSessionConfiguration config = new ARKitWorldTrackingSessionConfiguration();
-			config.alignment = UnityARAlignment.UnityARAlignmentGravityAndHeading;
+			config.alignment = cameraAlignment;
 			config.planeDetection = UnityARPlaneDetection.HorizontalAndVertical;
 
 			config.getPointCloudData = true;
@@ -812,7 +815,7 @@ public class ARKitInteface : ARBaseInterface, ARPlatformInterface
 		UnityARCameraManager camManager = camManagerObj.AddComponent<UnityARCameraManager>();
 		camManager.m_camera = currentCamera;
 
-		camManager.startAlignment = UnityARAlignment.UnityARAlignmentGravityAndHeading;
+		camManager.startAlignment = cameraAlignment;
 		camManager.planeDetection = UnityARPlaneDetection.HorizontalAndVertical;
 
 		//Debug.Log("arImageDatabase: " + (arImageDatabase != null ? arImageDatabase.resourceGroupName : "-"));

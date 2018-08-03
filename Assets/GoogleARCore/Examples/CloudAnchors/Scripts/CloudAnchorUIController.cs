@@ -82,7 +82,9 @@ namespace GoogleARCore.Examples.CloudAnchors
         /// </summary>
         public void Start()
         {
+#if !UNITY_WSA
             IPAddressText.text = "My IP Address: " + Network.player.ipAddress;
+#endif
         }
 
         /// <summary>

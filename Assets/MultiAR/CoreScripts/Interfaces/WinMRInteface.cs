@@ -795,12 +795,27 @@ public class WinMRInteface : ARBaseInterface, ARPlatformInterface
 				surfaceRenderer = objRenderer.AddComponent<SpatialMappingRenderer>();
 				surfaceRenderer.surfaceParent = objRenderer;
 
-				surfaceRenderer.renderState = (SpatialMappingRenderer.RenderState)arManager.useOverlaySurface;
+                switch(arManager.useOverlaySurface)
+                {
+                    case MultiARManager.SurfaceRenderEnum.None:
+                        surfaceRenderer.renderState = SpatialMappingRenderer.RenderState.None;
+                        break;
 
-				if(arManager.useOverlaySurface != MultiARManager.SurfaceRenderEnum.None)
+                    case MultiARManager.SurfaceRenderEnum.Visualization:
+                        surfaceRenderer.renderState = SpatialMappingRenderer.RenderState.Visualization;
+                        break;
+
+                    case MultiARManager.SurfaceRenderEnum.Occlusion:
+                    case MultiARManager.SurfaceRenderEnum.OcclusionWithShadows:
+                        surfaceRenderer.renderState = SpatialMappingRenderer.RenderState.Occlusion;
+                        break;
+                }
+
+                if (arManager.useOverlaySurface != MultiARManager.SurfaceRenderEnum.None)
 				{
 					surfaceRenderer.visualMaterial = arManager.surfaceVisualizationMaterial;
-					surfaceRenderer.occlusionMaterial = arManager.surfaceOcclusionMaterial;
+					surfaceRenderer.occlusionMaterial = arManager.useOverlaySurface == MultiARManager.SurfaceRenderEnum.OcclusionWithShadows ?
+                        arManager.surfaceOcclusionWithShadowsMaterial : arManager.surfaceOcclusionMaterial;
 				}
 			}
 			else
