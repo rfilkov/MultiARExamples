@@ -26,7 +26,7 @@ namespace GoogleARCoreInternal
     using GoogleARCore;
     using UnityEngine;
 
-#if UNITY_IOS
+#if UNITY_IOS && !UNITY_EDITOR
     using AndroidImport = GoogleARCoreInternal.DllImportNoop;
     using IOSImport = System.Runtime.InteropServices.DllImportAttribute;
 #else
@@ -145,7 +145,11 @@ namespace GoogleARCoreInternal
                     continue;
                 }
 
-                trackables.Add(m_NativeSession.TrackableFactory(trackableHandle));
+                Trackable trackable = m_NativeSession.TrackableFactory(trackableHandle);
+                if (trackable != null)
+                {
+                    trackables.Add(trackable);
+                }
             }
 
             m_NativeSession.TrackableListApi.Destroy(listHandle);

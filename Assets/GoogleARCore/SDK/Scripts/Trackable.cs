@@ -65,17 +65,10 @@ namespace GoogleARCore
         {
             get
             {
-                // TODO (b/73256094): Remove isTracking when fixed.
-                var isTracking = LifecycleManager.Instance.IsTracking;
                 if (_IsSessionDestroyed())
                 {
                     // Trackables from another session are considered stopped.
                     return TrackingState.Stopped;
-                }
-                else if (!isTracking)
-                {
-                    // If there are no new frames coming in we must manually return paused.
-                    return TrackingState.Paused;
                 }
 
                 return m_NativeSession.TrackableApi.GetTrackingState(m_TrackableNativeHandle);
@@ -127,7 +120,7 @@ namespace GoogleARCore
         /// <summary>
         /// Tells if the session was destroyed.
         /// </summary>
-        /// <returns><c>true</c> if the session this Trackable belong to was destroyed,
+        /// <returns><c>true</c> if the session this Trackable belongs to was destroyed,
         /// <c>false</c> otherwise.</returns>
         protected bool _IsSessionDestroyed()
         {
