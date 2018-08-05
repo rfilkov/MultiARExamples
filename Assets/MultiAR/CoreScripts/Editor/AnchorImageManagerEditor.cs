@@ -11,6 +11,7 @@ public class AnchorImageManagerEditor : Editor
 
 	SerializedProperty anchorImages;
 	//SerializedProperty anchorObj;
+	SerializedProperty anchorImageDb;
 
 	private const string SaveResourcePath = "Assets/Resources";
 	private const string ArCoreImageDatabase = "ArCoreImageDatabase.asset";
@@ -21,6 +22,7 @@ public class AnchorImageManagerEditor : Editor
 	{
 		anchorImages = serializedObject.FindProperty("anchorImages");
 		//anchorObj = serializedObject.FindProperty("anchorObj");
+		anchorImageDb = serializedObject.FindProperty("anchorImageDb");
 	}
 
 
@@ -47,7 +49,11 @@ public class AnchorImageManagerEditor : Editor
 					anchorImageObjs.Add(anchorImageProp);
 			}
 
-			CreateArImageDatabase(anchorImageObjs);
+			UnityEngine.Object arImageDb = CreateArImageDatabase(anchorImageObjs);
+			serializedObject.Update();
+			anchorImageDb.objectReferenceValue = arImageDb;
+			serializedObject.ApplyModifiedProperties();
+
 			anchorImageObjs.Clear();
 		}
 
@@ -57,7 +63,7 @@ public class AnchorImageManagerEditor : Editor
 
 
 	// creates augmented image database
-	private void CreateArImageDatabase(List<SerializedProperty> anchorImageProps)
+	private UnityEngine.Object CreateArImageDatabase(List<SerializedProperty> anchorImageProps)
 	{
 		if (!Directory.Exists(SaveResourcePath))
 		{
@@ -106,9 +112,9 @@ public class AnchorImageManagerEditor : Editor
 //		{
 //			Debug.LogError(sError);
 //		}
-#endif
 
-#if UNITY_IOS
+		return imageDatabase;
+#elif UNITY_IOS
 		var imageDatabase = ScriptableObject.CreateInstance<ARReferenceImagesSet>();
 
 		imageDatabase.resourceGroupName = "ArKitImageDatabase";
@@ -152,6 +158,10 @@ public class AnchorImageManagerEditor : Editor
 		}
 
 		AssetDatabase.CreateAsset(imageDatabase, saveImageDbPath);
+
+		return imageDatabase;
+#else
+		return null;
 #endif
 	}
 
@@ -163,9 +173,7 @@ public class AnchorImageManagerEditor : Editor
 
 #if UNITY_ANDROID
 		imageDbPath = Path.Combine(SaveResourcePath, ArCoreImageDatabase);
-#endif
-
-#if UNITY_IOS
+#elif UNITY_IOS
 		imageDbPath = Path.Combine(SaveResourcePath, ArKitImageDatabase);
 #endif
 

@@ -32,6 +32,7 @@ public class UnityARCameraManager : MonoBehaviour {
 		config.enableAutoFocus = enableAutoFocus;
 		if (detectionImages != null) {
 			config.arResourceGroupName = detectionImages.resourceGroupName;
+			Debug.Log("config.arResourceGroupName set to " + config.arResourceGroupName);
 		}
 
 		if (config.IsSupported) {

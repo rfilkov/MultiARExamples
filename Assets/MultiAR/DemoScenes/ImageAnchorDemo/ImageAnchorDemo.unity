@@ -1311,6 +1311,7 @@ MonoBehaviour:
     width: 0.25
   - image: {fileID: 2800000, guid: e846d62ae280e9d46be37dfc4a6c2431, type: 3}
     width: 0.25
+  anchorImageDb: {fileID: 11400000, guid: 740f960032d21417bb11539129635364, type: 2}
 --- !u!1 &1811431764
 GameObject:
   m_ObjectHideFlags: 0

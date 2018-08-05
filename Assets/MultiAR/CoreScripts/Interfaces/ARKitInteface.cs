@@ -630,6 +630,7 @@ public class ARKitInteface : ARBaseInterface, ARPlatformInterface
 			if (arImageDatabase != null) 
 			{
 				config.arResourceGroupName = arImageDatabase.resourceGroupName;
+				Debug.Log ("ResumeSession - config.arResourceGroupName set to: " + arImageDatabase.resourceGroupName);
 			}
 
 			UnityARSessionRunOption runOptions = UnityARSessionRunOption.ARSessionRunOptionRemoveExistingAnchors | 
@@ -727,6 +728,7 @@ public class ARKitInteface : ARBaseInterface, ARPlatformInterface
 	public override void InitImageAnchorsTracking(AnchorImageManager imageManager)
 	{
 		arImageDatabase = Resources.Load<ARReferenceImagesSet>("ArKitImageDatabase");
+		Debug.Log ("arImageDatabase initialized: " + (arImageDatabase != null ? arImageDatabase.resourceGroupName : "-"));
 	}
 
 
@@ -822,6 +824,7 @@ public class ARKitInteface : ARBaseInterface, ARPlatformInterface
 		if (arImageDatabase != null) 
 		{
 			camManager.detectionImages = arImageDatabase;
+			Debug.Log ("camManager.detectionImages set to: " + arImageDatabase);
 		}
 
 		// allow relocalization after session interruption

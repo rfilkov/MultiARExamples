@@ -12,4 +12,7 @@ public class AnchorImageManager : MonoBehaviour
 
 	//public string imageDatabaseName = "ImageDatabase";
 
+	[HideInInspector]
+	public UnityEngine.Object anchorImageDb;
+
 }

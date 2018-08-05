@@ -143,10 +143,10 @@ public class CoffeeMachineController : MonoBehaviour
 		List<string> alImageAnchors = marManager.GetTrackedImageAnchorNames();
 		sbMessage.AppendLine(alImageAnchors.Count.ToString () + " anchor images found: ");
 
-		for (int i = 0; i < alImageAnchors.Count; i++) 
-		{
-			sbMessage.Append(i).Append (" - ").Append (alImageAnchors[i]).AppendLine();
-		}
+//		for (int i = 0; i < alImageAnchors.Count; i++) 
+//		{
+//			sbMessage.Append(i).Append (" - ").Append (alImageAnchors[i]).AppendLine();
+//		}
 
 		sbMessage.AppendLine("detectedImage: " + (imageAnchorName != string.Empty ? imageAnchorName : "-"));
 		sbMessage.AppendLine("imageAnchor: " + (imageAnchor != null ? imageAnchor.name : "none"));
@@ -182,13 +182,13 @@ public class CoffeeMachineController : MonoBehaviour
 					Vector3 vAnchorDir = imageAnchor.transform.position - mainCamera.transform.position;
 					cupAnchor.transform.rotation = Quaternion.LookRotation(vAnchorDir, Vector3.up); // imageAnchor.transform.rotation;
 
-					// create anchor-pointer object (cube)
-					GameObject anchorPoiterObj = GameObject.CreatePrimitive(PrimitiveType.Cube);
-					anchorPoiterObj.transform.parent = imageAnchor.transform;
-
-					anchorPoiterObj.transform.localPosition = Vector3.zero;
-					anchorPoiterObj.transform.localRotation = Quaternion.identity;
-					anchorPoiterObj.transform.localScale = new Vector3(0.05f, 0.1f, 0.15f);
+//					// create anchor-pointer object (cube)
+//					GameObject anchorPoiterObj = GameObject.CreatePrimitive(PrimitiveType.Cube);
+//					anchorPoiterObj.transform.parent = imageAnchor.transform;
+//
+//					anchorPoiterObj.transform.localPosition = Vector3.zero;
+//					anchorPoiterObj.transform.localRotation = Quaternion.identity;
+//					anchorPoiterObj.transform.localScale = new Vector3(0.05f, 0.1f, 0.15f);
 
 					// create cup models
 					StartCoroutine(CreateAndPlaceCups());
