@@ -79,7 +79,11 @@ namespace GoogleARCore.Examples.CloudAnchors
         /// </summary>
         public void Start()
         {
+#if !UNITY_WSA
             IPAddressText.text = "My IP Address: " + _GetDeviceIpAddress();
+#else
+            IPAddressText.text = "My IP Address: 127.0.0.1";
+#endif
         }
 
         /// <summary>
@@ -232,6 +236,7 @@ namespace GoogleARCore.Examples.CloudAnchors
             IpAddressInputField.interactable = !isResolveOnDevice;
         }
 
+#if !UNITY_WSA
         /// <summary>
         /// Gets the device ip address.
         /// </summary>
@@ -256,5 +261,6 @@ namespace GoogleARCore.Examples.CloudAnchors
 #endif
             return ipAddress;
         }
+#endif
     }
 }

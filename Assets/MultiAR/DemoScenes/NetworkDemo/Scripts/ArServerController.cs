@@ -210,7 +210,7 @@ public class ArServerController : MonoBehaviour
 		}
 	}
 
-
+#if !UNITY_WSA
     // Gets the device IP address.
     private string GetDeviceIpAddress()
     {
@@ -234,6 +234,7 @@ public class ArServerController : MonoBehaviour
 
         return ipAddress;
     }
+#endif
 
     
     // handles GetGameAnchorRequestMsg
