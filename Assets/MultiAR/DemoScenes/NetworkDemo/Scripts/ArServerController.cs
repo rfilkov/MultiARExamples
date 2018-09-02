@@ -4,7 +4,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.Networking;
 using UnityEngine.Networking.NetworkSystem;
-
+using System.Net;
 
 public class ArServerController : MonoBehaviour 
 {
@@ -123,7 +123,7 @@ public class ArServerController : MonoBehaviour
 
 			// get server ip address
 #if !UNITY_WSA
-			string serverHost = Network.player.ipAddress;
+			string serverHost = GetDeviceIpAddress();
 #else
 			string serverHost = "127.0.0.1";
 #endif
@@ -211,8 +211,33 @@ public class ArServerController : MonoBehaviour
 	}
 
 
-	// handles GetGameAnchorRequestMsg
-	private void OnGetGameAnchorRequest(NetworkMessage netMsg)
+    // Gets the device IP address.
+    private string GetDeviceIpAddress()
+    {
+        string ipAddress = "127.0.0.1";
+
+#if UNITY_2018_2_OR_NEWER
+            string hostName = Dns.GetHostName();
+            IPAddress[] addresses = Dns.GetHostAddresses(hostName);
+
+            foreach (IPAddress address in addresses)
+            {
+                if (address.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
+                {
+                    ipAddress = address.ToString();
+                    break;
+                }
+            }
+#else
+        ipAddress = Network.player.ipAddress;
+#endif
+
+        return ipAddress;
+    }
+
+    
+    // handles GetGameAnchorRequestMsg
+    private void OnGetGameAnchorRequest(NetworkMessage netMsg)
 	{
 		var request = netMsg.ReadMessage<GetGameAnchorRequestMsg>();
 		if (request == null || request.gameName != gameName)

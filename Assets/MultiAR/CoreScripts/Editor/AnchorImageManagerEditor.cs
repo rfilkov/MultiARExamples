@@ -13,7 +13,7 @@ public class AnchorImageManagerEditor : Editor
 	//SerializedProperty anchorObj;
 	SerializedProperty anchorImageDb;
 
-	private const string SaveResourcePath = "Assets/Resources";
+	private const string SaveResourcePath = "Assets/MultiAR/Resources";
 	private const string ArCoreImageDatabase = "ArCoreImageDatabase.asset";
 	private const string ArKitImageDatabase = "ArKitImageDatabase.asset";
 

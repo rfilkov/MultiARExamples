@@ -20,10 +20,7 @@
 
 namespace GoogleARCore.Examples.CloudAnchors
 {
-    using System.Collections.Generic;
-    using GoogleARCore;
-    using GoogleARCore.CrossPlatform;
-    using GoogleARCore.Examples.Common;
+    using System.Net;
     using UnityEngine;
     using UnityEngine.UI;
 
@@ -82,9 +79,7 @@ namespace GoogleARCore.Examples.CloudAnchors
         /// </summary>
         public void Start()
         {
-#if !UNITY_WSA
-            IPAddressText.text = "My IP Address: " + Network.player.ipAddress;
-#endif
+            IPAddressText.text = "My IP Address: " + _GetDeviceIpAddress();
         }
 
         /// <summary>
@@ -235,6 +230,31 @@ namespace GoogleARCore.Examples.CloudAnchors
         public void OnResolveOnDeviceValueChanged(bool isResolveOnDevice)
         {
             IpAddressInputField.interactable = !isResolveOnDevice;
+        }
+
+        /// <summary>
+        /// Gets the device ip address.
+        /// </summary>
+        /// <returns>The device ip address.</returns>
+        private string _GetDeviceIpAddress()
+        {
+            string ipAddress = "Unknown";
+#if UNITY_2018_2_OR_NEWER
+            string hostName = Dns.GetHostName();
+            IPAddress[] addresses = Dns.GetHostAddresses(hostName);
+
+            foreach (IPAddress address in addresses)
+            {
+                if (address.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
+                {
+                    ipAddress = address.ToString();
+                    break;
+                }
+            }
+#else
+            ipAddress = Network.player.ipAddress;
+#endif
+            return ipAddress;
         }
     }
 }
