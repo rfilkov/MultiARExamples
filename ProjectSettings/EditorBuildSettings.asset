@@ -5,7 +5,7 @@ EditorBuildSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 2
   m_Scenes:
-  - enabled: 0
+  - enabled: 1
     path: Assets/MultiAR/DemoScenes/AnchoringDemo/AnchorUnanchorDemo.unity
     guid: fd687dfe27e151f458e63ae8970b74c3
   - enabled: 0
@@ -20,13 +20,13 @@ EditorBuildSettings:
   - enabled: 0
     path: Assets/MultiAR/DemoScenes/ImageAnchorDemo/ImageAnchorDemo.unity
     guid: dd87115b3d6cf2140b7d1e07a29daa1c
-  - enabled: 1
+  - enabled: 0
     path: Assets/MultiAR/DemoScenes/MultiSceneDemo/Scene0-StartupScene.unity
     guid: b6a30eb647f32164886e6854d1fbddd5
-  - enabled: 1
+  - enabled: 0
     path: Assets/MultiAR/DemoScenes/MultiSceneDemo/Scene1-ObjectControllerDemo.unity
     guid: 3206d27477ee5914396af542ab82bf21
-  - enabled: 1
+  - enabled: 0
     path: Assets/MultiAR/DemoScenes/MultiSceneDemo/Scene2-SurfaceColliderDemo.unity
     guid: e59540518b3132c43ae8ff47b4ceb49a
   - enabled: 0

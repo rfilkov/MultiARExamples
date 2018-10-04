@@ -867,7 +867,8 @@ public class ARCoreInteface : ARBaseInterface, ARPlatformInterface
 				// Copy the point cloud points
 				for (int i = 0; i < Frame.PointCloud.PointCount; i++)
 				{
-					arData.pointCloudData[i] = Frame.PointCloud.GetPoint(i);
+                    PointCloudPoint point = Frame.PointCloud.GetPointAsStruct(i);
+                    arData.pointCloudData[i] = new Vector3(point.Position.x, point.Position.y, point.Position.z);
 				}
 
 				arData.pointCloudLength = Frame.PointCloud.PointCount;

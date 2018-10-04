@@ -238,16 +238,17 @@ namespace GoogleARCore.Examples.CloudAnchors
 
 #if !UNITY_WSA
         /// <summary>
-        /// Gets the device ip address.
+        /// Gets the device IP address.
         /// </summary>
-        /// <returns>The device ip address.</returns>
+        /// <returns>The device IP address.</returns>
         private string _GetDeviceIpAddress()
         {
-            string ipAddress = "Unknown";
+            string ipAddress;
 #if UNITY_2018_2_OR_NEWER
             string hostName = Dns.GetHostName();
             IPAddress[] addresses = Dns.GetHostAddresses(hostName);
 
+            ipAddress = "Unknown";
             foreach (IPAddress address in addresses)
             {
                 if (address.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
