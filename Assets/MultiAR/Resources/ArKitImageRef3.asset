@@ -12,5 +12,5 @@ MonoBehaviour:
   m_Name: ArKitImageRef3
   m_EditorClassIdentifier: 
   imageName: coffee6
-  imageTexture: {fileID: 2800000, guid: 7efdfd9885bbf7c4baecddab25976297, type: 3}
+  imageTexture: {fileID: 2800000, guid: c2eed70481bf1364db9cd9499617d966, type: 3}
   physicalSize: 0.25
