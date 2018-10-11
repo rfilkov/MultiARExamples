@@ -629,7 +629,7 @@ public class ARKitInteface : ARBaseInterface, ARPlatformInterface
 
 			if (arImageDatabase != null) 
 			{
-				config.arResourceGroupName = arImageDatabase.resourceGroupName;
+				config.referenceImagesGroupName = arImageDatabase.resourceGroupName;
 				Debug.Log ("ResumeSession - config.arResourceGroupName set to: " + arImageDatabase.resourceGroupName);
 			}
 
