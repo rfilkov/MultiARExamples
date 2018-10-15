@@ -733,27 +733,70 @@ public class ARCoreInteface : ARBaseInterface, ARPlatformInterface
 			return;
 		}
 
-		// disable the main camera, if any
-		Camera currentCamera = MultiARInterop.GetMainCamera();
-		if(currentCamera)
-		{
-			currentCamera.gameObject.SetActive(false);
-		}
+#if UNITY_EDITOR
+        // initializes ar-core
+        InitArCore();
+#else
+        Session.CheckApkAvailability().ThenAction(result =>
+        {
+            Debug.Log("ApkAvailabilityStatus: " + result.ToString());
 
-		// create ARCore-Device in the scene
-		arCoreDeviceObj = Instantiate(arCoreDevicePrefab, Vector3.zero, Quaternion.identity);
-		arCoreDeviceObj.name = "ARCore Device";
-		DontDestroyOnLoad(arCoreDeviceObj);
+            if (result == ApkAvailabilityStatus.SupportedInstalled)
+            {
+                // initializes ar-core
+                InitArCore();
+            }
+            else if (result == ApkAvailabilityStatus.SupportedNotInstalled || result == ApkAvailabilityStatus.SupportedApkTooOld)
+            {
+                Session.RequestApkInstallation(true).ThenAction(installResult =>
+                {
+                    Debug.Log("ApkInstallationStatus: " + installResult.ToString());
 
-		// update the session config, if needed
-		ARCoreSession arSession = arCoreDeviceObj.GetComponent<ARCoreSession>();
-		if (arSession != null && arSession.SessionConfig != null && arImageDatabase != null) 
-		{
-			arSession.SessionConfig.AugmentedImageDatabase = arImageDatabase;
-		}
+                    if (installResult == ApkInstallationStatus.Success)
+                    {
+                        // initializes ar-core
+                        InitArCore();
+                    }
+                    else
+                    {
+                        Debug.LogError("Sorry. AR-Core could not be installed on this device. Error code: " + installResult.ToString());
+                    }
+                });
+            }
+            else
+            {
+                Debug.LogError("Sorry. AR-Core cannot run on this device. Error code: " + result.ToString());
+            }
+        });
+#endif
+    }
 
-		// reference to the AR main camera
-		mainCamera = arCoreDeviceObj.GetComponentInChildren<Camera>();
+    // initializes the AR-Core components
+    private void InitArCore()
+    {
+        //Debug.Log("InitArCore started.");
+
+        // disable the main camera, if any
+        Camera currentCamera = MultiARInterop.GetMainCamera();
+        if (currentCamera)
+        {
+            currentCamera.gameObject.SetActive(false);
+        }
+
+        // create ARCore-Device in the scene
+        arCoreDeviceObj = Instantiate(arCoreDevicePrefab, Vector3.zero, Quaternion.identity);
+        arCoreDeviceObj.name = "ARCore Device";
+        DontDestroyOnLoad(arCoreDeviceObj);
+
+        // update the session config, if needed
+        ARCoreSession arSession = arCoreDeviceObj.GetComponent<ARCoreSession>();
+        if (arSession != null && arSession.SessionConfig != null && arImageDatabase != null)
+        {
+            arSession.SessionConfig.AugmentedImageDatabase = arImageDatabase;
+        }
+
+        // reference to the AR main camera
+        mainCamera = arCoreDeviceObj.GetComponentInChildren<Camera>();
 
 //		// disable directional light, if any
 //		Light currentLight = MultiARInterop.GetDirectionalLight();
@@ -771,51 +814,53 @@ public class ARCoreInteface : ARBaseInterface, ARPlatformInterface
 //		// reference to the AR directional light
 //		//directionalLight = envLight.GetComponent<Light>();
 
-		// modify the directional light
-		Light currentLight = MultiARInterop.GetDirectionalLight();
-		if(!currentLight)
-		{
-			GameObject currentLightObj = new GameObject("Directional light");
+        // modify the directional light
+        Light currentLight = MultiARInterop.GetDirectionalLight();
+        if (!currentLight)
+        {
+            GameObject currentLightObj = new GameObject("Directional light");
 
-			currentLight = currentLightObj.AddComponent<Light>();
-			currentLight.type = LightType.Directional;
-		}
+            currentLight = currentLightObj.AddComponent<Light>();
+            currentLight.type = LightType.Directional;
+        }
 
-		// reset light position & rotation
-		currentLight.transform.position = Vector3.zero;
-		currentLight.transform.rotation = Quaternion.Euler(40f, 40f, 0f);
-		DontDestroyOnLoad(currentLight.gameObject);
+        // reset light position & rotation
+        currentLight.transform.position = Vector3.zero;
+        currentLight.transform.rotation = Quaternion.Euler(40f, 40f, 0f);
+        DontDestroyOnLoad(currentLight.gameObject);
 
-		// set light parameters
-		//currentLight.lightmapBakeType = LightmapBakeType.Mixed;
-		currentLight.color = new Color32(255, 254, 244, 255);
+        // set light parameters
+        //currentLight.lightmapBakeType = LightmapBakeType.Mixed;
+        currentLight.color = new Color32(255, 254, 244, 255);
 
-		// add the ar-light component
-		currentLight.gameObject.AddComponent<MultiARDirectionalLight>();
+        // add the ar-light component
+        currentLight.gameObject.AddComponent<MultiARDirectionalLight>();
 
-		// get ar-data
-		MultiARInterop.MultiARData arData = arManager ? arManager.GetARData() : null;
+        // get ar-data
+        MultiARInterop.MultiARData arData = arManager ? arManager.GetARData() : null;
 
-		if(arManager && arManager.pointCloudPrefab != null)
-		{
-			arData.pointCloudData = new Vector3[MultiARInterop.MAX_POINT_COUNT];
-			arData.pointCloudLength = 0;
-			arData.pointCloudTimestamp = 0.0;
-		}
+        if (arManager && arManager.pointCloudPrefab != null)
+        {
+            arData.pointCloudData = new Vector3[MultiARInterop.MAX_POINT_COUNT];
+            arData.pointCloudLength = 0;
+            arData.pointCloudTimestamp = 0.0;
+        }
 
-		// create surface renderer
-		if (arManager && arData != null) 
-		{
-			arData.surfaceRendererRoot = new GameObject();
-			arData.surfaceRendererRoot.name = "SurfaceRenderer";
-			DontDestroyOnLoad(arData.surfaceRendererRoot);
-		}
+        // create surface renderer
+        if (arManager && arData != null)
+        {
+            arData.surfaceRendererRoot = new GameObject();
+            arData.surfaceRendererRoot.name = "SurfaceRenderer";
+            DontDestroyOnLoad(arData.surfaceRendererRoot);
+        }
 
-		// interface is initialized
-		isInitialized = true;
-	}
+        // interface is initialized
+        isInitialized = true;
 
-	void OnDestroy()
+        //Debug.Log("InitArCore finished.");
+    }
+
+    void OnDestroy()
 	{
 	}
 
