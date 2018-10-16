@@ -72,9 +72,13 @@ public class ARCoreInteface : ARBaseInterface, ARPlatformInterface
 	// is ARCore quitting flag
 	private bool m_IsQuitting = false;
 
-	// reference to the instantiated ar-core-device prefab
+	// reference to the instantiated ar-core-device prefab and its renderer component
 	private GameObject arCoreDeviceObj = null;
-	private AugmentedImageDatabase arImageDatabase = null;
+    private ARCoreBackgroundRenderer arCodeRenderer = null;
+    private Material backgroundMat = null;
+
+    // image-anchor database
+    private AugmentedImageDatabase arImageDatabase = null;
 
 	// list of tracked augmented images
 	private List<AugmentedImage> alTrackedAugmentedImages = new List<AugmentedImage>();
@@ -720,9 +724,34 @@ public class ARCoreInteface : ARBaseInterface, ARPlatformInterface
 	}
 
 
-	// -- // -- // -- // -- // -- // -- // -- // -- // -- // -- //
+    /// <summary>
+    /// Gets the background (reality) texture
+    /// </summary>
+    /// <param name="arData">AR data</param>
+    /// <returns>The background texture, or null</returns>
+    public override Texture GetBackgroundTex(MultiARInterop.MultiARData arData)
+    {
+        if(arData != null)
+        {
+            RenderTexture backTex = GetBackgroundTexureRef(arData);
 
-	public void Start()
+            if(backTex != null && backgroundMat != null && 
+                Session.Status.IsValid() && arData.backTexTime != lastFrameTimestamp)
+            {
+                arData.backTexTime = lastFrameTimestamp;
+                Graphics.Blit(null, backTex, backgroundMat);
+            }
+
+            return backTex;
+        }
+
+        return null;
+    }
+
+
+    // -- // -- // -- // -- // -- // -- // -- // -- // -- // -- //
+
+    public void Start()
 	{
 		if(!isInterfaceEnabled)
 			return;
@@ -787,6 +816,13 @@ public class ARCoreInteface : ARBaseInterface, ARPlatformInterface
         arCoreDeviceObj = Instantiate(arCoreDevicePrefab, Vector3.zero, Quaternion.identity);
         arCoreDeviceObj.name = "ARCore Device";
         DontDestroyOnLoad(arCoreDeviceObj);
+
+        // get background material
+        arCodeRenderer = FindObjectOfType<ARCoreBackgroundRenderer>();
+        if (arCodeRenderer)
+        {
+            backgroundMat = arCodeRenderer.BackgroundMaterial;
+        }
 
         // update the session config, if needed
         ARCoreSession arSession = arCoreDeviceObj.GetComponent<ARCoreSession>();

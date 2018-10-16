@@ -146,4 +146,45 @@ public class ARBaseInterface : MonoBehaviour
 			return null;
 	}
 
+
+    /// <summary>
+    /// Gets the background (reality) texture
+    /// </summary>
+    /// <param name="arData">AR data</param>
+    /// <returns>The background texture, or null</returns>
+    public virtual Texture GetBackgroundTex(MultiARInterop.MultiARData arData)
+    {
+        return arData != null ? arData.backgroundTex : null;
+    }
+
+
+    /// <summary>
+    /// Gets reference to the background render texture. Creates or recreates it, if needed.
+    /// </summary>
+    /// <param name="arData">AR data</param>
+    /// <returns>The background render texture, or null</returns>
+    protected RenderTexture GetBackgroundTexureRef(MultiARInterop.MultiARData arData)
+    {
+        if (arData != null)
+        {
+            if(arData.backgroundTex == null || arData.backScreenW != Screen.width || arData.backScreenH != Screen.height)
+            {
+                if(arData.backgroundTex != null)
+                {
+                    arData.backgroundTex.Release();
+                    arData.backgroundTex = null;
+                }
+
+                arData.backgroundTex = new RenderTexture(Screen.width, Screen.height, 0);
+                arData.backScreenW = Screen.width;
+                arData.backScreenH = Screen.height;
+                arData.backTexTime = 0.0;
+            }
+
+            return arData.backgroundTex;
+        }
+
+        return null;
+    }
+
 }

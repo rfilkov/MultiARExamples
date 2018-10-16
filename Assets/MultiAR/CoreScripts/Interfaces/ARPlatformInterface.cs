@@ -261,4 +261,11 @@ public interface ARPlatformInterface
 	/// <param name="imageAnchorName">Image anchor name.</param>
 	GameObject GetTrackedImageAnchorByName(string imageAnchorName);
 
+    /// <summary>
+    /// Gets the background (reality) texture
+    /// </summary>
+    /// <param name="arData">AR data</param>
+    /// <returns>The background texture, or null</returns>
+    Texture GetBackgroundTex(MultiARInterop.MultiARData arData);
+
 }

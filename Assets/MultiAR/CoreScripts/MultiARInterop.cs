@@ -90,6 +90,11 @@ public class MultiARInterop
 
 		// image anchors
 		public bool imageAnchorsEnabled = false;
+
+        // background texture
+        public RenderTexture backgroundTex = null;
+        public int backScreenW = 0, backScreenH = 0;
+        public double backTexTime = 0.0;
 	}
 
 	/// <summary>

@@ -26,11 +26,15 @@ public class ARKitInteface : ARBaseInterface, ARPlatformInterface
 	// reference to the AR camera in the scene
 	private Camera mainCamera;
 
-	// reference to the AR directional light
-	//private Light directionalLight;
+    // video renderer component and material
+    private UnityARVideo arVideoRenderer = null;
+    private Material backgroundMat = null;
 
-	// last frame timestamp
-	private double lastFrameTimestamp = 0.0;
+    // reference to the AR directional light
+    //private Light directionalLight;
+
+    // last frame timestamp
+    private double lastFrameTimestamp = 0.0;
 
 	// current tracking state
 	private ARTrackingState cameraTrackingState = ARTrackingState.ARTrackingStateNotAvailable;
@@ -56,6 +60,7 @@ public class ARKitInteface : ARBaseInterface, ARPlatformInterface
 	private bool isSessionPaused = false;
 
 	private ARReferenceImagesSet arImageDatabase = null;
+
 
 	/// <summary>
 	/// Gets the AR platform supported by the interface.
@@ -732,9 +737,34 @@ public class ARKitInteface : ARBaseInterface, ARPlatformInterface
 	}
 
 
-	// -- // -- // -- // -- // -- // -- // -- // -- // -- // -- //
+    /// <summary>
+    /// Gets the background (reality) texture
+    /// </summary>
+    /// <param name="arData">AR data</param>
+    /// <returns>The background texture, or null</returns>
+    public override Texture GetBackgroundTex(MultiARInterop.MultiARData arData)
+    {
+        if (arData != null)
+        {
+            RenderTexture backTex = GetBackgroundTexureRef(arData);
 
-	void Start()
+            if (backTex != null && backgroundMat != null &&
+                cameraTrackingState != ARTrackingState.ARTrackingStateNotAvailable && arData.backTexTime != lastFrameTimestamp)
+            {
+                arData.backTexTime = lastFrameTimestamp;
+                Graphics.Blit(null, backTex, backgroundMat);
+            }
+
+            return backTex;
+        }
+
+        return null;
+    }
+
+
+    // -- // -- // -- // -- // -- // -- // -- // -- // -- // -- //
+
+    void Start()
 	{
 		if(!isInterfaceEnabled)
 			return;
@@ -780,8 +810,9 @@ public class ARKitInteface : ARBaseInterface, ARPlatformInterface
 		}
 
 		// add the needed camera components
-		UnityARVideo arVideo = currentCamera.gameObject.AddComponent<UnityARVideo>();
-		arVideo.m_ClearMaterial = yuvMaterial;
+		arVideoRenderer = currentCamera.gameObject.AddComponent<UnityARVideo>();
+        arVideoRenderer.m_ClearMaterial = yuvMaterial;
+        backgroundMat = yuvMaterial;
 
 		currentCamera.gameObject.AddComponent<UnityARCameraNearFar>();
 

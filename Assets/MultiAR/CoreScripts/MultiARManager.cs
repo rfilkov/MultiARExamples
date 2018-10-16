@@ -870,11 +870,26 @@ public class MultiARManager : MonoBehaviour
 		return null;
 	}
 
+    /// <summary>
+    /// Gets the background (reality) texture
+    /// </summary>
+    /// <param name="arData">AR data</param>
+    /// <returns>The background texture, or null</returns>
+    public virtual Texture GetBackgroundTex()
+    {
+        if (arInterface != null)
+        {
+            return arInterface.GetBackgroundTex(arData);
+        }
 
-	// -- // -- // -- // -- // -- // -- // -- // -- // -- // -- //
+        return null;
+    }
 
 
-	void Awake()
+    // -- // -- // -- // -- // -- // -- // -- // -- // -- // -- //
+
+
+    void Awake()
 	{
 		// initializes the singleton instance of MultiARManager
 		if(instance == null)
