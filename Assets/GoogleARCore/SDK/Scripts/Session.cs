@@ -20,7 +20,7 @@
 
 // Certain versions of 2018.1 fail to define UNITY_2017_4_OR_NEWER.
 #if !UNITY_2017_4_OR_NEWER && !UNITY_2018_1_OR_NEWER && !ARCORE_SKIP_MIN_VERSION_CHECK
-//  #error ARCore SDK for Unity requires Unity 2017.4 or later.
+  #error ARCore SDK for Unity requires Unity 2017.4 or later.
 #endif  // !UNITY_2017_4_OR_NEWER && !UNITY_2018_1_OR_NEWER
 
 namespace GoogleARCore
