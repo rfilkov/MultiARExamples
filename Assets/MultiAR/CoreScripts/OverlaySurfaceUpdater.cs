@@ -40,9 +40,20 @@ public class OverlaySurfaceUpdater : MonoBehaviour
 	/// <param name="matSurface">Surface material.</param>
 	public void SetSurfaceMaterial(Material matSurface)
 	{
-		if(meshRenderer && matSurface)
+		if(meshRenderer)
 		{
-			meshRenderer.material = matSurface;
+			if (matSurface) 
+			{
+				if (!meshRenderer.enabled)
+					meshRenderer.enabled = true;
+
+				meshRenderer.material = matSurface;
+			} 
+			else 
+			{
+				if (meshRenderer.enabled)
+					meshRenderer.enabled = false;
+			}
 		}
 	}
 
@@ -53,23 +64,31 @@ public class OverlaySurfaceUpdater : MonoBehaviour
 	public void SetSurfaceCollider(bool isCollider, PhysicMaterial matCollider)
 	{
 		// get or create mesh collider
-		meshCollider = GetComponent<MeshCollider>();
+		if (meshCollider == null) 
+		{
+			meshCollider = gameObject.GetComponent<MeshCollider>();
+		}
+
+		if(meshCollider == null)
+		{
+			meshCollider = gameObject.AddComponent<MeshCollider>();
+		}
 
 		if(isCollider)
 		{
-			if(meshCollider == null)
+			if(meshCollider)
 			{
-				meshCollider = gameObject.AddComponent<MeshCollider>();
-			}
-
-			if(matCollider)
-			{
+				if (!meshCollider.enabled)
+					meshCollider.enabled = true;
+				
 				meshCollider.material = matCollider;
 			}
 		}
 		else if(meshCollider)
 		{
-			Destroy(meshCollider);
+			//Destroy(meshCollider);
+			if (meshCollider.enabled)
+				meshCollider.enabled = false;
 		}
 	}
 

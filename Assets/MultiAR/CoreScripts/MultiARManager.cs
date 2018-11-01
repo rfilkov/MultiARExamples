@@ -703,6 +703,52 @@ public class MultiARManager : MonoBehaviour
 
 
 	/// <summary>
+	/// Updates existing overlay surfaces with the currently selected material and collider.
+	/// </summary>
+	public void UpdateOverlaySurfaces()
+	{
+		// get current material
+		Material surfaceMat = GetSurfaceMaterial();
+
+		foreach (string sKey in arData.dictOverlaySurfaces.Keys) 
+		{
+			OverlaySurfaceUpdater surface = arData.dictOverlaySurfaces[sKey];
+
+			MeshRenderer meshRenderer = surface.gameObject.GetComponent<MeshRenderer>();
+			MeshCollider meshCollider = surface.gameObject.GetComponent<MeshCollider>();
+
+			// surface renderer
+			if (surfaceMat != null) 
+			{
+				if (meshRenderer != null && !meshRenderer.enabled)
+					meshRenderer.enabled = true;
+				
+				surface.SetSurfaceMaterial(surfaceMat);
+			}
+			else
+			{
+				if (meshRenderer != null && meshRenderer.enabled)
+					meshRenderer.enabled = false;
+			}
+
+			// surface collider
+			if (surfaceCollider) 
+			{
+				if (meshCollider != null && !meshCollider.enabled)
+					meshCollider.enabled = true;
+
+				surface.SetSurfaceCollider(surfaceCollider, colliderMaterial);
+			} 
+			else 
+			{
+				if (meshCollider != null && meshCollider.enabled)
+					meshCollider.enabled = false;
+			}
+		}
+	}
+
+
+	/// <summary>
 	/// Destroys all anchors and their respective anchored objects.
 	/// </summary>
 	public void DestroyAllAnchors()
