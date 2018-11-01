@@ -844,23 +844,112 @@ public class MultiARManager : MonoBehaviour
 	/// <summary>
 	/// Gets the name of first found image anchor.
 	/// </summary>
-	/// <returns>The name of first image anchor.</returns>
+	/// <returns>The name of first image anchor, or empty string.</returns>
 	public string GetFirstTrackedImageAnchorName()
 	{
 		if (arInterface != null) 
 		{
-			return arInterface.GetFirstTrackedImageAnchorName();
-		}
+            return arInterface.GetFirstTrackedImageAnchorName();
+        }
 
 		return string.Empty;
 	}
 
-	/// <summary>
-	/// Gets the tracked image anchor by name.
-	/// </summary>
-	/// <returns>The tracked image anchor.</returns>
-	/// <param name="imageAnchorName">Image anchor name.</param>
-	public GameObject GetTrackedImageAnchorByName(string imageAnchorName)
+    /// <summary>
+    /// Gets the image anchor name that is nearest to the AR-camera.
+    /// </summary>
+    /// <returns>The name of the found image anchor, or empty string.</returns>
+    public string GetNearestImageAnchorName()
+    {
+        if (arInterface != null)
+        {
+            Camera mainCamera = arInterface.GetMainCamera();
+            List<string> alAnchorNames = GetTrackedImageAnchorNames();
+
+            if (mainCamera != null && alAnchorNames != null)
+            {
+                Vector3 cameraPos = mainCamera.transform.position;
+
+                float minDistance = float.MaxValue;
+                int foundAnchorIndex = -1;
+
+                for (int i = 0; i < alAnchorNames.Count; i++)
+                {
+                    string anchorName = alAnchorNames[i];
+                    GameObject anchorObj = arInterface.GetTrackedImageAnchorByName(anchorName);
+
+                    if(anchorObj != null)
+                    {
+                        Vector3 anchorPos = anchorObj.transform.position;
+                        float camToAnchorDist2 = (anchorPos - cameraPos).sqrMagnitude;
+
+                        if(camToAnchorDist2 < minDistance)
+                        {
+                            minDistance = camToAnchorDist2;
+                            foundAnchorIndex = i;
+                        }
+                    }
+                }
+
+                return (foundAnchorIndex >= 0 ? alAnchorNames[foundAnchorIndex] : string.Empty);
+            }
+        }
+
+        return string.Empty;
+    }
+
+    /// <summary>
+    /// Gets the image anchor name that is visible to the AR-camera.
+    /// </summary>
+    /// <returns>The name of the found image anchor, or empty string.</returns>
+    public string GetVisibleImageAnchorName()
+    {
+        if (arInterface != null)
+        {
+            Camera mainCamera = arInterface.GetMainCamera();
+            List<string> alAnchorNames = GetTrackedImageAnchorNames();
+
+            if (mainCamera != null && alAnchorNames != null)
+            {
+                Rect screenRect = new Rect(0, 0, mainCamera.pixelWidth, mainCamera.pixelHeight);
+                Vector2 cameraPos = new Vector2(mainCamera.pixelWidth / 2, mainCamera.pixelHeight / 2);
+
+                float minDistance = float.MaxValue;
+                int foundAnchorIndex = -1;
+
+                for (int i = 0; i < alAnchorNames.Count; i++)
+                {
+                    string anchorName = alAnchorNames[i];
+                    GameObject anchorObj = arInterface.GetTrackedImageAnchorByName(anchorName);
+
+                    if (anchorObj != null)
+                    {
+                        Vector2 anchorPos = mainCamera.WorldToScreenPoint(anchorObj.transform.position);
+                        float camToAnchorDist2 = (anchorPos - cameraPos).sqrMagnitude;
+
+                        if (camToAnchorDist2 < minDistance &&
+                            anchorPos.x >= screenRect.x && anchorPos.x < screenRect.width && 
+                            anchorPos.y >= screenRect.y && anchorPos.y < screenRect.height)
+                        {
+                            minDistance = camToAnchorDist2;
+                            foundAnchorIndex = i;
+                        }
+                    }
+                }
+
+                return (foundAnchorIndex >= 0 ? alAnchorNames[foundAnchorIndex] : string.Empty);
+            }
+        }
+
+        return string.Empty;
+    }
+
+    /// <summary>
+    /// Gets the tracked image anchor by name.
+    /// </summary>
+    /// <returns>The tracked image anchor.</returns>
+    /// <param name="imageAnchorName">Image anchor name.</param>
+    public GameObject GetTrackedImageAnchorByName(string imageAnchorName)
 	{
 		if (arInterface != null) 
 		{

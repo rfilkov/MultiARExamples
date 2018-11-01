@@ -161,10 +161,11 @@ public class CoffeeMachineController : MonoBehaviour
 				infoText.text = string.Format("Selected: {0}", coffeeCupTitles[cupIndexSelected]);
 		}
 
-		// check for found image anchor
-		string foundImageAnchor = marManager.GetFirstTrackedImageAnchorName();
-			
-		if (imageAnchorName == string.Empty)
+        // check for found image anchor
+        //string foundImageAnchor = marManager.GetVisibleImageAnchorName();
+        string foundImageAnchor = marManager.GetNearestImageAnchorName();
+
+        if (imageAnchorName == string.Empty)
 		{
 			imageAnchorName = foundImageAnchor;
 

@@ -277,7 +277,7 @@ public class ObjectController : MonoBehaviour
 	// invoked by the 3rd toggle
 	public void Toggle3Selected(bool bOn)
 	{
-		if(model2)
+		if(model3)
 		{
 			if(!bOn)
 			{
