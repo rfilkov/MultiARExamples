@@ -37,7 +37,17 @@ namespace UnityEngine.XR.iOS
 		}
 
 
-		public string identifier { get { return Marshal.PtrToStringAuto(objectAnchorData.ptrIdentifier); } }
+		public string identifier
+        {
+            get
+            {
+#if !UNITY_WSA
+				return Marshal.PtrToStringAuto(objectAnchorData.ptrIdentifier);
+#else
+                return null;
+#endif
+            }
+        }
 
 		public Matrix4x4 transform { 
 			get { 
@@ -50,7 +60,17 @@ namespace UnityEngine.XR.iOS
 			}
 		}
 
-		public string referenceObjectName { get { return Marshal.PtrToStringAuto(objectAnchorData.referenceObjectNamePtr); } }
+		public string referenceObjectName
+        {
+            get
+            {
+#if !UNITY_WSA
+				return Marshal.PtrToStringAuto(objectAnchorData.referenceObjectNamePtr);
+#else
+                return null;
+#endif
+            }
+        }
 
 		public IntPtr referenceObjectPtr { get { return objectAnchorData.referenceObjectPtr; } }
 	}

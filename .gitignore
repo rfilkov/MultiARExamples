@@ -22,3 +22,5 @@
 /.vs/
 /MultiARExamples.csproj
 /MultiARExamples.Editor.csproj
+/MultiARExamples.Player.csproj
+/Assembly-CSharp.Player.csproj

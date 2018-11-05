@@ -55,12 +55,16 @@ namespace UnityEngine.XR.iOS
 
 		public static ARWorldMap SerializeFromByteArray(byte[] mapByteArray)
 		{
+#if !UNITY_WSA
 			long lengthBytes = mapByteArray.LongLength;
 			GCHandle handle = GCHandle.Alloc (mapByteArray, GCHandleType.Pinned);
 			IntPtr newMapPtr = worldMap_SerializeFromByteArray(handle.AddrOfPinnedObject(), lengthBytes);
 			handle.Free ();
 			return new ARWorldMap (newMapPtr);
-		}
+#else
+            return null;
+#endif
+        }
 
 		public byte [] SerializeToByteArray()
 		{

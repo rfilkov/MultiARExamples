@@ -865,7 +865,7 @@ public class ARKitInteface : ARBaseInterface, ARPlatformInterface
 		MultiARInterop.MultiARData arData = arManager ? arManager.GetARData() : null;
 
 		// check for point cloud getter
-		if(arManager && arManager.pointCloudPrefab != null)
+		if(arManager && arManager.usePointCloudData)
 		{
 			arData.pointCloudData = new Vector3[0];
 			arData.pointCloudLength = 0;
@@ -965,7 +965,7 @@ public class ARKitInteface : ARBaseInterface, ARPlatformInterface
 		currentColorTemperature = lightEstimate.ambientColorTemperature;
 
 		// point cloud
-		if(arManager.pointCloudPrefab != null)
+		if(arManager && arManager.usePointCloudData)
 		{
 			MultiARInterop.MultiARData arData = arManager.GetARData();
 

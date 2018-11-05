@@ -86,7 +86,17 @@ namespace UnityEngine.XR.iOS
 			envProbeAnchorData = uarepad;
 		}
 
-		public string identifier { get { return Marshal.PtrToStringAuto(envProbeAnchorData.ptrIdentifier); } }
+		public string identifier
+        {
+            get
+            {
+#if !UNITY_WSA
+				return Marshal.PtrToStringAuto(envProbeAnchorData.ptrIdentifier);
+#else
+                return null;
+#endif
+            }
+        }
 
 		public Matrix4x4 transform { 
 			get { 

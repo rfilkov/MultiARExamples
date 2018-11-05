@@ -875,7 +875,7 @@ public class ARCoreInteface : ARBaseInterface, ARPlatformInterface
         // get ar-data
         MultiARInterop.MultiARData arData = arManager ? arManager.GetARData() : null;
 
-        if (arManager && arManager.pointCloudPrefab != null)
+        if (arManager && arManager.usePointCloudData)
         {
             arData.pointCloudData = new Vector3[MultiARInterop.MAX_POINT_COUNT];
             arData.pointCloudLength = 0;
@@ -941,7 +941,7 @@ public class ARCoreInteface : ARBaseInterface, ARPlatformInterface
 		// get point cloud, if needed
 		MultiARInterop.MultiARData arData = arManager.GetARData();
 
-		if(arManager.pointCloudPrefab != null)
+		if(arManager.usePointCloudData)
 		{
 			if (Frame.PointCloud.PointCount > 0 && Frame.PointCloud.IsUpdatedThisFrame)
 			{

@@ -19,9 +19,11 @@ namespace UnityEngine.XR.iOS
 			{
 				compressedDStream.Write(source, 0, source.Length);
 
+#if !UNITY_WSA
 				compressedDStream.Close();
+#endif
 
-				byte[] destination = ms.ToArray();
+                byte[] destination = ms.ToArray();
 
 				Debug.Log(source.Length.ToString() + " vs " + ms.Length.ToString());
 

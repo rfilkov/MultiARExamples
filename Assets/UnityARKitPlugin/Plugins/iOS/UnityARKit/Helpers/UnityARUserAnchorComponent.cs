@@ -43,7 +43,7 @@ public class UnityARUserAnchorComponent : MonoBehaviour {
 			transform.position = UnityARMatrixOps.GetPosition(anchor.transform);
 			transform.rotation = UnityARMatrixOps.GetRotation(anchor.transform);
 			
-			Console.WriteLine("Updated: pos = " + transform.position + m_AnchorId);
+			Debug.Log("Updated: pos = " + transform.position + m_AnchorId);
 		}
 	}
 }

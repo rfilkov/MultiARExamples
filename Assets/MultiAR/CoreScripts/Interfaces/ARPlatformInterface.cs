@@ -268,4 +268,13 @@ public interface ARPlatformInterface
     /// <returns>The background texture, or null</returns>
     Texture GetBackgroundTex(MultiARInterop.MultiARData arData);
 
+    /// <summary>
+    /// Sets or clears fixed background texture size
+    /// </summary>
+    /// <param name="arData">AR data</param>
+    /// <param name="isFixedSize">Whether the background texture has fixed size</param>
+    /// <param name="fixedSizeW">Fixed size width</param>
+    /// <param name="fixedSizeH">Fixed size height</param>
+    void SetFixedBackTexSize(MultiARInterop.MultiARData arData, bool isFixedSize, int fixedSizeW, int fixedSizeH);
+
 }

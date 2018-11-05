@@ -26,12 +26,16 @@ namespace UnityEngine.XR.iOS
 
 		public static ARReferenceObject SerializeFromByteArray(byte[] mapByteArray)
 		{
+#if !UNITY_WSA
 			long lengthBytes = mapByteArray.LongLength;
 			GCHandle handle = GCHandle.Alloc (mapByteArray, GCHandleType.Pinned);
 			IntPtr newMapPtr = referenceObject_SerializeFromByteArray(handle.AddrOfPinnedObject(), lengthBytes);
 			handle.Free ();
 			return new ARReferenceObject (newMapPtr);
-		}
+#else
+            return null;
+#endif
+        }
 
 		public byte [] SerializeToByteArray()
 		{
@@ -157,15 +161,15 @@ namespace UnityEngine.XR.iOS
 			this.enableAutoFocus = enableAutoFocus;
 		}
 
-		#if UNITY_EDITOR || !UNITY_IOS
+#if UNITY_EDITOR || !UNITY_IOS
 		private bool IsARKitObjectScanningConfigurationSupported()
 		{
 			return true;
 		}
-		#else
+#else
 		[DllImport("__Internal")]
 		private static extern bool IsARKitObjectScanningConfigurationSupported();
-		#endif
+#endif
 
 	}
 
@@ -177,9 +181,9 @@ namespace UnityEngine.XR.iOS
 	{
 		public void RunWithConfigAndOptions(ARKitObjectScanningSessionConfiguration config, UnityARSessionRunOption runOptions)
 		{
-			#if !UNITY_EDITOR && UNITY_IOS
+#if !UNITY_EDITOR && UNITY_IOS
 			StartObjectScanningSessionWithOptions (m_NativeARSession, config, runOptions);
-			#endif
+#endif
 		}
 
 		public void RunWithConfig(ARKitObjectScanningSessionConfiguration config)

@@ -10,10 +10,10 @@ public class MultiARManager : MonoBehaviour
 	[Tooltip("Whether to apply the AR-detected light.")]
 	public bool applyARLight = true;
 
-//	[Tooltip("Whether to get the tracked feature points.")]
-//	public bool getPointCloud = false;
+    [Tooltip("Whether to the feature points data is needed or not.")]
+    public bool usePointCloudData = true;
 
-	[Tooltip("Mesh-prefab used to display the point cloud in the scene.")]
+    [Tooltip("Mesh-prefab used to display the point cloud in the scene.")]
 	public GameObject pointCloudPrefab;
 
 //	[Tooltip("Whether to display the tracked surfaces.")]
@@ -70,8 +70,9 @@ public class MultiARManager : MonoBehaviour
 
 	// the last time the point cloud was displayed
 	protected double lastPointCloudTimestamp = 0.0;
-	// mesh used to display the point cloud
-	protected Mesh pointCloudMesh = null;
+    // mesh used to display the point cloud
+    protected GameObject pointCloudObj = null;
+    protected Mesh pointCloudMesh = null;
 
 	// current frame timestamp and camera tracking state
 	protected double lastFrameTimestamp = 0.0;
@@ -895,8 +896,8 @@ public class MultiARManager : MonoBehaviour
 	{
 		if (arInterface != null) 
 		{
-            return arInterface.GetFirstTrackedImageAnchorName();
-        }
+			return arInterface.GetFirstTrackedImageAnchorName();
+		}
 
 		return string.Empty;
 	}
@@ -1021,6 +1022,21 @@ public class MultiARManager : MonoBehaviour
     }
 
 
+    /// <summary>
+    /// Sets or clears fixed background texture size
+    /// </summary>
+    /// <param name="isFixedSize">Whether the background texture has fixed size</param>
+    /// <param name="fixedSizeW">Fixed size width</param>
+    /// <param name="fixedSizeH">Fixed size height</param>
+    public void SetFixedBackTexSize(bool isFixedSize, int fixedSizeW, int fixedSizeH)
+    {
+        if (arInterface != null)
+        {
+            arInterface.SetFixedBackTexSize(arData, isFixedSize, fixedSizeW, fixedSizeH);
+        }
+    }
+
+
     // -- // -- // -- // -- // -- // -- // -- // -- // -- // -- //
 
 
@@ -1106,20 +1122,20 @@ public class MultiARManager : MonoBehaviour
 
 	void Start()
 	{
-		// initialize point cloud
-		if (pointCloudPrefab) 
-		{
-			GameObject pointCloudObj = Instantiate(pointCloudPrefab);
-			pointCloudObj.transform.SetParent(transform);
-			//DontDestroyOnLoad(pointCloudObj);
+		//// initialize point cloud
+		//if (pointCloudPrefab) 
+		//{
+		//	GameObject pointCloudObj = Instantiate(pointCloudPrefab);
+		//	pointCloudObj.transform.SetParent(transform);
+		//	//DontDestroyOnLoad(pointCloudObj);
 
-			MeshFilter pointCloudMF = pointCloudObj.GetComponent<MeshFilter>();
-			if (pointCloudMF) 
-			{
-				pointCloudMesh = pointCloudMF.mesh;
-				pointCloudMesh.Clear();
-			}
-		}
+		//	MeshFilter pointCloudMF = pointCloudObj.GetComponent<MeshFilter>();
+		//	if (pointCloudMF) 
+		//	{
+		//		pointCloudMesh = pointCloudMF.mesh;
+		//		pointCloudMesh.Clear();
+		//	}
+		//}
 
 		// enable image-anchors tracking
 		if (arData.imageAnchorsEnabled && arInterface != null) 
@@ -1151,7 +1167,14 @@ public class MultiARManager : MonoBehaviour
 				arData.imageAnchorsEnabled = false;
 			}
 
-			instance = null;
+            // release background tex, if needed
+            if (arData.backgroundTex != null)
+            {
+                arData.backgroundTex.Release();
+                arData.backgroundTex = null;
+            }
+
+            instance = null;
 			instanceInited = false;
 		}
 	}
@@ -1194,7 +1217,20 @@ public class MultiARManager : MonoBehaviour
 		// display the point cloud
 		if(pointCloudPrefab && arData.pointCloudTimestamp > lastPointCloudTimestamp)
 		{
-			lastPointCloudTimestamp = arData.pointCloudTimestamp;
+            if(pointCloudObj == null)
+            {
+                pointCloudObj = Instantiate(pointCloudPrefab);
+                pointCloudObj.transform.SetParent(transform);
+                //DontDestroyOnLoad(pointCloudObj);
+
+                MeshFilter pointCloudMF = pointCloudObj.GetComponent<MeshFilter>();
+                if (pointCloudMF)
+                {
+                    pointCloudMesh = pointCloudMF.mesh;
+                }
+            }
+
+            lastPointCloudTimestamp = arData.pointCloudTimestamp;
 			int pointCloudLen = arData.pointCloudLength < MultiARInterop.MAX_POINT_COUNT ? arData.pointCloudLength : MultiARInterop.MAX_POINT_COUNT;
 
 			int[] indices = new int[pointCloudLen];
@@ -1203,10 +1239,21 @@ public class MultiARManager : MonoBehaviour
 				indices[i] = i;
 			}
 
-			pointCloudMesh.Clear();
-			pointCloudMesh.vertices = arData.pointCloudData;
-			pointCloudMesh.SetIndices(indices, MeshTopology.Points, 0, false);
-		}
+            if(pointCloudMesh)
+            {
+                pointCloudMesh.Clear();
+                pointCloudMesh.vertices = arData.pointCloudData;
+                pointCloudMesh.SetIndices(indices, MeshTopology.Points, 0, false);
+            }
+        }
+
+        if(pointCloudPrefab == null && pointCloudObj != null)
+        {
+            GameObject.Destroy(pointCloudObj);
+
+            pointCloudObj = null;
+            pointCloudMesh = null;
+        }
 
 		// show cursor if needed
 		if(cursorObject && showCursor != ShowCursorEnum.Never)

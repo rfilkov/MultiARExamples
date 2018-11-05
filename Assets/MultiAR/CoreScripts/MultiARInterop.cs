@@ -95,6 +95,9 @@ public class MultiARInterop
         public RenderTexture backgroundTex = null;
         public int backScreenW = 0, backScreenH = 0;
         public double backTexTime = 0.0;
+
+        public int fixedBackTexW = 0, fixedBackTexH = 0;
+        public bool isFixedBackTexSize = false;
 	}
 
 	/// <summary>

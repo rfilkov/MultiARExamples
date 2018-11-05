@@ -159,6 +159,24 @@ public class ARBaseInterface : MonoBehaviour
 
 
     /// <summary>
+    /// Sets or clears fixed background texture size
+    /// </summary>
+    /// <param name="arData">AR data</param>
+    /// <param name="isFixedSize">Whether the background texture has fixed size</param>
+    /// <param name="fixedSizeW">Fixed size width</param>
+    /// <param name="fixedSizeH">Fixed size height</param>
+    public void SetFixedBackTexSize(MultiARInterop.MultiARData arData, bool isFixedSize, int fixedSizeW, int fixedSizeH)
+    {
+        if(arData != null)
+        {
+            arData.isFixedBackTexSize = isFixedSize;
+            arData.fixedBackTexW = fixedSizeW;
+            arData.fixedBackTexH = fixedSizeH;
+        }
+    }
+
+
+    /// <summary>
     /// Gets reference to the background render texture. Creates or recreates it, if needed.
     /// </summary>
     /// <param name="arData">AR data</param>
@@ -167,7 +185,10 @@ public class ARBaseInterface : MonoBehaviour
     {
         if (arData != null)
         {
-            if(arData.backgroundTex == null || arData.backScreenW != Screen.width || arData.backScreenH != Screen.height)
+            int currentScreenW = arData.isFixedBackTexSize ? arData.fixedBackTexW : Screen.width;
+            int currentScreenH = arData.isFixedBackTexSize ? arData.fixedBackTexH : Screen.height;
+
+            if (arData.backgroundTex == null || arData.backScreenW != currentScreenW || arData.backScreenH != currentScreenH)
             {
                 if(arData.backgroundTex != null)
                 {
@@ -175,9 +196,10 @@ public class ARBaseInterface : MonoBehaviour
                     arData.backgroundTex = null;
                 }
 
-                arData.backgroundTex = new RenderTexture(Screen.width, Screen.height, 0);
-                arData.backScreenW = Screen.width;
-                arData.backScreenH = Screen.height;
+                arData.backScreenW = currentScreenW;
+                arData.backScreenH = currentScreenH;
+
+                arData.backgroundTex = new RenderTexture(arData.backScreenW, arData.backScreenH, 0);
                 arData.backTexTime = 0.0;
             }
 

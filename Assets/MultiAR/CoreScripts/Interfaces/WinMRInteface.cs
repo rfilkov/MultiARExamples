@@ -6,7 +6,7 @@ using UnityEngine.XR;
 using UnityEngine.XR.WSA;
 using UnityEngine.XR.WSA.Input;
 using UnityEngine.XR.WSA.Sharing;
-
+using UnityEngine.XR.WSA.WebCam;
 
 public class WinMRInteface : ARBaseInterface, ARPlatformInterface 
 {
@@ -80,12 +80,17 @@ public class WinMRInteface : ARBaseInterface, ARPlatformInterface
 	private Vector3 handPosition = Vector3.zero;
 	private Vector3 handDirection = Vector3.zero;
 
+    // photo capture
+    private bool photoCaptureInited = false;
+    private PhotoCapture photoCaptureObj = null;
+    private Texture2D photoCaptureTex = null;
 
-	/// <summary>
-	/// Gets the AR platform supported by the interface.
-	/// </summary>
-	/// <returns>The AR platform.</returns>
-	public MultiARInterop.ARPlatform GetARPlatform()
+
+    /// <summary>
+    /// Gets the AR platform supported by the interface.
+    /// </summary>
+    /// <returns>The AR platform.</returns>
+    public MultiARInterop.ARPlatform GetARPlatform()
 	{
 		return MultiARInterop.ARPlatform.WindowsMR;
 	}
@@ -639,6 +644,37 @@ public class WinMRInteface : ARBaseInterface, ARPlatformInterface
             });
     }
 
+
+    /// <summary>
+    /// Gets the background (reality) texture
+    /// </summary>
+    /// <param name="arData">AR data</param>
+    /// <returns>The background texture, or null</returns>
+    public override Texture GetBackgroundTex(MultiARInterop.MultiARData arData)
+    {
+        if(!photoCaptureInited)
+        {
+            photoCaptureInited = true;
+            StartPhotoCapturer();
+        }
+
+        if (arData != null)
+        {
+            RenderTexture backTex = GetBackgroundTexureRef(arData);
+
+            if (backTex != null && photoCaptureTex != null && arData.backTexTime != lastFrameTimestamp)
+            {
+                arData.backTexTime = lastFrameTimestamp;
+                Graphics.Blit(photoCaptureTex, backTex);
+            }
+
+            return backTex;
+        }
+
+        return null;
+    }
+
+
     // -- // -- // -- // -- // -- // -- // -- // -- // -- // -- //
 
     void Start()
@@ -722,7 +758,7 @@ public class WinMRInteface : ARBaseInterface, ARPlatformInterface
 		MultiARInterop.MultiARData arData = arManager.GetARData();
 
 		// check for point cloud getter
-		if(arManager.pointCloudPrefab != null)
+		if(arManager && arManager.usePointCloudData)
 		{
 			arData.pointCloudData = new Vector3[0];
 			arData.pointCloudLength = 0;
@@ -973,7 +1009,10 @@ public class WinMRInteface : ARBaseInterface, ARPlatformInterface
 				InteractionManager.InteractionSourceUpdated -= InteractionManager_InteractionSourceUpdated;
 			}
 
-			if(arManager)
+            // stops the web-cam photo capturer, if needed
+            StopPhotoCapturer();
+
+            if (arManager)
 			{
 				// get arData-reference
 				MultiARInterop.MultiARData arData = arManager.GetARData();
@@ -1322,6 +1361,101 @@ public class WinMRInteface : ARBaseInterface, ARPlatformInterface
 
 		return dTimestamp;
 	}
+
+
+    // starts the web-cam photo capturer, if available
+    private bool StartPhotoCapturer()
+    {
+        try
+        {
+            // find the max resolution
+            int maxResWidth = 0;
+            int maxResHeight = 0;
+            int maxResArea = 0;
+
+            foreach (Resolution camRes in PhotoCapture.SupportedResolutions)
+            {
+                int camResArea = camRes.width * camRes.height;
+
+                if (maxResArea < camResArea)
+                {
+                    maxResWidth = camRes.width;
+                    maxResHeight = camRes.height;
+                    maxResArea = camResArea;
+                }
+            }
+
+            photoCaptureTex = new Texture2D(maxResWidth, maxResHeight);
+
+            // Create a PhotoCapture object
+            PhotoCapture.CreateAsync(false, delegate (PhotoCapture captureObject) {
+                photoCaptureObj = captureObject;
+
+                CameraParameters cameraParameters = new CameraParameters();
+                cameraParameters.hologramOpacity = 0.0f;
+                cameraParameters.cameraResolutionWidth = maxResWidth;
+                cameraParameters.cameraResolutionHeight = maxResHeight;
+                cameraParameters.pixelFormat = CapturePixelFormat.BGRA32;
+
+                // Activate the camera
+                photoCaptureObj.StartPhotoModeAsync(cameraParameters, delegate (PhotoCapture.PhotoCaptureResult result)
+                {
+                    photoCaptureObj.TakePhotoAsync(OnCapturedPhotoToMemory);
+                });
+            });
+
+            return true;
+        }
+        catch (System.Exception ex)
+        {
+            Debug.LogError(ex.Message + "\n" + ex.StackTrace);
+        }
+
+        return false;
+    }
+
+    // stops the web-cam photo capturer, if needed
+    private void StopPhotoCapturer()
+    {
+        if (photoCaptureObj != null)
+        {
+            // Deactivate the camera
+            photoCaptureObj.StopPhotoModeAsync(OnStoppedPhotoMode);
+        }
+
+        photoCaptureTex = null;
+        photoCaptureInited = false;
+    }
+
+
+    // invoked by the photo-capturer to save the current image
+    void OnCapturedPhotoToMemory(PhotoCapture.PhotoCaptureResult result, PhotoCaptureFrame photoCaptureFrame)
+    {
+        if (result.success)
+        {
+            if (photoCaptureTex != null)
+            {
+                // Copy the raw image data into the target texture
+                photoCaptureFrame.UploadImageDataToTexture(photoCaptureTex);
+            }
+        }
+        else
+        {
+            Debug.Log("TakePhotoAsync() error: " + result.resultType);
+        }
+    }
+
+
+    // invoked by the photo-capturer to dispose the used resources
+    void OnStoppedPhotoMode(PhotoCapture.PhotoCaptureResult result)
+    {
+        if (photoCaptureObj != null)
+        {
+            // Shutdown the photo capture resource
+            photoCaptureObj.Dispose();
+            photoCaptureObj = null;
+        }
+    }
 
 }
 

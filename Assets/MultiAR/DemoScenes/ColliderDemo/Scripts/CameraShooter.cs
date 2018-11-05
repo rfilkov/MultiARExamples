@@ -36,8 +36,14 @@ public class CameraShooter : MonoBehaviour
 	// Update is called once per frame
 	void Update () 
 	{
-		// check for click
-		if (ballPrefab && arManager && arManager.IsInitialized() && arManager.IsInputAvailable(true))
+        //// test only
+        //if(arManager && arManager.IsInitialized())
+        //{
+        //    Texture texBack = arManager.GetBackgroundTex();
+        //}
+
+        // check for click
+        if (ballPrefab && arManager && arManager.IsInitialized() && arManager.IsInputAvailable(true))
 		{
 			MultiARInterop.InputAction action = arManager.GetInputAction();
 
