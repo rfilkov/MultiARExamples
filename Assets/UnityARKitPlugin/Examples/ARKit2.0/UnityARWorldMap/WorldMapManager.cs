@@ -9,7 +9,7 @@ public class WorldMapManager : MonoBehaviour
     [SerializeField]
     UnityARCameraManager m_ARCameraManager;
 
-    ARWorldMap m_LoadedMap;
+    public ARWorldMap m_LoadedMap;
 
 	serializableARWorldMap serializedWorldMap;
 

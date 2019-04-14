@@ -21,16 +21,38 @@ int pointCloud_GetCount(const void* pointCloudPtr)
 void* pointCloud_GetPointsPtr(const void* pointCloudPtr)
 {
     if (pointCloudPtr == nullptr)
+    {
+        return 0;
+    }
+    
+    if (@available(iOS 11.0, *))
+    {
+        ARPointCloud* pointCloud = (__bridge ARPointCloud*)pointCloudPtr;
+        if (![pointCloud isKindOfClass:[ARPointCloud class]])
+        {
+            return 0;
+        }
+        const vector_float3 *pointsPtr = [pointCloud points];
+        return (void*) pointsPtr;
+    }
+    else
+    {
+        // Fallback on earlier versions
+        return 0;
+    }
+}
+
+void* pointCloud_GetIdentifiersPtr(const void* pointCloudPtr)
+{
+    if (pointCloudPtr == nullptr)
         return 0;
     
     ARPointCloud* pointCloud = (__bridge ARPointCloud*)pointCloudPtr;
     
-    const vector_float3 *pointsPtr = [pointCloud points];
+    const UInt64 *identifiersPtr = [pointCloud identifiers];
     
-    return (void*) pointsPtr;
+    return (void*) identifiersPtr;
 }
-
-
 #ifdef __cplusplus
 }
 #endif

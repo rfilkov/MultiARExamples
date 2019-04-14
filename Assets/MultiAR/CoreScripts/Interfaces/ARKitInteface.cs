@@ -965,11 +965,11 @@ public class ARKitInteface : ARBaseInterface, ARPlatformInterface
 		currentColorTemperature = lightEstimate.ambientColorTemperature;
 
 		// point cloud
-		if(arManager && arManager.usePointCloudData)
+		if(arManager && arManager.usePointCloudData && camera.pointCloud != null)
 		{
 			MultiARInterop.MultiARData arData = arManager.GetARData();
 
-			arData.pointCloudData = camera.pointCloudData;
+            arData.pointCloudData = camera.pointCloud.Points; // camera.pointCloudData;
 			arData.pointCloudLength = arData.pointCloudData.Length;
 			arData.pointCloudTimestamp = lastFrameTimestamp;
 			//Debug.Log("Point cloud size: " + arData.pointCloudLength + " @ " + arData.pointCloudTimestamp);

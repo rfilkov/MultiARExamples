@@ -86,7 +86,7 @@ typedef struct
 {
     UnityARAlignment alignment;
     uint32_t enableLightEstimation;
-    
+    void *ptrVideoFormat;
 } ARKitFaceTrackingConfiguration;
 
 enum UnityARSessionRunOptions
@@ -218,7 +218,7 @@ typedef struct
     UnityVideoParams videoParams;
     UnityLightData lightData;
     UnityARMatrix4x4 displayTransform;
-    uint32_t getPointCloudData;
+    void* ptrPointCloud;
     uint32_t getLightEstimation;
     UnityARWorldMappingStatus worldMappingStatus;
 } UnityARCamera;
@@ -290,9 +290,9 @@ typedef void (*UNITY_AR_SESSION_REF_OBJ_EXTRACT_COMPLETION_CALLBACK)(const void*
 
 static inline bool UnityIsARKit_1_5_Supported()
 {
-    if ([ARImageAnchor class])
+    if (@available(iOS 11.3, *))
     {
-        return true;
+        return [ARImageAnchor class];
     }
     else
     {
@@ -304,18 +304,43 @@ static inline bool UnityAreFeaturesSupported(int features)
 {
     bool featuresSupported = true;
     if (features & kUnityARKitSupportedFeaturesWorldMap)
-        featuresSupported &= (bool)[ARWorldMap class];
+    {
+        if (@available(iOS 12.0, *))
+        {
+            featuresSupported &= (bool)[ARWorldMap class];
+        }
+        else
+        {
+            featuresSupported = false;
+        }
+    }
     if (features & kUnityARKitSupportedFeaturesReferenceObject)
-        featuresSupported &= (bool)[ARReferenceObject class];
+    {
+        if (@available(iOS 12.0, *))
+        {
+            featuresSupported &= (bool)[ARReferenceObject class];
+        }
+        else
+        {
+            featuresSupported = false;
+        }
+    }
     
     return featuresSupported;
 }
 
 static inline bool UnityIsARKit_2_0_Supported()
 {
-    if ([ARReferenceObject class])
+    if (@available(iOS 12.0, *))
     {
-        return true;
+        if ([ARReferenceObject class])
+        {
+            return true;
+        }
+        else
+        {
+            return  false;
+        }
     }
     else
     {
@@ -404,6 +429,10 @@ static inline ARPlaneDetection GetARPlaneDetectionFromUnityARPlaneDetection(Unit
     if ((planeDetection & UnityARPlaneDetectionHorizontal) != 0)
         ret |= ARPlaneDetectionHorizontal;
     if ((planeDetection & UnityARPlaneDetectionVertical) != 0)
-        ret |= ARPlaneDetectionVertical;
+    {
+        if (@available(iOS 11.3, *)) {
+            ret |= ARPlaneDetectionVertical;
+        } 
+    }
     return ret;
 }
