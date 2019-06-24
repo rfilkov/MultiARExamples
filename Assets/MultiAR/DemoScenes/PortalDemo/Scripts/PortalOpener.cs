@@ -58,26 +58,26 @@ public class PortalOpener : MonoBehaviour
 						portalObj = Instantiate(portalPrefab);
 					}
 
-					// set its position and rotation
-					portalObj.transform.position = hit.point;
+                    // remove object anchor, if it was anchored before
+                    string anchorId = arManager.GetObjectAnchorId(portalObj);
+                    if (anchorId != string.Empty)
+                    {
+                        arManager.RemoveGameObjectAnchor(anchorId, true);
+                    }
+
+                    // anchor it to the new world position
+                    arManager.AnchorGameObjectToWorld(portalObj, hit);
+
+                    // set its position and rotation
+                    portalObj.transform.position = hit.point;
 					portalObj.transform.rotation = !verticalPortal ? hit.rotation : Quaternion.identity;
 
-					// look at the camera
-					if(portalLookingAtCamera)
+                    // look at the camera
+                    if (portalLookingAtCamera)
 					{
 						Camera arCamera = arManager.GetMainCamera();
 						MultiARInterop.TurnObjectToCamera(portalObj, arCamera, hit.point, hit.normal);
 					}
-
-					// remove object anchor, if it was anchored before
-					string anchorId = arManager.GetObjectAnchorId(portalObj);
-					if (anchorId != string.Empty) 
-					{
-						arManager.RemoveGameObjectAnchor(anchorId, true);
-					}
-
-					// anchor it to the new world position
-					arManager.AnchorGameObjectToWorld(portalObj, hit);
 
 					// apply the vertical offset
 					if (verticalOffset != 0f) 
