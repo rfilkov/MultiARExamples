@@ -4,16 +4,18 @@ using UnityEngine;
 
 public class OverlaySurfaceUpdater : MonoBehaviour
 {
-	private Mesh surfaceMesh = null;
+	protected Mesh surfaceMesh = null;
 
-	private MeshRenderer meshRenderer = null;
+    protected MeshRenderer meshRenderer = null;
 
-	private MeshCollider meshCollider = null;
+    protected MeshCollider meshCollider = null;
 
-	private bool isEnabled = true;
+    protected LineRenderer lineRenderer = null;
+
+    protected bool isEnabled = true;
 
 
-	private void Awake()
+    protected void Awake()
 	{
 		// get or create mesh filter
 		MeshFilter meshFilter = gameObject.GetComponent<MeshFilter>();
@@ -32,7 +34,32 @@ public class OverlaySurfaceUpdater : MonoBehaviour
 			meshRenderer = gameObject.AddComponent<MeshRenderer>();
 		}
 
-	}
+        // check for line renderer
+        lineRenderer = GetComponent<LineRenderer>();
+        //if (lineRenderer == null)
+        //{
+        //    lineRenderer = gameObject.AddComponent<LineRenderer>();
+
+        //    lineRenderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+        //    lineRenderer.receiveShadows = false;
+
+        //    lineRenderer.useWorldSpace = false;
+        //    lineRenderer.loop = true;
+
+        //    Shader matShader = Shader.Find("Diffuse");
+        //    if (matShader)
+        //        lineRenderer.material = new Material(matShader);
+
+        //    lineRenderer.startWidth = 0.005f;
+        //    lineRenderer.endWidth = 0.005f;
+
+        //    lineRenderer.startColor = Color.black;
+        //    lineRenderer.endColor = Color.black;
+
+        //    lineRenderer.numCornerVertices = 4;
+        //    lineRenderer.numCapVertices = 4;
+        //}
+    }
 
 	/// <summary>
 	/// Sets the surface material.
@@ -92,7 +119,30 @@ public class OverlaySurfaceUpdater : MonoBehaviour
 		}
 	}
 
-	public void SetEnabled(bool isEnabled)
+    /// <summary>
+    /// Sets the border-line material.
+    /// </summary>
+    /// <param name="matBorder">Border line material.</param>
+    public void SetBorderLineMaterial(Material matBorder)
+    {
+        if (lineRenderer)
+        {
+            if (matBorder)
+            {
+                if (!lineRenderer.enabled)
+                    lineRenderer.enabled = true;
+
+                lineRenderer.material = matBorder;
+            }
+            else
+            {
+                if (lineRenderer.enabled)
+                    lineRenderer.enabled = false;
+            }
+        }
+    }
+
+    public void SetEnabled(bool isEnabled)
 	{
 		if(this.isEnabled == isEnabled)
 			return;
@@ -108,13 +158,18 @@ public class OverlaySurfaceUpdater : MonoBehaviour
 		{
 			meshCollider.enabled = isEnabled;
 		}
-	}
 
-	/// <summary>
-	/// Updates the surface mesh.
-	/// </summary>
-	/// <returns><c>true</c>, if surface was updated, <c>false</c> otherwise.</returns>
-	public bool UpdateSurfaceMesh(Vector3 surfacePos, Quaternion surfaceRot, List<Vector3> meshVertices, List<int> meshIndices)
+        if (lineRenderer)
+        {
+            lineRenderer.enabled = isEnabled;
+        }
+    }
+
+    /// <summary>
+    /// Updates the surface mesh.
+    /// </summary>
+    /// <returns><c>true</c>, if surface was updated, <c>false</c> otherwise.</returns>
+    public bool UpdateSurfaceMesh(Vector3 surfacePos, Quaternion surfaceRot, List<Vector3> meshVertices, List<int> meshIndices)
 	{
 		transform.position = surfacePos;
 		transform.rotation = surfaceRot;
@@ -151,7 +206,17 @@ public class OverlaySurfaceUpdater : MonoBehaviour
 			meshCollider.sharedMesh = surfaceMesh;
 		}
 
-		return true;
+        if (lineRenderer != null)
+        {
+            lineRenderer.positionCount = meshVertices.Count;
+
+            for (int i = 0; i < meshVertices.Count; ++i)
+            {
+                lineRenderer.SetPosition(i, meshVertices[i]);
+            }
+        }
+
+        return true;
 	}
 
 }
