@@ -15,8 +15,8 @@ namespace UnityEngine.XR.iOS
 		public float imageResolutionHeight;
 		public int framesPerSecond;
 
-		#if UNITY_EDITOR
-		private static void EnumerateVideoFormats(VideoFormatEnumerator videoFormatEnumerator) 
+        #if UNITY_EDITOR || !UNITY_IOS
+        private static void EnumerateVideoFormats(VideoFormatEnumerator videoFormatEnumerator) 
 		{
 		}
 		private static void EnumerateFaceTrackingVideoFormats(VideoFormatEnumerator videoFormatEnumerator) 
