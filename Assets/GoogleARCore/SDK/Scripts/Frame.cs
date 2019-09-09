@@ -67,9 +67,13 @@ namespace GoogleARCore
             get
             {
                 var nativeSession = LifecycleManager.Instance.NativeSession;
-                if (nativeSession == null)
+                var sessionComponent = LifecycleManager.Instance.SessionComponent;
+                if (nativeSession == null || sessionComponent == null ||
+                    sessionComponent.SessionConfig.LightEstimationMode ==
+                    LightEstimationMode.Disabled)
                 {
-                    return new LightEstimate(LightEstimateState.NotValid, 0.0f, Color.black);
+                    return new LightEstimate(LightEstimateState.NotValid, 0.0f, Color.black,
+                        Quaternion.LookRotation(Vector3.down), Color.white, null, -1);
                 }
 
                 return nativeSession.FrameApi.GetLightEstimate();
@@ -84,9 +88,10 @@ namespace GoogleARCore
         /// </summary>
         /// <param name="x">Horizontal touch position in Unity's screen coordiante.</param>
         /// <param name="y">Vertical touch position in Unity's screen coordiante.</param>
-        /// <param name="filter">A filter bitmask where each set bit in {@link TrackableHitFlags}
+        /// <param name="filter">A filter bitmask where each set bit in
+        /// <see cref="TrackableHitFlags"/>
         /// represents a category of raycast hits the method call should consider valid.</param>
-        /// <param name="hitResult">A {@link TrackableHit} that will be set if the raycast is
+        /// <param name="hitResult">A <see cref="TrackableHit"/> that will be set if the raycast is
         /// successful.</param>
         /// <returns><c>true</c> if the raycast had a hit, otherwise <c>false</c>.</returns>
         [SuppressMemoryAllocationError(IsWarning = true, Reason = "List could be resized")]
@@ -118,10 +123,11 @@ namespace GoogleARCore
         /// </summary>
         /// <param name="origin">The starting point of the ray in world coordinates.</param>
         /// <param name="direction">The direction of the ray.</param>
-        /// <param name="hitResult">A {@link TrackableHit} that will be set if the raycast is
+        /// <param name="hitResult">A <see cref="TrackableHit"/> that will be set if the raycast is
         /// successful.</param>
         /// <param name="maxDistance">The max distance the ray should check for collisions.</param>
-        /// <param name="filter">A filter bitmask where each set bit in {@link TrackableHitFlags}
+        /// <param name="filter">A filter bitmask where each set bit in
+        /// <see cref="TrackableHitFlags"/>
         /// represents a category of raycast hits the method call should consider valid.</param>
         /// <returns><c>true</c> if the raycast had a hit, otherwise <c>false</c>.</returns>
         [SuppressMemoryAllocationError(IsWarning = true, Reason = "List could be resized")]
@@ -158,10 +164,11 @@ namespace GoogleARCore
         /// </summary>
         /// <param name="x">Horizontal touch position in Unity's screen coordiante.</param>
         /// <param name="y">Vertical touch position in Unity's screen coordiante.</param>
-        /// <param name="filter">A filter bitmask where each set bit in {@link TrackableHitFlags}
+        /// <param name="filter">A filter bitmask where each set bit in
+        /// <see cref="TrackableHitFlags"/>
         /// represents a category of raycast hits the method call should consider valid.</param>
-        /// <param name="hitResults">A list of {@link TrackableHit} that will be set if the raycast
-        /// is successful.</param>
+        /// <param name="hitResults">A list of <see cref="TrackableHit"/> that will be set if the
+        /// raycast is successful.</param>
         /// <returns><c>true</c> if the raycast had a hit, otherwise <c>false</c>.</returns>
         [SuppressMemoryAllocationError(IsWarning = true, Reason = "List could be resized")]
         public static bool RaycastAll(
@@ -184,11 +191,11 @@ namespace GoogleARCore
         /// </summary>
         /// <param name="origin">The starting point of the ray in world coordinates.</param>
         /// <param name="direction">The direction of the ray.</param>
-        /// <param name="hitResults">A list of {@link TrackableHit} that will be set if the raycast
-        /// is successful.</param>
+        /// <param name="hitResults">A list of <see cref="TrackableHit"/> that will be set if the
+        /// raycast is successful.</param>
         /// <param name="maxDistance">The max distance the ray should check for collisions.</param>
-        /// <param name="filter">A filter bitmask where each set bit in {@link TrackableHitFlags}
-        /// represents a category
+        /// <param name="filter">A filter bitmask where each set bit in
+        /// <see cref="TrackableHitFlags"/> represents a category
         /// of raycast hits the method call should consider valid.</param>
         /// <returns><c>true</c> if the raycast had a hit, otherwise <c>false</c>.</returns>
         [SuppressMemoryAllocationError(IsWarning = true, Reason = "List could be resized")]
@@ -538,13 +545,6 @@ namespace GoogleARCore
             {
                 get
                 {
-                    if (InstantPreviewManager.IsProvidingPlatform)
-                    {
-                        InstantPreviewManager.LogLimitedSupportMessage(
-                            "access CPU Image intrinsics");
-                        return new CameraIntrinsics();
-                    }
-
                     var nativeSession = LifecycleManager.Instance.NativeSession;
                     if (nativeSession == null)
                     {
@@ -597,11 +597,12 @@ namespace GoogleARCore
             }
 
             /// <summary>
-            /// Attempts to acquire the camera image for CPU access.
+            /// Attempts to acquire the camera image for CPU access that corresponds to the current
+            /// frame.
             /// </summary>
             /// <remarks>
-            /// Not supported on all devices
-            /// (see https://developers.google.com/ar/discover/supported-devices).
+            /// Depending on device performance, this can fail for several frames after session
+            /// start, and for a few frames at a time while the session is running.
             /// </remarks>
             /// <returns>A <c>CameraImageBytes</c> struct with <c>IsAvailable</c> property set to
             /// <c>true</c> if successful and <c>false</c> if the image could not be

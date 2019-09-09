@@ -48,9 +48,14 @@ namespace GoogleARCore.Examples.HelloAR
         public GameObject DetectedPlanePrefab;
 
         /// <summary>
-        /// A model to place when a raycast from a user touch hits a plane.
+        /// A model to place when a raycast from a user touch hits a vertical plane.
         /// </summary>
-        public GameObject AndyPlanePrefab;
+        public GameObject AndyVerticalPlanePrefab;
+
+        /// <summary>
+        /// A model to place when a raycast from a user touch hits a horizontal plane.
+        /// </summary>
+        public GameObject AndyHorizontalPlanePrefab;
 
         /// <summary>
         /// A model to place when a raycast from a user touch hits a feature point.
@@ -67,6 +72,16 @@ namespace GoogleARCore.Examples.HelloAR
         /// otherwise false.
         /// </summary>
         private bool m_IsQuitting = false;
+
+        /// <summary>
+        /// The Unity Awake() method.
+        /// </summary>
+        public void Awake()
+        {
+            // Enable ARCore to target 60fps camera capture frame rate on supported devices.
+            // Note, Application.targetFrameRate is ignored when QualitySettings.vSyncCount != 0.
+            Application.targetFrameRate = 60;
+        }
 
         /// <summary>
         /// The Unity Update() method.
@@ -111,9 +126,21 @@ namespace GoogleARCore.Examples.HelloAR
                     {
                         prefab = AndyPointPrefab;
                     }
+                    else if (hit.Trackable is DetectedPlane)
+                    {
+                        DetectedPlane detectedPlane = hit.Trackable as DetectedPlane;
+                        if (detectedPlane.PlaneType == DetectedPlaneType.Vertical)
+                        {
+                            prefab = AndyVerticalPlanePrefab;
+                        }
+                        else
+                        {
+                            prefab = AndyHorizontalPlanePrefab;
+                        }
+                    }
                     else
                     {
-                        prefab = AndyPlanePrefab;
+                        prefab = AndyHorizontalPlanePrefab;
                     }
 
                     // Instantiate Andy model at the hit pose.
@@ -147,8 +174,7 @@ namespace GoogleARCore.Examples.HelloAR
             // Only allow the screen to sleep when not tracking.
             if (Session.Status != SessionStatus.Tracking)
             {
-                const int lostTrackingSleepTimeout = 15;
-                Screen.sleepTimeout = lostTrackingSleepTimeout;
+                Screen.sleepTimeout = SleepTimeout.SystemSetting;
             }
             else
             {
