@@ -852,29 +852,36 @@ public class ARCoreInteface : ARBaseInterface, ARPlatformInterface
 
         // modify the directional light
         Light currentLight = MultiARInterop.GetDirectionalLight();
-        if (!currentLight)
+
+        if (Frame.LightEstimate.Mode == LightEstimationMode.Disabled)
         {
-            GameObject currentLightObj = new GameObject("Directional light");
 
-            currentLight = currentLightObj.AddComponent<Light>();
-            currentLight.type = LightType.Directional;
-        }
+            
+            if (!currentLight)
+            {
+                GameObject currentLightObj = new GameObject("Directional light");
 
-        // reset light position & rotation
-        currentLight.transform.position = Vector3.zero;
-        currentLight.transform.rotation = Quaternion.Euler(40f, 40f, 0f);
-        DontDestroyOnLoad(currentLight.gameObject);
+                currentLight = currentLightObj.AddComponent<Light>();
+                currentLight.type = LightType.Directional;
+            }
 
-        // set light parameters
-        //currentLight.lightmapBakeType = LightmapBakeType.Mixed;
-        currentLight.color = new Color32(255, 254, 244, 255);
+            // reset light position & rotation
+            currentLight.transform.position = Vector3.zero;
+            currentLight.transform.rotation = Quaternion.Euler(40f, 40f, 0f);
+            DontDestroyOnLoad(currentLight.gameObject);
 
-        // add the ar-light component
-        currentLight.gameObject.AddComponent<MultiARDirectionalLight>();
+            // set light parameters
+            //currentLight.lightmapBakeType = LightmapBakeType.Mixed;
+            currentLight.color = new Color32(255, 254, 244, 255);
 
-        // get ar-data
-        MultiARInterop.MultiARData arData = arManager ? arManager.GetARData() : null;
+            // add the ar-light component
+            currentLight.gameObject.AddComponent<MultiARDirectionalLight>();
 
+            }
+            
+            // get ar-data
+            MultiARInterop.MultiARData arData = arManager ? arManager.GetARData() : null;
+        
         if (arManager && arManager.usePointCloudData)
         {
             arData.pointCloudData = new Vector3[MultiARInterop.MAX_POINT_COUNT];
@@ -933,13 +940,15 @@ public class ARCoreInteface : ARBaseInterface, ARPlatformInterface
 
 		if (Frame.LightEstimate.State == LightEstimateState.Valid)
 		{
+            if (Frame.LightEstimate.Mode != LightEstimationMode.EnvironmentalHDRWithoutReflections && Frame.LightEstimate.Mode != LightEstimationMode.EnvironmentalHDRWithReflections) { 
 			// Normalize pixel intensity by middle gray in gamma space.
 			const float middleGray = 0.466f;
 			currentLightIntensity = Frame.LightEstimate.PixelIntensity / middleGray;
-		}
+            }
+        }
 
-		// get point cloud, if needed
-		MultiARInterop.MultiARData arData = arManager.GetARData();
+        // get point cloud, if needed
+        MultiARInterop.MultiARData arData = arManager.GetARData();
 
 		if(arManager.usePointCloudData)
 		{
